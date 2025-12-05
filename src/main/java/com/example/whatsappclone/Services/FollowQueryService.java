@@ -1,0 +1,98 @@
+package com.example.whatsappclone.Services;
+
+import com.example.whatsappclone.DTO.serverToclient.user;
+import com.example.whatsappclone.Entities.Follow;
+import com.example.whatsappclone.Entities.Profile;
+import com.example.whatsappclone.Entities.User;
+import com.example.whatsappclone.Exceptions.BadFollowRequestException;
+import com.example.whatsappclone.Exceptions.UserNotFoundException;
+import com.example.whatsappclone.Repositries.BlocksRepo;
+import com.example.whatsappclone.Repositries.FollowRepo;
+import com.example.whatsappclone.Repositries.ProfileRepo;
+import com.example.whatsappclone.Repositries.UserRepo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class FollowQueryService {
+private final FollowHelperService followHelperService;
+private final UsersManagmentService usersManagment;
+private final CachService cachService;
+private final FollowRepo followRepo;
+private final BlocksRepo blocksRepo;
+private final ProfileRepo profileRepo;
+private final UserRepo userRepo;
+    public List<user> ListFollowers(int page) {
+        return followHelperService.
+                ListFollows(FollowHelperService.Position.FOLLOWER, Follow.Status.ACCEPTED,
+                        page,usersManagment.getcurrentuser());
+    }
+
+    public List<user> ListFollowRequests(int page) {
+        return followHelperService.
+                ListFollows(FollowHelperService.Position.FOLLOWER,Follow.Status.PENDING,
+                        page,usersManagment.getcurrentuser());
+    }
+
+    public List<user> listfollowings(int page) {
+        return followHelperService.
+                ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.ACCEPTED,page
+                        ,usersManagment.getcurrentuser());
+    }
+
+    public List<user> listafollowingrequests(int page) {
+        return followHelperService
+                .ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.PENDING,page
+                        ,usersManagment.getcurrentuser());
+    }
+    public List<user> getUserFollow(String useruuid, int page, FollowHelperService.Position position){
+        User currentuser=usersManagment.getcurrentuser();
+        User requesteduser;
+        requesteduser=cachService.getUserbyId(useruuid);
+        if (requesteduser == null) {
+            requesteduser= userRepo.findById(useruuid).
+                    orElseThrow(() -> new UserNotFoundException("user not found"));
+        }
+        boolean isblocked=blocksRepo.existsByBlockedAndBlocker(currentuser,requesteduser);
+        boolean hasblocked= blocksRepo.existsByBlockedAndBlocker(requesteduser,currentuser);
+        if (hasblocked) {
+            throw new BadFollowRequestException("you cant see his followings because you blocked him");
+        }
+        if(isblocked){
+            throw new BadFollowRequestException("you cant see his followings because user has blocked you");
+        }
+        Profile cached = cachService.getcachedprofile(requesteduser);
+        Profile profile = cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
+        if(profile.isIsprivate()){
+            if(!followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)){
+                throw new BadFollowRequestException("this user has private access");
+            };
+        }
+        return followHelperService.ListFollows(position, Follow.Status.ACCEPTED,page,requesteduser).stream().peek(follows-> {
+            follows.setFollowuuid(null);
+            String status=null;
+            String followeruuid= follows.getUseruuid();
+            boolean isfolloweraccepted = followRepo.
+                    existsByFollowerAndFollowing_UuidAndStatus(currentuser,followeruuid, Follow.Status.ACCEPTED);
+            if(isfolloweraccepted){
+                status="following";
+            }else{
+                boolean isfollowerpending=followRepo.
+                        existsByFollowerAndFollowing_UuidAndStatus(currentuser,followeruuid, Follow.Status.PENDING);
+                if(isfollowerpending){
+                    status="sent";
+                }
+            }
+            boolean i=followRepo.existsByFollowerAndFollowingUuid(currentuser, followeruuid);
+            boolean isfollowingaccepted=followRepo.
+                    existsByFollower_UuidAndFollowingAndStatus(followeruuid,currentuser, Follow.Status.ACCEPTED);
+            if(isfollowingaccepted&&!i){
+                status="follow back";
+            }
+            follows.setStatus(status);
+        }).toList();
+    }
+}
