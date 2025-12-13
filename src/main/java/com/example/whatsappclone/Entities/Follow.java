@@ -33,5 +33,9 @@ public class Follow {
        this.follower=follower;
        this.following=following;
     }
+    public Follow(User follower,User following,Status status){
+        this(follower,following);
+        this.status=status;
+    }
     public enum Status{PENDING,ACCEPTED,REJECTED}
 }

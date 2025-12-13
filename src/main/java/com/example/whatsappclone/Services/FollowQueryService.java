@@ -25,29 +25,21 @@ private final FollowRepo followRepo;
 private final BlocksRepo blocksRepo;
 private final ProfileRepo profileRepo;
 private final UserRepo userRepo;
-    public List<user> ListFollowers(int page) {
+    public List<user> ListMyfollowers(int page) {
         return followHelperService.
                 ListFollows(FollowHelperService.Position.FOLLOWER, Follow.Status.ACCEPTED,
-                        page,usersManagment.getcurrentuser());
+                        page,usersManagment.getcurrentuser(),true);
     }
 
-    public List<user> ListFollowRequests(int page) {
-        return followHelperService.
-                ListFollows(FollowHelperService.Position.FOLLOWER,Follow.Status.PENDING,
-                        page,usersManagment.getcurrentuser());
-    }
 
-    public List<user> listfollowings(int page) {
+
+    public List<user> listMyfollowings(int page) {
         return followHelperService.
                 ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.ACCEPTED,page
-                        ,usersManagment.getcurrentuser());
+                        ,usersManagment.getcurrentuser(),true);
     }
 
-    public List<user> listafollowingrequests(int page) {
-        return followHelperService
-                .ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.PENDING,page
-                        ,usersManagment.getcurrentuser());
-    }
+
     public List<user> getUserFollow(String useruuid, int page, FollowHelperService.Position position){
         User currentuser=usersManagment.getcurrentuser();
         User requesteduser;
@@ -64,14 +56,13 @@ private final UserRepo userRepo;
         if(isblocked){
             throw new BadFollowRequestException("you cant see his followings because user has blocked you");
         }
-        Profile cached = cachService.getcachedprofile(requesteduser);
-        Profile profile = cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
+        Profile profile=usersManagment.getuserprofile(requesteduser,false);
         if(profile.isIsprivate()){
             if(!followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)){
                 throw new BadFollowRequestException("this user has private access");
             };
         }
-        return followHelperService.ListFollows(position, Follow.Status.ACCEPTED,page,requesteduser).stream().peek(follows-> {
+        return followHelperService.ListFollows(position, Follow.Status.ACCEPTED,page,requesteduser,false).stream().peek(follows-> {
             follows.setFollowuuid(null);
             String status=null;
             String followeruuid= follows.getUseruuid();

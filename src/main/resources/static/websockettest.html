@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket STOMP Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        input, button {
+            padding: 10px 15px;
+            margin: 5px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #status {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        #messages {
+            width: 90%;
+            max-width: 600px;
+            min-height: 150px;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        /* Notification container */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 9999;
+        }
+
+        .notification-popup {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            animation: slideIn 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        .notification-popup img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .notification-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-text .message {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .notification-text .small {
+            font-size: 13px;
+            color: #666;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+
+<h2>WebSocket STOMP Client</h2>
+
+<input type="text" id="token" placeholder="Enter JWT token here" size="50">
+<button onclick="connect()">Connect</button>
+<button onclick="disconnect()">Disconnect</button>
+
+<div id="status"></div>
+<div id="messages"></div>
+
+<!-- Notifications -->
+<div id="notification-container"></div>
+
+<script>
+    let stompClient = null;
+    let heartbeatInterval = null;
+
+    // Show popup notifications
+    function showNotificationPopup(notification) {
+        const container = document.getElementById("notification-container");
+        const popup = document.createElement("div");
+        popup.classList.add("notification-popup");
+
+        popup.innerHTML = `
+            <img src="${notification.pfpurl}" alt="Avatar">
+            <div class="notification-text">
+                <div class="message">${notification.message}</div>
+                <div class="small">Tap to view</div>
+            </div>
+        `;
+
+        container.appendChild(popup);
+
+        setTimeout(() => {
+            popup.style.animation = "fadeOut 0.5s forwards";
+            setTimeout(() => popup.remove(), 500);
+        }, 5000);
+    }
+
+    function connect() {
+        const token = document.getElementById('token').value.trim();
+        if (!token) {
+            alert("Please enter a JWT token!");
+            return;
+        }
+
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect(
+            { "Authorization": "Bearer " + token },
+            function(frame) {
+                console.log("Connected:", frame);
+                document.getElementById('status').innerText =
+                    'Connected as ' + (frame.headers['user-name'] ?? 'Unknown');
+
+                // Subscribe to user notifications
+                stompClient.subscribe('/user/queue/notifications', function(message) {
+                    try {
+                        const notification = JSON.parse(message.body);
+                        showNotificationPopup(notification);
+                        // Also append to messages box
+                        document.getElementById('messages').innerText +=
+                            `Message: ${notification.message}\n`;
+                    } catch (e) {
+                        document.getElementById('messages').innerText += message.body + '\n';
+                    }
+                });
+
+                // Heartbeat
+                heartbeatInterval = setInterval(() => {
+                    if (stompClient && stompClient.connected) {
+                        stompClient.send("/app/heartbeat", {}, "ping");
+                        console.log("Heartbeat sent");
+                    }
+                }, 10000);
+            },
+            function(error) {
+                document.getElementById('status').innerText = 'Connection error: ' + error;
+            }
+        );
+    }
+
+    function disconnect() {
+        if (stompClient) {
+            stompClient.disconnect(() => {
+                document.getElementById('status').innerText = "Disconnected";
+                clearInterval(heartbeatInterval);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

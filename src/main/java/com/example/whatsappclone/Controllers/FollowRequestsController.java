@@ -2,8 +2,6 @@ package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.serverToclient.user;
 
-import com.example.whatsappclone.Services.BlockService;
-
 import com.example.whatsappclone.Services.FollowRequestService;
 import lombok.RequiredArgsConstructor;
 
@@ -20,12 +18,12 @@ public class FollowRequestsController {
 
     @GetMapping("/me/{page}")
     public List<user> getfollowrequests(@PathVariable int page) {
-        return followRequestService.ListFollowRequests(page);
+        return followRequestService.ListMyFollowRequests(page);
     }
 
     @GetMapping("/me/following/{page}")
     public List<user> getfollowingrequests(@PathVariable int page) {
-        return followRequestService.listafollowingrequests(page);
+        return followRequestService.ListMyFollowingRequests(page);
     }
 
     @PutMapping("/me/{followid}/accept")

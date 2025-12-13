@@ -10,6 +10,7 @@ import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service

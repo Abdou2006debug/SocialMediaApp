@@ -2,6 +2,8 @@ package com.example.whatsappclone.Entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -13,6 +15,8 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class Profile {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -30,5 +34,8 @@ public class Profile {
 public Profile(String bio ,String username){
     this.bio=bio;
     this.username=username;
+}
+public Profile(boolean isprivate){
+    this.isprivate=isprivate;
 }
 }

@@ -23,6 +23,7 @@ public class NotificationService {
     private final CachService cachService;
     private final ProfileRepo profileRepo;
     private final NotificationSettingsRepo notificationSettingsRepo;
+    private final UsersManagmentService usersManagmentService;
     private final Logger logger= LoggerFactory.getLogger(NotificationService.class);
     private void follownotification(notification notification) throws JsonProcessingException {
         User recipient=notification.getRecipient();
@@ -36,9 +37,7 @@ public class NotificationService {
             return ;
         }
         User trigger=notification.getTrigger();
-        Profile cachedprofile=cachService.getcachedprofile(trigger);
-        Profile triggerprofile=cachedprofile==null?
-                profileRepo.findByUser(trigger).orElseThrow():cachedprofile;
+        Profile triggerprofile=usersManagmentService.getuserprofile(trigger,true);
         String triggerusername=triggerprofile.getUsername();
         String triggerpfp=triggerprofile.getPublicavatarurl();
         String triggeruuid=trigger.getUuid();
@@ -74,9 +73,7 @@ public class NotificationService {
             }
             message=trigger.getUsername()+" rejected your follow";
         }
-        Profile cachedprofile=cachService.getcachedprofile(trigger);
-        Profile triggerprofile=cachedprofile==null?
-                profileRepo.findByUser(trigger).orElseThrow():cachedprofile;
+        Profile triggerprofile=usersManagmentService.getuserprofile(trigger,false);
         String triggerusername=triggerprofile.getUsername();
         String triggerpfp=triggerprofile.getPublicavatarurl();
         String triggeruuid=trigger.getUuid();

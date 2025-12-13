@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: instagramcloneDB
+      POSTGRES_USER: springapp
+      POSTGRES_PASSWORD: Abdoumimi12
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  # Redis
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # Keycloak (OAuth2 / JWT)
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.1
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: Admin123!
+    command: start-dev
+    ports:
+      - "8080:8080"
+
+  # Spring Boot App
+  whatsappclone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: whatsappclone
+    container_name: instagramclone
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/instagramcloneDB
+      SPRING_DATASOURCE_USERNAME: springapp
+      SPRING_DATASOURCE_PASSWORD: Abdoumimi12
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/Realm
+      SERVER_PORT: 8082
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - redis
+      - keycloak
+
+volumes:
+  pgdata:
+  pgadmin-data:

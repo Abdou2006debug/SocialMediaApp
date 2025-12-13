@@ -11,11 +11,13 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.Instant;
 
@@ -54,31 +56,31 @@ public class FollowService {
                 });
         Follow follow = new Follow(currentuser, usertofollow);
         Profile profile=profileRepo.findByUser(usertofollow).get();
+       notification notification= new notification(currentuser,usertofollow,
+                com.example.whatsappclone.Events.notification.notificationType.FOLLOW,follow.getUuid());
         if (!profile.isIsprivate()) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setAccepteddate(Instant.now());
             cachService.addfollower(usertofollow,follow);
             cachService.addfollowing(currentuser,follow);
             logger.info("publishing follow event for "+usertofollow.getUsername());
-            eventPublisher.publishEvent(new notification(currentuser,usertofollow,
-                    notification.notificationType.FOLLOW,follow.getUuid()));
+            eventPublisher.publishEvent(notification);
         } else {
             follow.setStatus(Follow.Status.PENDING);
             logger.info("publishing follow request event for "+usertofollow.getUsername());
-            eventPublisher.publishEvent(new notification(currentuser,usertofollow,
-                    notification.notificationType.FOLLOW_REQUESTED,follow.getUuid()));
+            notification.setType(com.example.whatsappclone.Events.notification.notificationType.FOLLOW_REQUESTED);
+            eventPublisher.publishEvent(notification);
         }
         followRepo.save(follow);
         return new user(useruuid,usertofollow.getUsername(),profile.getPublicavatarurl(),follow.getUuid());
     }
-
     public void UnFollow(String followuuid) {
         User currentuser = usersManagment.getcurrentuser();
-        Follow follow = followRepo.findByUuidAndFollower(followuuid, currentuser).orElseThrow();
-        User userfollowing=follow.getFollowing();
+        Follow follow = followRepo.findByUuidAndFollower(followuuid, currentuser).orElseThrow(()->new BadFollowRequestException("bad request"));
         if (follow.getStatus().equals(Follow.Status.PENDING)) {
             throw new BadFollowRequestException("you are not following this user try to unsend the request");
         }
+        User userfollowing=follow.getFollowing();
         followRepo.delete(follow);
         cachService.removefollowing(currentuser,follow);
         cachService.removefollower(userfollowing,follow);
@@ -88,10 +90,10 @@ public class FollowService {
         Follow follow = followRepo.
                 findByUuidAndFollowing(followuuid,currentuser).
                 orElseThrow(()->new BadFollowRequestException("bad request"));
-        User userfollower=follow.getFollower();
         if (follow.getStatus() == Follow.Status.PENDING) {
             throw new BadFollowRequestException("user not in followers try to reject the request");
         }
+        User userfollower=follow.getFollower();
         followRepo.delete(follow);
         cachService.removefollower(currentuser,follow);
         cachService.removefollowing(userfollower,follow);

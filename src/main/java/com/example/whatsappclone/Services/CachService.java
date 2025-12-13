@@ -31,8 +31,6 @@ public class CachService {
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
 
-
-
     public void cachuser(User user){
         String keycloakid =user.getKeycloakId();
         redisTemplate.opsForHash().put("user:"+ keycloakid,"uuid",user.getUuid());

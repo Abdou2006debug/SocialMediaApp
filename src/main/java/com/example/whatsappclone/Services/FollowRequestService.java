@@ -28,13 +28,14 @@ public class FollowRequestService {
     private final ProfileRepo profileRepo;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
+
     public void acceptfollow(String followuuid) {
         User currentuser = usersManagment.getcurrentuser();
         Follow followrequest = followRepo.
-                findByUuidAndFollowing(followuuid,currentuser).orElseThrow();
+                findByUuidAndFollowing(followuuid,currentuser).orElseThrow(()->new BadFollowRequestException("bad request"));
         User userfollower=followrequest.getFollower();
         if (followrequest.getStatus() == Follow.Status.ACCEPTED) {
-            throw new BadFollowRequestException("you already follow this user");
+            throw new BadFollowRequestException("user already follow you");
         }
         followrequest.setStatus(Follow.Status.ACCEPTED);
         followrequest.setAccepteddate(Instant.now());
@@ -58,15 +59,16 @@ public class FollowRequestService {
         eventPublisher.publishEvent(new notification(currentuser,userfollower,
                 notification.notificationType.FOLLOWING_REJECTED));
     }
-    public List<user> ListFollowRequests(int page) {
+
+    public List<user> ListMyFollowRequests(int page) {
         return followHelperService.
                 ListFollows(FollowHelperService.Position.FOLLOWER,Follow.Status.PENDING,
-                        page,usersManagment.getcurrentuser());
+                        page,usersManagment.getcurrentuser(),true);
     }
-    public List<user> listafollowingrequests(int page) {
+    public List<user> ListMyFollowingRequests(int page) {
         return followHelperService
                 .ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.PENDING,page
-                        ,usersManagment.getcurrentuser());
+                        ,usersManagment.getcurrentuser(),true);
     }
     public void unsendfollowingrequest(String followuuid){
     User currentuser = usersManagment.getcurrentuser();
@@ -77,16 +79,16 @@ public class FollowRequestService {
     }
         followRepo.delete(followrequest);
 }
+
     public void UpdateProfileSettings(profilesettings profilesettings){
         User currentuser=usersManagment.getcurrentuser();
-        Profile cachedprofile=cachService.getcachedprofile(currentuser);
-        Profile currentprofile=cachedprofile==null?
-                profileRepo.findByUser(currentuser).orElseThrow():cachedprofile;
+       Profile currentprofile=usersManagment.getuserprofile(currentuser,true);
+       boolean currentstatus=currentprofile.isIsprivate();
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
         profileRepo.save(currentprofile);
         cachService.cachuserprofile(currentprofile);
-        if(!profilesettings.isIsprivate()){
+        if(!profilesettings.isIsprivate()&&currentstatus){
             followRepo.findByFollowingAndStatus(currentuser, Follow.Status.PENDING).
                     forEach(follow -> rejectfollow(follow.getUuid()));
         }

@@ -48,6 +48,15 @@ public class UsersManagmentService {
     private final BlocksRepo blocksRepo;
     @Value("${supabase_key}")
     private String apikey;
+    public Profile getuserprofile(User requesteduser,Boolean cachit){
+        Profile cached = cachService.getcachedprofile(requesteduser);
+        Profile profile = cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
+        if(cachit&&cached==null){
+            cachService.cachuserprofile(profile);
+        }
+        return profile;
+    }
+
     public User getcurrentuser(){
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
@@ -116,9 +125,7 @@ public notificationsettings getnotificationsettings(){
 }
     public void uploadpfp(MultipartFile file) throws IOException {
         User currentuser=getcurrentuser();
-        Profile cachedprofile=cachService.getcachedprofile(currentuser);
-        Profile currentprofile=cachedprofile==null?
-                profileRepo.findByUser(currentuser).get():cachedprofile;
+Profile currentprofile=getuserprofile(currentuser,false);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " +apikey);
         headers.set("apikey", apikey);
@@ -164,9 +171,7 @@ public notificationsettings getnotificationsettings(){
     }
     public void UpdateProfile(profile p){
         User currentuser=getcurrentuser();
-        Profile cachedprofile=cachService.getcachedprofile(currentuser);
-        Profile currentprofile=cachedprofile==null?
-                profileRepo.findByUser(currentuser).get():cachedprofile;
+        Profile currentprofile=getuserprofile(currentuser,true);
         currentprofile.setUsername(p.getUsername());
         currentprofile.setBio(p.getBio());
         currentuser.setUsername(p.getUsername());
@@ -175,9 +180,7 @@ public notificationsettings getnotificationsettings(){
     }
     public com.example.whatsappclone.DTO.serverToclient.profile getMyProfile(){
         User currentuser=getcurrentuser();
-        Profile cachedprofile=cachService.getcachedprofile(currentuser);
-        Profile profile=cachedprofile==null?
-                profileRepo.findByUser(currentuser).get():cachedprofile;
+        Profile profile=getuserprofile(currentuser,true);
         com.example.whatsappclone.DTO.serverToclient.profile profiledto=
                 new com.example.whatsappclone.DTO.serverToclient.profile();
         profiledto.setAvatarurl(profile.getPublicavatarurl());
@@ -190,9 +193,7 @@ public notificationsettings getnotificationsettings(){
     }
     public com.example.whatsappclone.DTO.serverToclient.profilesettings getMyProfileSettings(){
         User currentuser=getcurrentuser();
-        Profile cachedprofile=cachService.getcachedprofile(currentuser);
-        Profile profile=cachedprofile==null?
-                profileRepo.findByUser(currentuser).get():cachedprofile;
+        Profile profile=getuserprofile(currentuser,true);
         return new com.example.whatsappclone.DTO.serverToclient.
                 profilesettings(profile.isIsprivate(),profile.isShowifonline());
     }
@@ -204,9 +205,7 @@ public notificationsettings getnotificationsettings(){
             requesteduser= userRepo.findById(useruuid).
                     orElseThrow(() -> new UserNotFoundException("user not found"));
         }
-       // Profile cached = cachService.getcachedprofile(requesteduser);
-        Profile profile =profileRepo.findByUser(requesteduser).get();
-                //cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
+       Profile profile=getuserprofile(requesteduser,false);
         String status=null;
 
         boolean hasblocked= blocksRepo.
@@ -216,20 +215,18 @@ public notificationsettings getnotificationsettings(){
         }
         boolean isfolloweraccepted = followRepo.
                 existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED);
+        boolean isfollowerpending=followRepo.
+                existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING);
         if(isfolloweraccepted){
             status="following";
-        }else{
-            boolean isfollowerpending=followRepo.
-                    existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING);
-            if(isfollowerpending){
+        }else if(isfollowerpending){
                 status="sent";
+        }else{
+            boolean isfollowingaccepted=followRepo.
+                    existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.ACCEPTED);
+            if(isfollowingaccepted){
+                status="follow back";
             }
-        }
-        boolean i=followRepo.existsByFollowerAndFollowing(currentuser,requesteduser);
-        boolean isfollowingaccepted=followRepo.
-                existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.ACCEPTED);
-        if(isfollowingaccepted&&!i){
-            status="follow back";
         }
 boolean isonline=cachService.getuserstatus(requesteduser.getUsername());
      String lastseen=isonline?null: cachService.getuserlastseen(requesteduser.getUsername());

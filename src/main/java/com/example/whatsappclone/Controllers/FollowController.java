@@ -29,12 +29,12 @@ public class FollowController {
 
     @GetMapping("/me/followers/{page}")
     public List<user> getfollowers(@PathVariable int page) {
-        return followQueryService.ListFollowers(page);
+        return followQueryService.ListMyfollowers(page);
     }
 
     @GetMapping("/me/followings/{page}")
     public List<user> getfollowings(@PathVariable int page) {
-        return followQueryService.listfollowings(page);
+        return followQueryService.listMyfollowings(page);
     }
 
     @DeleteMapping("/me/{followid}/removefollower")
