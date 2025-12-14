@@ -2,7 +2,7 @@ package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.serverToclient.user;
 
-import com.example.whatsappclone.Services.FollowHelperService;
+import com.example.whatsappclone.Services.FollowUtill;
 
 import com.example.whatsappclone.Services.FollowQueryService;
 import com.example.whatsappclone.Services.FollowService;
@@ -44,12 +44,12 @@ public class FollowController {
 
     @GetMapping("/{userid}/followers/{page}")
     public List<user> getuserfollowers(@PathVariable String userid, @PathVariable int page) {
-        return followQueryService.getUserFollow(userid, page, FollowHelperService.Position.FOLLOWER);
+        return followQueryService.getUserFollow(userid, page, FollowUtill.Position.FOLLOWER);
     }
 
     @GetMapping("/{userid}/followings/{page}")
     public List<user> getuserfollowings(@PathVariable String userid, @PathVariable int page) {
-        return followQueryService.getUserFollow(userid, page, FollowHelperService.Position.FOLLOWING);
+        return followQueryService.getUserFollow(userid, page, FollowUtill.Position.FOLLOWING);
     }
 }
 

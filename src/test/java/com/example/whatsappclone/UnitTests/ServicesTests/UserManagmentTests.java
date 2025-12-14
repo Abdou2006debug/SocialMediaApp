@@ -1,11 +1,10 @@
-package com.example.whatsappclone.ServicesTests;
+package com.example.whatsappclone.UnitTests.ServicesTests;
 
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Services.CachService;
 import com.example.whatsappclone.Services.UsersManagmentService;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -13,13 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.*;
-import org.junit.jupiter.api.Test;
-
 import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserManagmentTests {

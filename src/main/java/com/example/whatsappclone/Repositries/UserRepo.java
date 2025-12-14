@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface UserRepo extends JpaRepository<User,String> {
     Optional<User> findByKeycloakId(String keycloakId);
-
+Optional<User> findByUsername(String username);
     void deleteByUsername(String s);
 }

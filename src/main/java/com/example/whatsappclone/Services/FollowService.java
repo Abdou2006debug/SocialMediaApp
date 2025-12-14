@@ -23,6 +23,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FollowService {
     private final FollowRepo followRepo;
     private final UserRepo userRepo;

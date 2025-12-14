@@ -23,7 +23,7 @@ import java.util.List;
 public class FollowRequestService {
     private final FollowRepo followRepo;
     private final UsersManagmentService usersManagment;
-    private final FollowHelperService followHelperService;
+    private final FollowUtill followHelperService;
     private final CachService cachService;
     private final ProfileRepo profileRepo;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
@@ -62,13 +62,13 @@ public class FollowRequestService {
 
     public List<user> ListMyFollowRequests(int page) {
         return followHelperService.
-                ListFollows(FollowHelperService.Position.FOLLOWER,Follow.Status.PENDING,
-                        page,usersManagment.getcurrentuser(),true);
+                ListMyFollows_Pending(FollowUtill.Position.FOLLOWER,
+                        page,usersManagment.getcurrentuser());
     }
     public List<user> ListMyFollowingRequests(int page) {
         return followHelperService
-                .ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.PENDING,page
-                        ,usersManagment.getcurrentuser(),true);
+                .ListMyFollows_Pending(FollowUtill.Position.FOLLOWING,page
+                        ,usersManagment.getcurrentuser());
     }
     public void unsendfollowingrequest(String followuuid){
     User currentuser = usersManagment.getcurrentuser();

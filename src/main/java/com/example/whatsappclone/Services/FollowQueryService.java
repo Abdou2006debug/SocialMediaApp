@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FollowQueryService {
-private final FollowHelperService followHelperService;
+private final FollowUtill followHelperService;
 private final UsersManagmentService usersManagment;
 private final CachService cachService;
 private final FollowRepo followRepo;
@@ -27,20 +27,20 @@ private final ProfileRepo profileRepo;
 private final UserRepo userRepo;
     public List<user> ListMyfollowers(int page) {
         return followHelperService.
-                ListFollows(FollowHelperService.Position.FOLLOWER, Follow.Status.ACCEPTED,
-                        page,usersManagment.getcurrentuser(),true);
+               ListMyFollows_Accepted(FollowUtill.Position.FOLLOWER,
+                        page,usersManagment.getcurrentuser());
     }
 
 
 
     public List<user> listMyfollowings(int page) {
         return followHelperService.
-                ListFollows(FollowHelperService.Position.FOLLOWING,Follow.Status.ACCEPTED,page
-                        ,usersManagment.getcurrentuser(),true);
+                ListMyFollows_Accepted(FollowUtill.Position.FOLLOWING,page
+                        ,usersManagment.getcurrentuser());
     }
 
 
-    public List<user> getUserFollow(String useruuid, int page, FollowHelperService.Position position){
+    public List<user> getUserFollow(String useruuid, int page, FollowUtill.Position position){
         User currentuser=usersManagment.getcurrentuser();
         User requesteduser;
         requesteduser=cachService.getUserbyId(useruuid);
@@ -62,7 +62,7 @@ private final UserRepo userRepo;
                 throw new BadFollowRequestException("this user has private access");
             };
         }
-        return followHelperService.ListFollows(position, Follow.Status.ACCEPTED,page,requesteduser,false).stream().peek(follows-> {
+        return followHelperService.ListOtherFollows(position,page,requesteduser).stream().peek(follows-> {
             follows.setFollowuuid(null);
             String status=null;
             String followeruuid= follows.getUseruuid();
