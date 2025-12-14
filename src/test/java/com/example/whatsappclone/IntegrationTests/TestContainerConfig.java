@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -24,28 +25,36 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestConfiguration
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class TestContainerConfig {
-
-
+public abstract class TestContainerConfig {
+@Autowired
+private JdbcTemplate jdbcTemplate;
+@Autowired
+private RedisTemplate<String,Object> redisTemplate;
     @Container
     static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine");
+            new PostgreSQLContainer<>("postgres:15-alpine").withExposedPorts(5432).withUsername("test").withPassword("test");
 
     @Container
     static GenericContainer<?> redis =
             new GenericContainer<>("redis:7.2-alpine")
                     .withExposedPorts(6379);
-
+static {
+    postgres.start();
+    redis.start();
+}
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
 
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
     }
 
-
+@BeforeEach
+    public void cleanup(){
+ //  jdbcTemplate.execute("TRUNCATE TABLE USERS CASCADE");
+redisTemplate.getConnectionFactory().getConnection().flushAll();
+}
 }

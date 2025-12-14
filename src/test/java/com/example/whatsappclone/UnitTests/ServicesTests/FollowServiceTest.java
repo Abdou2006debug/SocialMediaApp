@@ -15,6 +15,8 @@ import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -66,10 +68,14 @@ public class FollowServiceTest {
 
 
     //FOLLOW METHOD TESTS
+
+    @Nested
+@DisplayName("Follow logic test behaviour for most cases")
+class followTesting{
     @Test
     public void FollowYourself(){
-      Exception exception=assertThrows(BadFollowRequestException.class,()->followService.Follow(currentuser.getUuid()));
-      assertEquals("you cant follow yourself", exception.getMessage());
+        Exception exception=assertThrows(BadFollowRequestException.class,()->followService.Follow(currentuser.getUuid()));
+        assertEquals("you cant follow yourself", exception.getMessage());
     }
     @Test
     public void UserNotFound(){
@@ -79,27 +85,26 @@ public class FollowServiceTest {
     }
     @Test
     public void UserAlreadyFollowed(){
-       when(followRepo.findByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)).thenReturn(Optional.of(new Follow()));
+        when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)).thenReturn(true);
         assertthrows(BadFollowRequestException.class,
                 ()->followService.Follow(requesteduser.getUuid()),"Already followed");
     }
-  @Test
+    @Test
     public void CurrentUserBlocked(){
-      when(blocksRepo.findByBlockedAndBlocker(currentuser,requesteduser)).thenReturn(Optional.of(new Blocks()));
-      assertthrows(BadFollowRequestException.class,
-              ()->followService.Follow(requesteduser.getUuid()),"User has blocked you");
-  }
+        when(blocksRepo.existsByBlockedAndBlocker(currentuser,requesteduser)).thenReturn(true);
+        assertthrows(BadFollowRequestException.class,
+                ()->followService.Follow(requesteduser.getUuid()),"User has blocked you");
+    }
     @Test
     public void CurrentUserBlocker(){
-        lenient().when(blocksRepo.findByBlockedAndBlocker(requesteduser,currentuser)).thenReturn(Optional.of(new Blocks()));
+        lenient().when(blocksRepo.existsByBlockedAndBlocker(requesteduser,currentuser)).thenReturn(true);
         assertthrows(BadFollowRequestException.class,
                 ()->followService.Follow(requesteduser.getUuid()),"You have blocked this user");
     }
     @Test
     public void RequestAlreadySent(){
-        lenient().when(followRepo.findByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING)).thenReturn(Optional.of(new Follow()));
-        assertthrows(BadFollowRequestException.class,
-                ()->followService.Follow(requesteduser.getUuid()),"request already sent");
+        lenient().when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING)).thenReturn(true);
+        assertthrows(BadFollowRequestException.class, ()->followService.Follow(requesteduser.getUuid()),"request already sent");
     }
     @Test
     public void FollowSuccessPublicProfile(){
@@ -128,7 +133,7 @@ public class FollowServiceTest {
     public void FollowSuccessPrivateProfile(){
         when(profileRepo.findByUser(requesteduser)).thenReturn(
                 Optional.of(Profile.builder().user(requesteduser).bio("test").isprivate(true).build()));
-       user user= followService.Follow(requesteduser.getUuid());
+        user user= followService.Follow(requesteduser.getUuid());
         ArgumentCaptor<Follow> captor=ArgumentCaptor.forClass(Follow.class);
         verify(followRepo).save(captor.capture());
         Follow follow=captor.getValue();
@@ -147,65 +152,72 @@ public class FollowServiceTest {
         assertEquals(user.getUseruuid(),requesteduser.getUuid());
         assertEquals(user.getUsername(),requesteduser.getUsername());
     }
-
+}
 
 
 
     //REMOVE FOLLOWER METHOD TESTS
-    @Test
-    public void RemoveFollowerDontExist(){
-        when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.empty());
-       assertthrows(BadFollowRequestException.class,
-               ()->followService.removefollower(followUUID),"bad request");
+    @Nested
+    @DisplayName("unfollow and remove from followers test behaviour for most cases")
+    public class removefollowTest{
+        @Test
+        public void RemoveFollowerDontExist(){
+            when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.empty());
+            assertthrows(BadFollowRequestException.class,
+                    ()->followService.removefollower(followUUID),"bad request");
+        }
+        @Test
+        public void RemovePendingFollower(){
+            when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.PENDING)));
+            assertthrows(BadFollowRequestException.class,
+                    ()->followService.removefollower(followUUID),"user not in followers try to reject the request");
+        }
+        @Test
+        public void RemoveFollower(){
+            Follow Mockedfollow =new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED);
+            when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(Mockedfollow));
+            assertDoesNotThrow(()->followService.removefollower(followUUID));
+            verify(followRepo).delete(Mockedfollow);
+            verify(cachService).removefollower(currentuser, Mockedfollow);
+            verify(cachService).removefollowing(requesteduser, Mockedfollow);
+        }
+
+
+        //UNFOLLOW METHOD TESTS
+        @Test
+        public void UnfollowDontExist(){
+            when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.empty());
+            assertthrows(BadFollowRequestException.class,()->followService.UnFollow(followUUID),"bad request");
+        }
+        @Test
+        public void UnfollowPending(){
+            when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.of(new Follow(currentuser,requesteduser, Follow.Status.PENDING)));
+            assertthrows(BadFollowRequestException.class,
+                    ()->followService.UnFollow(followUUID),"you are not following this user try to unsend the request");
+        }
+        @Test
+        public void UnfollowSuccess(){
+            Follow Mockedfollow =new Follow(currentuser,requesteduser,Follow.Status.ACCEPTED);
+            when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.of(Mockedfollow));
+            assertDoesNotThrow(()->followService.UnFollow(followUUID));
+            verify(followRepo).delete(Mockedfollow);
+            verify(cachService).removefollower(requesteduser, Mockedfollow);
+            verify(cachService).removefollowing(currentuser, Mockedfollow);
+        }
     }
-    @Test
-    public void RemovePendingFollower(){
-        when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.PENDING)));
-      assertthrows(BadFollowRequestException.class,
-              ()->followService.removefollower(followUUID),"user not in followers try to reject the request");
-    }
-    @Test
-    public void RemoveFollower(){
-        Follow Mockedfollow =new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED);
-        when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(Mockedfollow));
-        assertDoesNotThrow(()->followService.removefollower(followUUID));
-        verify(followRepo).delete(Mockedfollow);
-        verify(cachService).removefollower(currentuser, Mockedfollow);
-        verify(cachService).removefollowing(requesteduser, Mockedfollow);
-    }
-
-
-    //UNFOLLOW METHOD TESTS
-    @Test
-    public void UnfollowDontExist(){
-       when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.empty());
-       assertthrows(BadFollowRequestException.class,()->followService.UnFollow(followUUID),"bad request");
-                   }
-           @Test
-    public void UnfollowPending(){
-        when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.of(new Follow(currentuser,requesteduser, Follow.Status.PENDING)));
-               assertthrows(BadFollowRequestException.class,
-                       ()->followService.UnFollow(followUUID),"you are not following this user try to unsend the request");
-           }
-           @Test
-    public void UnfollowSuccess(){
-        Follow Mockedfollow =new Follow(currentuser,requesteduser,Follow.Status.ACCEPTED);
-        when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.of(Mockedfollow));
-               assertDoesNotThrow(()->followService.UnFollow(followUUID));
-               verify(followRepo).delete(Mockedfollow);
-               verify(cachService).removefollower(requesteduser, Mockedfollow);
-               verify(cachService).removefollowing(currentuser, Mockedfollow);
-           }
-
-
-
-           private void assertthrows(Class<? extends Exception> expected,Executable executable,String expectedMessage){
+    public static void assertthrows(Class<? extends Exception> expected,Executable executable,String expectedMessage){
         Exception exception=assertThrows(expected,executable);
         assertEquals(expectedMessage,exception.getMessage());
-           }
+    }
 
-
-           // ACCEPT FOLLOW METHOD TESTS
+@Nested
+@DisplayName("follower and following request test behaviour for most cases")
+public class followRequestsHandlingTests{
+        @Test
+        public void AcceptFollowerDontExist(){
+            when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.empty());
+            assertthrows(BadFollowRequestException.class,()->followRequestService.acceptfollow(followUUID),"bad request");
+        }
     @Test
     public void AcceptAlreadyFollower(){
         when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED)));
@@ -221,18 +233,23 @@ public class FollowServiceTest {
         verify(followRepo).save(captor.capture());
         Follow follow=captor.getValue();
         assertEquals(Follow.Status.ACCEPTED, follow.getStatus());
-ArgumentCaptor<notification> captor1=ArgumentCaptor.forClass(notification.class);
-verify(eventPublisher).publishEvent(captor1.capture());
-notification notification=captor1.getValue();
-assertEquals(notification.getType(), com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_ACCEPTED);
-assertEquals(notification.getTrigger(),currentuser);
-assertEquals(notification.getRecipient(),requesteduser);
-verify(cachService).addfollower(currentuser,follow);
-verify(cachService).addfollowing(requesteduser,follow);
+        ArgumentCaptor<notification> captor1=ArgumentCaptor.forClass(notification.class);
+        verify(eventPublisher).publishEvent(captor1.capture());
+        notification notification=captor1.getValue();
+        assertEquals(notification.getType(), com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_ACCEPTED);
+        assertEquals(notification.getTrigger(),currentuser);
+        assertEquals(notification.getRecipient(),requesteduser);
+        verify(cachService).addfollower(currentuser,follow);
+        verify(cachService).addfollowing(requesteduser,follow);
     }
 
 
     // REJECT FOLLOW METHOD TESTS
+    @Test
+    public void RejectFollowerDontExist(){
+        when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.empty());
+        assertthrows(BadFollowRequestException.class,()->followRequestService.acceptfollow(followUUID),"bad request");
+    }
     @Test
     public void RejectAlreadyFollower(){
         when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED)));
@@ -253,7 +270,15 @@ verify(cachService).addfollowing(requesteduser,follow);
         assertEquals(notification.getRecipient(),requesteduser);
     }
 
+
+
+
     // UNSEND FOLLOWING REQUEST TESTS
+    @Test
+    public void UnsendFollowingDontExist(){
+        when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.empty());
+        assertthrows(BadFollowRequestException.class,()->followRequestService.unsendfollowingrequest(followUUID),"bad request");
+    }
     @Test
     public void UnsendAlreadyFollowing(){
         when(followRepo.findByUuidAndFollower(followUUID,currentuser)).thenReturn(Optional.of(new Follow(currentuser,requesteduser, Follow.Status.ACCEPTED)));
@@ -267,8 +292,11 @@ verify(cachService).addfollowing(requesteduser,follow);
         assertDoesNotThrow(()->followRequestService.unsendfollowingrequest(followUUID));
         verify(followRepo).delete(Mockedfollow);
     }
-    //  UPDATE PROFILE SETTINGS TESTS
 
+}
+
+
+// UPDATE PROFILE TEST
     private void helper(boolean iscurrentprivate, boolean toprivate, boolean trigger){
         Profile Mockedprofile=new Profile(iscurrentprivate);
         profilesettings MockedprofileSettings=new profilesettings(toprivate);

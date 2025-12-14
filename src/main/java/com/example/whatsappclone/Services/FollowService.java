@@ -12,6 +12,7 @@ import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import jakarta.transaction.Transactional;
+import jdk.jfr.Frequency;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,20 +42,18 @@ public class FollowService {
         }
         User usertofollow = userRepo.findById(useruuid)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        followRepo.findByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.ACCEPTED).
-                ifPresent(follow -> {
-                    throw new BadFollowRequestException("Already followed");
-                });
-        blocksRepo.findByBlockedAndBlocker(currentuser, usertofollow).ifPresent(blocks -> {
+        if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.ACCEPTED)){
+            throw new BadFollowRequestException("Already followed");
+        }
+        if(blocksRepo.existsByBlockedAndBlocker(currentuser, usertofollow)){
             throw new BadFollowRequestException("User has blocked you");
-        });
-        blocksRepo.findByBlockedAndBlocker(usertofollow, currentuser).ifPresent(blocks -> {
-            throw new BadFollowRequestException("You have blocked this user");
-        });
-        followRepo.findByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.PENDING).
-                ifPresent(follow -> {
-                    throw new BadFollowRequestException("request already sent");
-                });
+        }
+       if(blocksRepo.existsByBlockedAndBlocker(usertofollow,currentuser)){
+           throw new BadFollowRequestException("You have blocked this user");
+       }
+       if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,usertofollow, Follow.Status.PENDING)){
+           throw new BadFollowRequestException("request already sent");
+       }
         Follow follow = new Follow(currentuser, usertofollow);
         Profile profile=profileRepo.findByUser(usertofollow).get();
        notification notification= new notification(currentuser,usertofollow,

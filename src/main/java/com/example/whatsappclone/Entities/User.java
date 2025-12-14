@@ -50,6 +50,9 @@ public class User {
         this.keycloakId=keycloakid;
         this.username=username;
     }
+    public User(String username){
+     this(username,null);
+    }
     public User(String username,String uuid){
         this.username=username;
         this.uuid=uuid;

@@ -74,8 +74,8 @@ public List<user> ListOtherFollows(Position position,int page ,User requestuser)
 }
 private List<user> helper(Position position,int page,User requestuser,Follow.Status status){
     List<Follow> followList=position== Position.FOLLOWER?
-            followRepo.findByFollowingAndStatus(requestuser, status,PageRequest.of(page,10)).getContent():
-            followRepo.findByFollowerAndStatus(requestuser, status,PageRequest.of(page,10)).getContent();
+            followRepo.findByFollowerAndStatus(requestuser, status,PageRequest.of(page,10)).getContent():
+            followRepo.findByFollowingAndStatus(requestuser, status,PageRequest.of(page,10)).getContent();
     return followList.stream().map(follow -> {
         String followid=follow.getUuid();
         User followingOrfollower=position== Position.FOLLOWER?
