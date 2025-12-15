@@ -54,7 +54,7 @@ static {
 
 @BeforeEach
     public void cleanup(){
- //  jdbcTemplate.execute("TRUNCATE TABLE USERS CASCADE");
+   jdbcTemplate.execute("TRUNCATE TABLE USERS CASCADE");
 redisTemplate.getConnectionFactory().getConnection().flushAll();
 }
 }

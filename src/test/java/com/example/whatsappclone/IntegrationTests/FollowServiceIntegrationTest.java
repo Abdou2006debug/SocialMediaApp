@@ -2,6 +2,7 @@ package com.example.whatsappclone.IntegrationTests;
 
 import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
+import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Repositries.BlocksRepo;
@@ -21,10 +22,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import java.util.stream.Stream;
+
+import  static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional
@@ -35,7 +40,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
     private final ProfileRepo profileRepo;
     private final UsersManagmentService usersManagment;
     private final BlocksRepo blocksRepo;
-    private final CachService cachService;
+    private final RedisTemplate<String,Object> redisTemplate;
     private final FollowService followService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -76,8 +81,38 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         User user= blockRecordFound(true);
          FollowServiceTest.assertthrows(BadFollowRequestException.class,()->followService.Follow(user.getUuid()),"User has blocked you");
      }
-    }
+     @Test
+     @DisplayName("user successfully followed other user checking if " +
+             "record was saved in db and also making sure that the cache was hit")
+        public void FollowSuccessPublicProfile(){
+        User currentuser=usersManagment.getcurrentuser();
+        User user=followSuccess(false);
+        assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,user, Follow.Status.ACCEPTED));
+        assertTrue(redisTemplate.hasKey("user:"+currentuser.getKeycloakId()+":following:"+user.getKeycloakId()));
+        assertTrue(redisTemplate.hasKey("user:"+user.getKeycloakId()+":follower:"+currentuser.getKeycloakId()));
+        assertTrue(redisTemplate.opsForZSet().range("user:"+currentuser.getKeycloakId()+":followings:page:" +0,0,-1)
+                .stream().anyMatch(o ->((String)o).equals(user.getKeycloakId())));
+        assertTrue(redisTemplate.opsForZSet().range("user:"+user.getKeycloakId()+":followers:page:"+0,0,-1)
+                .stream().anyMatch(o -> ((String)o).equals(currentuser.getKeycloakId())));
+     }
 
+     @Test
+     @DisplayName("user successfully sent request to other user checking if record was saved in db")
+    public void FollowSuccessPrivateProfile(){
+         User currentuser=usersManagment.getcurrentuser();
+         User user=followSuccess(true);
+         assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,user, Follow.Status.PENDING));
+     }
+    }
+private User followSuccess(boolean isprivate){
+    User currentuser=usersManagment.getcurrentuser();
+    User user=createTestUser();
+    Profile profile=new Profile(isprivate);
+    profile.setUser(user);
+    profileRepo.save(profile);
+   followService.Follow(user.getUuid());
+   return user;
+}
 
     private User followRecordFound(Follow.Status status){
         User user=createTestUser();
@@ -104,6 +139,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
 
 
     public User createTestUser(){
-        return userRepo.save(new User("test"));
+        User user=new User("test","test","test","test@test.com","1234");
+        return userRepo.save(user);
     }
 }
