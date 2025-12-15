@@ -23,7 +23,6 @@ private final UsersManagmentService usersManagment;
 private final CachService cachService;
 private final FollowRepo followRepo;
 private final BlocksRepo blocksRepo;
-private final ProfileRepo profileRepo;
 private final UserRepo userRepo;
     public List<user> ListMyfollowers(int page) {
         return followHelperService.

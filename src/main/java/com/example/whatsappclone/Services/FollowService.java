@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 
@@ -71,6 +72,7 @@ public class FollowService {
             notification.setType(com.example.whatsappclone.Events.notification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
         }
+
         followRepo.save(follow);
         return new user(useruuid,usertofollow.getUsername(),profile.getPublicavatarurl(),follow.getUuid());
     }

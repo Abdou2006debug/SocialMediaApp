@@ -30,17 +30,19 @@ private final ProfileRepo profileRepo;
 private final UsersManagmentService usersManagment;
 private final FollowRepo followRepo;
 private final Logger logger= LoggerFactory.getLogger(FollowUtill.class);
-    private final ConcurrentHashMap<String, Object> cacheLocks = new ConcurrentHashMap<>();
-    public enum Position {FOLLOWER, FOLLOWING}
+private final ConcurrentHashMap<String, Object> cacheLocks = new ConcurrentHashMap<>();
+public enum Position {FOLLOWER, FOLLOWING}
+
     public User GetUser(String keycloakid){
         User cacheduser=cachService.getUserbyKeycloakId(keycloakid);
         return   cacheduser==null?userRepo.findByKeycloakId(keycloakid).orElseThrow(()->new UserNotFoundException("user not found")):cacheduser;
     }
-    public user buildUser(User u, String followId) {
-        Profile cached = cachService.getcachedprofile(u);
-        Profile profile = cached == null ? profileRepo.findByUser(u).orElse(null) : cached;
+
+    public user buildUser(User user, String followId) {
+        Profile cached = cachService.getcachedprofile(user);
+        Profile profile = cached == null ? profileRepo.findByUser(user).orElse(null) : cached;
         String avatar = profile == null ? null : profile.getPublicavatarurl();
-        return new user(u.getUuid(), u.getUsername(), avatar, followId);
+        return new user(user.getUuid(), user.getUsername(), avatar, followId);
     }
 
     public List<user> ListMyFollows_Accepted(Position position,int page,User requesteduser){
@@ -68,20 +70,20 @@ private final Logger logger= LoggerFactory.getLogger(FollowUtill.class);
             return follows;
         }
        }
-public List<user> ListOtherFollows(Position position,int page ,User requestuser){
+       public List<user> ListOtherFollows(Position position,int page ,User requestuser){
   return helper(position,page,requestuser, Follow.Status.ACCEPTED);
 
 }
-private List<user> helper(Position position,int page,User requestuser,Follow.Status status){
-    List<Follow> followList=position== Position.FOLLOWER?
-            followRepo.findByFollowerAndStatus(requestuser, status,PageRequest.of(page,10)).getContent():
-            followRepo.findByFollowingAndStatus(requestuser, status,PageRequest.of(page,10)).getContent();
-    return followList.stream().map(follow -> {
-        String followid=follow.getUuid();
-        User followingOrfollower=position== Position.FOLLOWER?
-                follow.getFollower():follow.getFollowing();
-        return buildUser(followingOrfollower,followid);
-    }).toList();
+       private List<user> helper(Position position,int page,User requestuser,Follow.Status status){
+            List<Follow> followList=position== Position.FOLLOWER?
+              followRepo.findByFollowerAndStatus(requestuser, status,PageRequest.of(page,10)).getContent():
+              followRepo.findByFollowingAndStatus(requestuser, status,PageRequest.of(page,10)).getContent();
+            return followList.stream().map(follow -> {
+                 String followid=follow.getUuid();
+                 User followingOrfollower=position== Position.FOLLOWER?
+                 follow.getFollower():follow.getFollowing();
+                 return buildUser(followingOrfollower,followid);
+                }).toList();
 }
        public List<user> ListMyFollows_Pending(Position position,int page,User requesteduser){
            return helper(position,page,requesteduser, Follow.Status.PENDING);
