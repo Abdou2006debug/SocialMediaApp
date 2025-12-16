@@ -17,7 +17,7 @@ import java.util.Set;
 @Entity
 @Data
 @NoArgsConstructor
-public class Chat {
+public class  Chat {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")

@@ -16,6 +16,8 @@ import com.example.whatsappclone.UnitTests.FollowServiceTest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,89 +61,91 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @Test
         @DisplayName("user not found")
         public void follow_nonExistingUser_throwsUserNotFoundException(){
-            FollowTestHelper.assertthrows(UserNotFoundException.class,
+            assertthrows(UserNotFoundException.class,
                     () -> followService.Follow("test"), "User not found");
         }
 
-        @Test
-        @DisplayName("current already follow user")
-        public void follow_alreadyFollowedUser_throwsBadFollowRequestException(){
-            User user = followTestHelper.createFollowRecord(Follow.Status.ACCEPTED);
-           FollowTestHelper.assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(user.getUuid()), "Already followed");
-        }
 
-        @Test
-        @DisplayName("current already sent request to user")
-        public void follow_pendingFollowRequest_throwsBadFollowRequestException(){
-            User user = followTestHelper.createFollowRecord(Follow.Status.PENDING);
+@ParameterizedTest
+@CsvSource({
+        "Follow.Status.PENDING",// current user already sent a follow request to this user
+        "Follow.Status.ACCEPTED"// current user already follows this user
+})
+public void follow_recordFound_throwsBadFollowException(String followStatusString){
+            Follow.Status followStatus=followStatusString.equals(Follow.Status.ACCEPTED.toString())? Follow.Status.ACCEPTED: Follow.Status.PENDING;
+            User user=followTestHelper.createFollowRecord(followStatus);
+            String expectedMessage=followStatus== Follow.Status.ACCEPTED?"Already followed":"request already sent";
+    assertthrows(BadFollowRequestException.class,
+            () -> followService.Follow(user.getUuid()), expectedMessage);
+}
+
+        @ParameterizedTest
+        @CsvSource({
+            "true",// current user is blocked by the user he wants to follow
+                "false"// current user blocked the // // //   //    /   //
+        })
+        public void follow_blockFound_throwsBadFollowRequestException(boolean expected){
+            String expectedMessage=expected?"User has blocked you":"You have blocked this user";
+            User user = followTestHelper.createBlockRecord(expected);
             assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(user.getUuid()), "request already sent");
+                    () -> followService.Follow(user.getUuid()), expectedMessage);
         }
 
-        @Test
-        @DisplayName("the current has blocked the user he wants to follow so currentblocked==false")
-        public void follow_userBlockedByCurrentUser_throwsBadFollowRequestException(){
-            User user = followTestHelper.createBlockRecord(false);
-           assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(user.getUuid()), "You have blocked this user");
-        }
 
-        @Test
-        @DisplayName("the user the current wants to follow has blocked him so currentblocked==true")
-        public void follow_userHasBlockedCurrentUser_throwsBadFollowRequestException(){
-            User user = followTestHelper.createBlockRecord(true);
-           assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(user.getUuid()), "User has blocked you");
-        }
 
-        @Test
-        @DisplayName("user successfully followed other user checking if record was saved in db and also making sure that the cache was hit")
-        public void follow_publicProfile_savesFollowAndUpdatesCache(){
-            User currentUser = usersManagment.getcurrentuser();
-            User user = followTestHelper.followUser(ProfileType.PUBLIC);
-            assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentUser, user, Follow.Status.ACCEPTED));
-            assertTrue(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":following:" + user.getKeycloakId()));
-            assertTrue(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":follower:" + currentUser.getKeycloakId()));
-        }
-
-        @Test
-        @DisplayName("user successfully sent request to other user checking if record was saved in db")
-        public void follow_privateProfile_savesPendingRequest(){
-            User currentUser = usersManagment.getcurrentuser();
-            User user = followTestHelper.followUser(ProfileType.PRIVATE);
-            assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentUser, user, Follow.Status.PENDING));
+        @ParameterizedTest
+        @CsvSource({
+                "ProfileType.PRIVATE",// saves a Pending status follow record in db
+                "ProfileType.PUBLIC"// saves an Accepted status follow record in db and cache
+        })
+        public void follow_profileTypes(String profileTypeString){
+            ProfileType profileType=profileTypeString.equals(ProfileType.PRIVATE.toString())?ProfileType.PRIVATE:ProfileType.PUBLIC;
+            User currentuser=usersManagment.getcurrentuser();
+            User user=followTestHelper.followUser(profileType);
+            if(profileType==ProfileType.PUBLIC){
+                assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, user, Follow.Status.ACCEPTED));
+                assertTrue(redisTemplate.hasKey("user:" + currentuser.getKeycloakId() + ":following:" + user.getKeycloakId()));
+                assertTrue(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":follower:" + currentuser.getKeycloakId()));
+                return ;
+            }
+            assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, user, Follow.Status.PENDING));
         }
     }
 
     @Nested
     class FollowRemovalTests {
-
-        @Test
-        public void unfollow_pendingFollow_throwsBadFollowRequestException(){
-            assertthrows(BadFollowRequestException.class,
-                    () -> followTestHelper.perfomeFollowRemoval(Follow.Status.PENDING, RemovalType.UNFOLLOW),
-                    "you are not following this user try to unsend the request");
-        }
-
-        @Test
-        public void unfollow_acceptedFollow_deletesFollowAndClearsCache(){
+        @ParameterizedTest
+        @CsvSource({
+                "Follow.Status.PENDING",// current user  sent a follow request to this user but not following him
+                "Follow.Status.ACCEPTED"// current user follows this user // remove follow record from db and cache
+        })
+public void unfollow(String followStatusString){
+            Follow.Status followStatus=followStatusString.equals(Follow.Status.ACCEPTED.toString())? Follow.Status.ACCEPTED: Follow.Status.PENDING;
+           if(followStatus== Follow.Status.PENDING){
+               assertthrows(BadFollowRequestException.class,
+                       () -> followTestHelper.perfomeFollowRemoval(Follow.Status.PENDING, RemovalType.UNFOLLOW),
+                       "you are not following this user try to unsend the request");
+               return;
+           }
             User user = followTestHelper.perfomeFollowRemoval(Follow.Status.ACCEPTED, RemovalType.UNFOLLOW);
             User currentUser = usersManagment.getcurrentuser();
             assertFalse(followRepo.existsByFollowerAndFollowing(currentUser, user));
             assertFalse(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":following:" + user.getKeycloakId()));
             assertFalse(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":follower:" + currentUser.getKeycloakId()));
-        }
-
-        @Test
-        public void removeFollower_pendingFollow_throwsBadFollowRequestException(){
-            assertthrows(BadFollowRequestException.class,
-                    () -> followTestHelper.perfomeFollowRemoval(Follow.Status.PENDING, RemovalType.REMOVE_FOLLOWER),
-                    "user not in followers try to reject the request");
-        }
-
-        @Test
-        public void removeFollower_acceptedFollow_deletesFollowAndClearsCache(){
+}
+        @ParameterizedTest
+        @CsvSource({
+                "Follow.Status.PENDING",// current user remove follower with pending status so not follower for the current user yet
+                "Follow.Status.ACCEPTED"//current user remove follower  follow record removed from db and cache
+        })
+        public void removeFollower(String followStatusString){
+            Follow.Status followStatus=followStatusString.equals(Follow.Status.ACCEPTED.toString())? Follow.Status.ACCEPTED: Follow.Status.PENDING;
+            if(followStatus== Follow.Status.PENDING){
+                assertthrows(BadFollowRequestException.class,
+                        () -> followTestHelper.perfomeFollowRemoval(Follow.Status.PENDING, RemovalType.REMOVE_FOLLOWER),
+                        "user not in followers try to reject the request");
+                return;
+            }
             User user = followTestHelper.perfomeFollowRemoval(Follow.Status.ACCEPTED, RemovalType.REMOVE_FOLLOWER);
             User currentUser = usersManagment.getcurrentuser();
             assertFalse(followRepo.existsByFollowerAndFollowing(user, currentUser));

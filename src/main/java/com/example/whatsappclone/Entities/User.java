@@ -36,7 +36,7 @@ public class User {
     private String email;
     private String keycloakId;
     private LocalDate birthday;
-    @ManyToMany
+    @ManyToMany(fetch=FetchType.LAZY)
     @JoinTable(
             name = "user_chats",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -17,6 +17,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
 import java.util.NoSuchElementException;
@@ -38,6 +39,7 @@ private RedisTemplate<String,Object> redisTemplate;
     static GenericContainer<?> redis =
             new GenericContainer<>("redis:7.2-alpine")
                     .withExposedPorts(6379);
+
 static {
     postgres.start();
     redis.start();
