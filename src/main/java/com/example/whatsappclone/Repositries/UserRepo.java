@@ -11,4 +11,5 @@ import java.util.Optional;
 
 public interface UserRepo extends JpaRepository<User,String> {
     Optional<User> findByKeycloakId(String keycloakId);
+    boolean existsByUsername(String username);
 }

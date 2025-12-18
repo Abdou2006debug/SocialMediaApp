@@ -10,7 +10,6 @@ import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,14 +17,14 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class BlockService {
     private final BlocksRepo blocksRepo;
-    private final UsersManagmentService usersManagment;
+    private final UsersAccountManagmentService usersManagment;
     private final UserRepo userRepo;
     private final FollowRepo followRepo;
     private final FollowRequestService followRequestService;
     private final FollowService followService;
-
+    private final UserQueryService userQueryService;
     public void block(String useruuid) {
-        User currentuser = usersManagment.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser();
         if(currentuser.getUuid().equals(useruuid)){throw new BadFollowRequestException("you cant block yourself");}
         User usertoblock = userRepo.
                 findById(useruuid).orElseThrow(()->new UserNotFoundException("user not found"));
@@ -56,7 +55,7 @@ public class BlockService {
 
 
     public void unblock(String useruuid) {
-        User currentuser = usersManagment.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser();
         User usertounblock = userRepo.findById(useruuid).
                 orElseThrow(()->new UserNotFoundException("user not found"));
         Blocks block = blocksRepo.

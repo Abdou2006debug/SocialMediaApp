@@ -22,15 +22,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowRequestService {
     private final FollowRepo followRepo;
-    private final UsersManagmentService usersManagment;
+    private final UsersAccountManagmentService usersManagment;
     private final FollowUtill followHelperService;
     private final CachService cachService;
     private final ProfileRepo profileRepo;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
-
+    private final UserQueryService userQueryService;
     public void acceptfollow(String followuuid) {
-        User currentuser = usersManagment.getcurrentuser();
+        User currentuser =userQueryService.getcurrentuser();
         Follow followrequest = followRepo.
                 findByUuidAndFollowing(followuuid,currentuser).orElseThrow(()->new BadFollowRequestException("bad request"));
         User userfollower=followrequest.getFollower();
@@ -48,7 +48,7 @@ public class FollowRequestService {
     }
 
     public void rejectfollow(String followuuid) {
-        User currentuser = usersManagment.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser();
         Follow follow = followRepo.findByUuidAndFollowing(followuuid, currentuser).orElseThrow();
         User userfollower=follow.getFollower();
         if (follow.getStatus() == Follow.Status.ACCEPTED) {
@@ -63,15 +63,15 @@ public class FollowRequestService {
     public List<user> ListMyFollowRequests(int page) {
         return followHelperService.
                 ListMyFollows_Pending(FollowUtill.Position.FOLLOWER,
-                        page,usersManagment.getcurrentuser());
+                        page,userQueryService.getcurrentuser());
     }
     public List<user> ListMyFollowingRequests(int page) {
         return followHelperService
                 .ListMyFollows_Pending(FollowUtill.Position.FOLLOWING,page
-                        ,usersManagment.getcurrentuser());
+                        ,userQueryService.getcurrentuser());
     }
     public void unsendfollowingrequest(String followuuid){
-    User currentuser = usersManagment.getcurrentuser();
+    User currentuser=userQueryService.getcurrentuser();
     Follow followrequest = followRepo.findByUuidAndFollower(followuuid,currentuser).
             orElseThrow(()->new BadFollowRequestException("bad request"));
         if (followrequest.getStatus() == Follow.Status.ACCEPTED) {
@@ -81,8 +81,8 @@ public class FollowRequestService {
 }
 
     public void UpdateProfileSettings(profilesettings profilesettings){
-        User currentuser=usersManagment.getcurrentuser();
-       Profile currentprofile=usersManagment.getuserprofile(currentuser,true);
+        User currentuser=userQueryService.getcurrentuser();
+       Profile currentprofile=userQueryService.getuserprofile(currentuser,true);
        boolean currentstatus=currentprofile.isIsprivate();
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());

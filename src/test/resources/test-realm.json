@@ -1,0 +1,22 @@
+{
+  "realm": "test",
+  "enabled": true,
+  "sslRequired": "external",
+  "users": [],
+  "clients": [
+    {
+      "clientId": "test-client",
+      "enabled": true,
+      "directAccessGrantsEnabled": true,
+      "publicClient": true,
+      "redirectUris": ["*"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "user"
+      }
+    ]
+  }
+}

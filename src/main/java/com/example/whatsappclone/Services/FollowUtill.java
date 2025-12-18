@@ -27,7 +27,7 @@ private final ApplicationEventPublisher applicationEventPublisher;
 private final CachService cachService;
 private final UserRepo userRepo;
 private final ProfileRepo profileRepo;
-private final UsersManagmentService usersManagment;
+private final UsersAccountManagmentService usersManagment;
 private final FollowRepo followRepo;
 private final Logger logger= LoggerFactory.getLogger(FollowUtill.class);
 private final ConcurrentHashMap<String, Object> cacheLocks = new ConcurrentHashMap<>();

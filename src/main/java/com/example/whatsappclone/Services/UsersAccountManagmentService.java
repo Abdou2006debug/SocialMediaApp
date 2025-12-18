@@ -2,7 +2,6 @@ package com.example.whatsappclone.Services;
 
 import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.DTO.clientToserver.profile;
-import com.example.whatsappclone.DTO.clientToserver.profilesettings;
 import com.example.whatsappclone.DTO.serverToclient.account;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.NotificationsSettings;
@@ -12,6 +11,7 @@ import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.*;
 import jakarta.transaction.Transactional;
+import jakarta.validation.executable.ValidateOnExecution;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.CreatedResponseUtil;
@@ -20,16 +20,15 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 //import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -38,51 +37,33 @@ import java.util.UUID;
 @Transactional
 @Service
 @RequiredArgsConstructor
-public class UsersManagmentService {
+public class UsersAccountManagmentService {
+    @Value("${keycloak.username}")
+       private String username;
+    @Value("${keycloak.password}")
+       private String password;
+       @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+       private String issuerUri;
        private final CachService cachService;
        private final NotificationSettingsRepo notificationSettingsRepo;
-    private final UserRepo userRepo;
-    private final ProfileRepo profileRepo;
-    private final RestTemplate restTemplate;
-    private final FollowRepo followRepo;
-    private final BlocksRepo blocksRepo;
-    @Value("${supabase_key}")
+       private final UserRepo userRepo;
+       private final ProfileRepo profileRepo;
+       private final RestTemplate restTemplate;
+       private final UserQueryService userQueryService;
+    @Value("${supabase.key}")
     private String apikey;
-    public Profile getuserprofile(User requesteduser,Boolean cachit){
-        Profile cached = cachService.getcachedprofile(requesteduser);
-        Profile profile = cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
-        if(cachit&&cached==null){
-            cachService.cachuserprofile(profile);
-        }
-        return profile;
-    }
-
-    public User getcurrentuser(){
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
-            return null;
-        }
-           String keycloakid=((Jwt) authentication.getPrincipal()).getSubject();
-            User cachedtuser=cachService.getUserbyKeycloakId(keycloakid);
-            if(cachedtuser!=null){
-                return cachedtuser;
-            }
-          User user=  userRepo.findByKeycloakId(keycloakid).
-                  orElseThrow(()->new UserNotFoundException("user not found"));
-            cachService.cachuser(user);
-          return user;
-        }
     public void registeruser(userregistration userregistration){
-        Keycloak keycloak= KeycloakBuilder.builder().realm("master").
-                clientId("admin-cli").username("admin").password("Admin123!").
-                serverUrl("http://keycloak:8080").build();
-        RealmResource realm=keycloak.realm("Realm");
+        Keycloak keycloak= KeycloakBuilder.builder().
+                realm("master").username(username).password(password).
+                serverUrl(issuerUri.substring(0, issuerUri.indexOf("/realms"))).clientId("admin-cli").build();
+   String realmName=issuerUri.substring(issuerUri.lastIndexOf("/")+1);
+        RealmResource realm=keycloak.realm(realmName);
         org.keycloak.representations.idm.UserRepresentation userRepresentation= new org.keycloak.representations.idm.UserRepresentation();
         userRepresentation.setEmail(userregistration.getEmail());
         userRepresentation.setUsername(userregistration.getUsername());
         userRepresentation.setFirstName(userregistration.getFirstname());
         userRepresentation.setLastName(userregistration.getLastname());
-        userRepresentation.setEmailVerified(false);
+        userRepresentation.setEmailVerified(true);
         CredentialRepresentation credentialRepresentation=new CredentialRepresentation();
         credentialRepresentation.setTemporary(false);
         credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
@@ -105,12 +86,14 @@ public class UsersManagmentService {
            notificationSettingsRepo.save(notificationsSettings);
            profileRepo.save(profile);
            cachService.cachuser(user);
+       }else{
+          throw new RuntimeException(response.readEntity(String.class));
        }
-
+       response.close();
     }
 
 public void updateNotificationSettings(notificationsettings notification){
-        User currentuser=getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
        NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUser(currentuser);
        notificationsSettings.setOnfollow(notification.isOnfollower());
        notificationsSettings.setOnfollowingrequest_rejected(notification.isOnfollowingrequests_rejected());
@@ -118,14 +101,14 @@ public void updateNotificationSettings(notificationsettings notification){
      notificationSettingsRepo.save(notificationsSettings);
 }
 public notificationsettings getnotificationsettings(){
-        User currentuser=getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
        NotificationsSettings notificationsSettings= notificationSettingsRepo.findByUser(currentuser);
        return new notificationsettings(notificationsSettings.getOnfollowingrequest_Accepted(),notificationsSettings.getOnfollowingrequest_rejected(),notificationsSettings.getOnfollow());
 
 }
     public void uploadpfp(MultipartFile file) throws IOException {
-        User currentuser=getcurrentuser();
-Profile currentprofile=getuserprofile(currentuser,false);
+        User currentuser=userQueryService.getcurrentuser();
+Profile currentprofile=userQueryService.getuserprofile(currentuser,false);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " +apikey);
         headers.set("apikey", apikey);
@@ -170,8 +153,8 @@ Profile currentprofile=getuserprofile(currentuser,false);
         cachService.cachuserprofile(currentprofile);
     }
     public void UpdateProfile(profile p){
-        User currentuser=getcurrentuser();
-        Profile currentprofile=getuserprofile(currentuser,true);
+        User currentuser=userQueryService.getcurrentuser();
+        Profile currentprofile=userQueryService.getuserprofile(currentuser,true);
         currentprofile.setUsername(p.getUsername());
         currentprofile.setBio(p.getBio());
         currentuser.setUsername(p.getUsername());
@@ -179,66 +162,25 @@ Profile currentprofile=getuserprofile(currentuser,false);
         cachService.cachuserprofile(currentprofile);
     }
     public com.example.whatsappclone.DTO.serverToclient.profile getMyProfile(){
-        User currentuser=getcurrentuser();
-        Profile profile=getuserprofile(currentuser,true);
+        User currentuser=userQueryService.getcurrentuser();
+        Profile profile=userQueryService.getuserprofile(currentuser,true);
         com.example.whatsappclone.DTO.serverToclient.profile profiledto=
                 new com.example.whatsappclone.DTO.serverToclient.profile();
         profiledto.setAvatarurl(profile.getPublicavatarurl());
         profiledto.setBio(profile.getBio());
         profiledto.setUseruuid(currentuser.getUuid());
         profiledto.setUsername(currentuser.getUsername());
-        profiledto.setFollowings(followingsCount(currentuser));
-        profiledto.setFollowers(followersCount(currentuser));
+        profiledto.setFollowings(userQueryService.followingsCount(currentuser));
+        profiledto.setFollowers(userQueryService.followersCount(currentuser));
         return profiledto;
     }
     public com.example.whatsappclone.DTO.serverToclient.profilesettings getMyProfileSettings(){
-        User currentuser=getcurrentuser();
-        Profile profile=getuserprofile(currentuser,true);
+        User currentuser=userQueryService.getcurrentuser();
+        Profile profile=userQueryService.getuserprofile(currentuser,true);
         return new com.example.whatsappclone.DTO.serverToclient.
                 profilesettings(profile.isIsprivate(),profile.isShowifonline());
     }
-    public account getuser(String useruuid){
-        User currentuser=getcurrentuser();
-        User requesteduser;
-        requesteduser=cachService.getUserbyId(useruuid);
-        if (requesteduser == null) {
-            requesteduser= userRepo.findById(useruuid).
-                    orElseThrow(() -> new UserNotFoundException("user not found"));
-        }
-       Profile profile=getuserprofile(requesteduser,false);
-        String status=null;
 
-        boolean hasblocked= blocksRepo.
-                existsByBlockedAndBlocker(requesteduser,currentuser);
-        if(hasblocked){
-            status="you have blocked him";
-        }
-        boolean isfolloweraccepted = followRepo.
-                existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED);
-        boolean isfollowerpending=followRepo.
-                existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING);
-        if(isfolloweraccepted){
-            status="following";
-        }else if(isfollowerpending){
-                status="sent";
-        }else{
-            boolean isfollowingaccepted=followRepo.
-                    existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.ACCEPTED);
-            if(isfollowingaccepted){
-                status="follow back";
-            }
-        }
-boolean isonline=cachService.getuserstatus(requesteduser.getUsername());
-     String lastseen=isonline?null: cachService.getuserlastseen(requesteduser.getUsername());
-        return new account(requesteduser.getUuid(),requesteduser.getUsername(),
-                profile.getPublicavatarurl(),profile.getBio(),status,followersCount(requesteduser),followingsCount(requesteduser),lastseen, isonline);
-    }
-    private long followersCount(User user){
-        return followRepo.countByFollowingAndStatus(user, Follow.Status.ACCEPTED);
 
-    }
-    private long followingsCount(User user){
-        return followRepo.countByFollowerAndStatus(user, Follow.Status.ACCEPTED);
-    }
 }
 

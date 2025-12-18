@@ -8,9 +8,9 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.BlockService;
 import com.example.whatsappclone.Services.FollowService;
-import com.example.whatsappclone.Services.UsersManagmentService;
+import com.example.whatsappclone.Services.UserQueryService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +22,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Service
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class FollowTestHelper {
-    private final UsersManagmentService usersManagment;
+    private final UserQueryService userQueryService;
     private final FollowRepo followRepo;
     private final FollowService followService;
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
     private final UserRepo userRepo;
+
     public User perfomeFollowRemoval(Follow.Status status, FollowServiceIntegrationTest.RemovalType type){
-        User currentuser=usersManagment.getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
         User user=createTestUser();
         Follow follow=type== FollowServiceIntegrationTest.RemovalType.UNFOLLOW?new Follow(currentuser,user,status):new Follow(user,currentuser,status);
         followRepo.save(follow);
@@ -51,7 +52,7 @@ public class FollowTestHelper {
 
     public User createFollowRecord(Follow.Status status){
         User user=createTestUser();
-        User currentuser=usersManagment.getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
         followRepo.saveAndFlush(new Follow(currentuser,user, status));
         return user;
     }
@@ -62,7 +63,7 @@ public class FollowTestHelper {
 
     public User createBlockRecord(boolean isCurrentBlocked){
         User user=createTestUser();
-        User currentuser=usersManagment.getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
         Blocks blocks=new Blocks();
         if(isCurrentBlocked){
             blocks.setBlocked(currentuser);

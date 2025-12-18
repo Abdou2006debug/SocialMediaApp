@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 public class NotificationService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final CachService cachService;
-    private final ProfileRepo profileRepo;
+    private final UserQueryService userQueryService;
     private final NotificationSettingsRepo notificationSettingsRepo;
-    private final UsersManagmentService usersManagmentService;
+    private final UsersAccountManagmentService usersManagmentService;
     private final Logger logger= LoggerFactory.getLogger(NotificationService.class);
     private void follownotification(notification notification) throws JsonProcessingException {
         User recipient=notification.getRecipient();
@@ -37,7 +37,7 @@ public class NotificationService {
             return ;
         }
         User trigger=notification.getTrigger();
-        Profile triggerprofile=usersManagmentService.getuserprofile(trigger,true);
+        Profile triggerprofile=userQueryService.getuserprofile(trigger,true);
         String triggerusername=triggerprofile.getUsername();
         String triggerpfp=triggerprofile.getPublicavatarurl();
         String triggeruuid=trigger.getUuid();
@@ -73,7 +73,7 @@ public class NotificationService {
             }
             message=trigger.getUsername()+" rejected your follow";
         }
-        Profile triggerprofile=usersManagmentService.getuserprofile(trigger,false);
+        Profile triggerprofile=userQueryService.getuserprofile(trigger,false);
         String triggerusername=triggerprofile.getUsername();
         String triggerpfp=triggerprofile.getPublicavatarurl();
         String triggeruuid=trigger.getUuid();

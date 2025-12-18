@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
-import com.example.whatsappclone.Services.UsersManagmentService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UsersManagmentService usersManagment;
+    private final UsersAccountManagmentService usersManagment;
 
     @PostMapping("/register")
     public void register(@RequestBody @Valid userregistration user) {

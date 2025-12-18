@@ -2,9 +2,8 @@ package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
-import com.example.whatsappclone.Services.BlockService;
 import com.example.whatsappclone.Services.FollowRequestService;
-import com.example.whatsappclone.Services.UsersManagmentService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserSettingsController {
 
-    private final UsersManagmentService usersManagment;
+    private final UsersAccountManagmentService usersManagment;
     private final FollowRequestService followRequestsService;
     @PutMapping("/notifications")
     public void updateNotificationSettings(@RequestBody notificationsettings settings) {

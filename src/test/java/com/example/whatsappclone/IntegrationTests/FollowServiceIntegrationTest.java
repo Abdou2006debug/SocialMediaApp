@@ -1,18 +1,14 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.FollowService;
-import com.example.whatsappclone.Services.UsersManagmentService;
-import com.example.whatsappclone.UnitTests.FollowServiceTest;
+import com.example.whatsappclone.Services.UserQueryService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;
@@ -20,7 +16,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -34,11 +29,10 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
 
     private final FollowRepo followRepo;
     private final UserRepo userRepo;
-    private final UsersManagmentService usersManagment;
     private final RedisTemplate<String,Object> redisTemplate;
     private final FollowService followService;
     private final FollowTestHelper followTestHelper;
-
+    private final UserQueryService userQueryService;
     public enum RemovalType { REMOVE_FOLLOWER, UNFOLLOW }
     public  enum ProfileType { PRIVATE, PUBLIC }
 
@@ -100,7 +94,7 @@ public void follow_recordFound_throwsBadFollowException(String followStatusStrin
         })
         public void follow_profileTypes(String profileTypeString){
             ProfileType profileType=profileTypeString.equals(ProfileType.PRIVATE.toString())?ProfileType.PRIVATE:ProfileType.PUBLIC;
-            User currentuser=usersManagment.getcurrentuser();
+            User currentuser=userQueryService.getcurrentuser();
             User user=followTestHelper.followUser(profileType);
             if(profileType==ProfileType.PUBLIC){
                 assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, user, Follow.Status.ACCEPTED));
@@ -128,7 +122,7 @@ public void unfollow(String followStatusString){
                return;
            }
             User user = followTestHelper.perfomeFollowRemoval(Follow.Status.ACCEPTED, RemovalType.UNFOLLOW);
-            User currentUser = usersManagment.getcurrentuser();
+            User currentUser = userQueryService.getcurrentuser();
             assertFalse(followRepo.existsByFollowerAndFollowing(currentUser, user));
             assertFalse(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":following:" + user.getKeycloakId()));
             assertFalse(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":follower:" + currentUser.getKeycloakId()));
@@ -147,7 +141,7 @@ public void unfollow(String followStatusString){
                 return;
             }
             User user = followTestHelper.perfomeFollowRemoval(Follow.Status.ACCEPTED, RemovalType.REMOVE_FOLLOWER);
-            User currentUser = usersManagment.getcurrentuser();
+            User currentUser = userQueryService.getcurrentuser();
             assertFalse(followRepo.existsByFollowerAndFollowing(user, currentUser));
             assertFalse(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":following:" + currentUser.getKeycloakId()));
             assertFalse(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":follower:" + user.getKeycloakId()));

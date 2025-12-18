@@ -8,7 +8,6 @@ import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,15 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowQueryService {
 private final FollowUtill followHelperService;
-private final UsersManagmentService usersManagment;
 private final CachService cachService;
 private final FollowRepo followRepo;
 private final BlocksRepo blocksRepo;
 private final UserRepo userRepo;
+private final UserQueryService userQueryService;
     public List<user> ListMyfollowers(int page) {
         return followHelperService.
                ListMyFollows_Accepted(FollowUtill.Position.FOLLOWER,
-                        page,usersManagment.getcurrentuser());
+                        page,userQueryService.getcurrentuser());
     }
 
 
@@ -35,12 +34,12 @@ private final UserRepo userRepo;
     public List<user> listMyfollowings(int page) {
         return followHelperService.
                 ListMyFollows_Accepted(FollowUtill.Position.FOLLOWING,page
-                        ,usersManagment.getcurrentuser());
+                        ,userQueryService.getcurrentuser());
     }
 
 
     public List<user> getUserFollow(String useruuid, int page, FollowUtill.Position position){
-        User currentuser=usersManagment.getcurrentuser();
+        User currentuser=userQueryService.getcurrentuser();
         User requesteduser;
         requesteduser=cachService.getUserbyId(useruuid);
         if (requesteduser == null) {
@@ -55,7 +54,7 @@ private final UserRepo userRepo;
         if(isblocked){
             throw new BadFollowRequestException("you cant see his followings because user has blocked you");
         }
-        Profile profile=usersManagment.getuserprofile(requesteduser,false);
+        Profile profile=userQueryService.getuserprofile(requesteduser,false);
         if(profile.isIsprivate()){
             if(!followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)){
                 throw new BadFollowRequestException("this user has private access");

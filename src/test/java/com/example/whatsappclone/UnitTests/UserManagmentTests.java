@@ -4,7 +4,8 @@ import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Services.CachService;
-import com.example.whatsappclone.Services.UsersManagmentService;
+import com.example.whatsappclone.Services.UserQueryService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -22,8 +23,10 @@ public class UserManagmentTests {
     private ProfileRepo profileRepo;
     @Mock
     private CachService cachService;
+    @Mock
+    private UserQueryService userQueryService;
     @InjectMocks
-    private UsersManagmentService usersManagmentService;
+    private UsersAccountManagmentService usersManagmentService;
 
 
     // GET USER PROFILE TESTS
@@ -40,7 +43,7 @@ public class UserManagmentTests {
             when(profileRepo.findByUser(mockedUser)).thenReturn(Optional.of(repoProfile));
         }
 
-        usersManagmentService.getuserprofile(mockedUser, cacheit);
+        userQueryService.getuserprofile(mockedUser, cacheit);
 
 
         if (incache) {

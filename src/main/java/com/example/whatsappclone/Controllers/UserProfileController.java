@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.serverToclient.profile;
-import com.example.whatsappclone.Services.UsersManagmentService;
+import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class UserProfileController {
 
-    private final UsersManagmentService usersManagment;
+    private final UsersAccountManagmentService usersManagment;
 
     @GetMapping
     public profile getMyProfile() {

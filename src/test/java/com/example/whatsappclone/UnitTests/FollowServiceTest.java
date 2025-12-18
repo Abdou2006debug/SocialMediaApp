@@ -2,14 +2,12 @@ package com.example.whatsappclone.UnitTests;
 
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
 import com.example.whatsappclone.DTO.serverToclient.user;
-import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.IntegrationTests.FollowTestHelper;
 import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
@@ -27,13 +25,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.example.whatsappclone.IntegrationTests.FollowTestHelper.assertthrows;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
@@ -45,14 +41,13 @@ public class FollowServiceTest {
     @Mock
     private ProfileRepo profileRepo;
     @Mock
-    private UsersManagmentService usersManagment;
-    @Mock
     private BlocksRepo blocksRepo;
     @Mock
     private CachService cachService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
+    @Mock
+    private UserQueryService userQueryService;
     @InjectMocks
     private FollowRequestService followRequestService;
     @InjectMocks
@@ -64,7 +59,7 @@ public class FollowServiceTest {
 
     @BeforeEach
     public void setCurrentUser() {
-        when(usersManagment.getcurrentuser()).thenReturn(currentuser);
+        when(userQueryService.getcurrentuser()).thenReturn(currentuser);
         lenient().when(userRepo.findById(requesteduser.getUuid())).thenReturn(Optional.of(requesteduser));
     }
 
@@ -277,7 +272,7 @@ public class FollowServiceTest {
     private void helper(boolean iscurrentprivate, boolean toprivate, boolean trigger){
         Profile Mockedprofile=new Profile(iscurrentprivate);
         profilesettings MockedprofileSettings=new profilesettings(toprivate);
-        when(usersManagment.getuserprofile(currentuser,true)).thenReturn(Mockedprofile);
+        when(userQueryService.getuserprofile(currentuser,true)).thenReturn(Mockedprofile);
         followRequestService.UpdateProfileSettings(MockedprofileSettings);
         ArgumentCaptor<Profile> captor=ArgumentCaptor.forClass(Profile.class);
         verify(profileRepo).save(captor.capture());
