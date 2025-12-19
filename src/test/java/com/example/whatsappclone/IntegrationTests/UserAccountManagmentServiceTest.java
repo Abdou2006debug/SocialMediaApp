@@ -1,15 +1,16 @@
 package com.example.whatsappclone.IntegrationTests;
 
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
+import com.example.whatsappclone.Entities.NotificationsSettings;
+import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
+import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.UsersAccountManagmentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.*;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
@@ -35,7 +36,8 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
     private final UsersAccountManagmentService usersAccountManagmentService;
     private final UserRepo userRepo;
     private final JwtDecoder jwtDecoder;
-
+    private final ProfileRepo profileRepo;
+    private final NotificationSettingsRepo notificationSettingsRepo;
     private String createuser(){
         String username= UUID.randomUUID().toString().substring(0,7);
         userregistration userregistration=
@@ -57,6 +59,13 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
     public void registeruser() throws IOException {
         String username=createuser();
         assertTrue(userRepo.existsByUsername(username));
+        assertTrue(profileRepo.existsByUserUsername(username));
+        Optional<NotificationsSettings> notificationsSettings=notificationSettingsRepo.findByUserUsername(username);
+        assertTrue(notificationsSettings.isPresent());
+        NotificationsSettings notificationsSettings1=notificationsSettings.get();
+        assertTrue(notificationsSettings1.getOnfollow());
+        assertTrue(notificationsSettings1.getOnfollowingrequest_Accepted());
+        assertTrue(notificationsSettings1.getOnfollowingrequest_rejected());
         //checking if saved in keycloak
         Keycloak keycloakTest=KeycloakBuilder.builder().
                 realm("master").username("admin").password("admin").
@@ -71,10 +80,13 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
         form.add("username", username);
         form.add("password", "test");
         var entity=new HttpEntity<>(form,headers);
-        ResponseEntity<String> response= restTemplate.exchange("http://localhost:"+keycloak.getMappedPort(8080)+"/realms/master/protocol/openid-connect/token", HttpMethod.POST,entity,String.class);
+        ResponseEntity<String> response=
+                restTemplate.exchange("http://localhost:"+keycloak.getMappedPort(8080)+"/realms/master/protocol/openid-connect/token", HttpMethod.POST,entity,String.class);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response.getBody());
         String accessToken = node.get("access_token").asText();
         assertDoesNotThrow(()->jwtDecoder.decode(accessToken));
+        assertEquals(jwtDecoder.decode(accessToken).getClaim("preferred_username"),username);
     }
+
 }

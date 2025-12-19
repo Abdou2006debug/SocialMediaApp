@@ -8,13 +8,15 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.FollowService;
-import com.example.whatsappclone.Services.UserQueryService;
-import com.example.whatsappclone.Services.UsersAccountManagmentService;
+import com.example.whatsappclone.Services.*;
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,33 +31,26 @@ public class FollowTestHelper {
     private final BlocksRepo blocksRepo;
     private final UserRepo userRepo;
 
-    public User perfomeFollowRemoval(Follow.Status status, FollowServiceIntegrationTest.RemovalType type){
-        User currentuser=userQueryService.getcurrentuser();
-        User user=createTestUser();
-        Follow follow=type== FollowServiceIntegrationTest.RemovalType.UNFOLLOW?new Follow(currentuser,user,status):new Follow(user,currentuser,status);
-        followRepo.save(follow);
-        if(type== FollowServiceIntegrationTest.RemovalType.UNFOLLOW){
-            followService.UnFollow(follow.getUuid());
-        }else{
-            followService.removefollower(follow.getUuid());
-        }
-        return user;
-    }
+
     public User followUser(FollowServiceIntegrationTest.ProfileType profiletype){
         User user=createTestUser();
         Profile profile=profiletype== FollowServiceIntegrationTest.ProfileType.PRIVATE?new Profile(true):new Profile(false);
         profile.setUser(user);
         profileRepo.save(profile);
-        followService.Follow(user.getUuid());
         return user;
     }
-
-    public User createFollowRecord(Follow.Status status){
+    public Map<String,Object> createFollowRecord(Follow.Status status, FollowUtill.Position position){
         User user=createTestUser();
         User currentuser=userQueryService.getcurrentuser();
-        followRepo.saveAndFlush(new Follow(currentuser,user, status));
-        return user;
+        Follow follow=position== FollowUtill.Position.FOLLOWER?
+                new Follow(currentuser,user,status):new Follow(user,currentuser,status);
+        followRepo.saveAndFlush(follow);
+        Map<String,Object> map=new HashMap<>();
+            map.put("user",user);
+            map.put("followid",follow.getUuid());
+        return map;
     }
+
     public static void assertthrows(Class<? extends Exception> expected, Executable executable, String expectedMessage){
         Exception exception=assertThrows(expected,executable);
         assertEquals(expectedMessage,exception.getMessage());

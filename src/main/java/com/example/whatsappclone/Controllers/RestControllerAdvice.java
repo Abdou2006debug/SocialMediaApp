@@ -16,4 +16,8 @@ public class RestControllerAdvice {
         HttpStatus status=ex.getMessage().equals("follow not related to current user")? HttpStatus.NOT_FOUND: HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(map,status);
     }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> ha(){
+        return new ResponseEntity<>("error",HttpStatus.BAD_REQUEST);
+    }
 }

@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface ProfileRepo extends JpaRepository<Profile,String> {
     Optional<Profile> findByUser_KeycloakId(String keycloakId);
     Optional<Profile> findByUser(User user);
+    boolean existsByUserUsername(String username);
 }

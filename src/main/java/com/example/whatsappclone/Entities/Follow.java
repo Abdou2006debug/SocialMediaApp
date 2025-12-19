@@ -37,5 +37,5 @@ public class Follow {
         this(follower,following);
         this.status=status;
     }
-    public enum Status{PENDING,ACCEPTED,REJECTED}
+    public enum Status{PENDING,ACCEPTED}
 }
