@@ -1,7 +1,9 @@
 package com.example.whatsappclone.IntegrationTests;
 
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
+import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.NotificationsSettings;
+import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
@@ -13,6 +15,8 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.util.LinkedMultiValueMap;
@@ -28,11 +32,13 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional
 public class UserAccountManagmentServiceTest extends TestContainerConfig{
     private final RestTemplate restTemplate;
+    @LocalServerPort
+    private int port;
     private final UsersAccountManagmentService usersAccountManagmentService;
     private final UserRepo userRepo;
     private final JwtDecoder jwtDecoder;
@@ -87,6 +93,7 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
         String accessToken = node.get("access_token").asText();
         assertDoesNotThrow(()->jwtDecoder.decode(accessToken));
         assertEquals(jwtDecoder.decode(accessToken).getClaim("preferred_username"),username);
+
     }
 
 }

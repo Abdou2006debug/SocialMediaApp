@@ -87,7 +87,7 @@ public class FollowRequestService {
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
         profileRepo.save(currentprofile);
-        cachService.cachuserprofile(currentprofile);
+        cachService.cacheUserProfile(currentprofile);
         if(!profilesettings.isIsprivate()&&currentstatus){
             followRepo.findByFollowingAndStatus(currentuser, Follow.Status.PENDING).
                     forEach(follow -> rejectfollow(follow.getUuid()));

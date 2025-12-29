@@ -278,7 +278,7 @@ public class FollowServiceTest {
         verify(profileRepo).save(captor.capture());
         Profile profile=captor.getValue();
         assertEquals(MockedprofileSettings.isIsprivate(),profile.isIsprivate());
-        verify(cachService).cachuserprofile(profile);
+        verify(cachService).cacheUserProfile(profile);
         if(trigger){
             verify(followRepo).findByFollowingAndStatus(currentuser, Follow.Status.PENDING);
         }else{

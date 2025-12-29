@@ -1,12 +1,16 @@
 package com.example.whatsappclone.Services;
 
+import com.example.whatsappclone.Configurations.Redisconfig.Cachemapper;
+import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
+import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
+import com.example.whatsappclone.Configurations.Redisconfig.Repositries.UserCacheRepo;
 import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,36 +32,27 @@ import static java.util.Arrays.stream;
 public class CachService {
     private final RedisTemplate<String,Object> redisTemplate;
     private final FollowRepo followRepo;
-    private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
+    private final UserCacheRepo usercacheRepo;
+    private final ProfileCacheRepo profileCacheRepo;
+    private final ProfileInfoCacheRepo profileInfoCacheRepo;
+    private final Cachemapper mapper;
+    public void cacheUser(User user){
+    com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.User cachedUser=mapper.cacheUser(user);
+    usercacheRepo.save(cachedUser);
+    }
+    public void cacheProfileInfo(Profile profile){
+    ProfileInfo profileInfoCache=mapper.cacheProfileInfo(profile);
+    profileInfoCache.setUuid(profile.getUser().getUuid());
+    profileInfoCacheRepo.save(profileInfoCache);
+    }
+    public void cacheUserProfile(Profile profile){
+        com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile profileCache=mapper.cacheProfile(profile);
+        profileCache.setKeycloakId(profile.getUser().getKeycloakId());
+        profileCache.setUserId(profile.getUser().getUuid());
+        profileCacheRepo.save(profileCache);
+    }
 
-    public void cachuser(User user){
-        String keycloakid =user.getKeycloakId();
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"uuid",user.getUuid());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"username",user.getUsername());
-        redisTemplate.opsForHash().put("user:"+keycloakid,"firstname",user.getFirstname());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"lastname",user.getLastname());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"email",user.getEmail());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"created date",user.getCreateddate().toString());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"lastmodifieddate",user.getLastmodifieddate().toString());
-        redisTemplate.opsForHash().put("user:"+ keycloakid,"birthday",user.getBirthday());
-        redisTemplate.opsForHash().put("user:"+user.getUuid(),"keycloak",keycloakid);
-        redisTemplate.opsForValue().set("user:"+user.getUuid(),keycloakid);
-        redisTemplate.expire("user:"+ keycloakid,5, TimeUnit.MINUTES);
-        redisTemplate.expire("user:"+user.getUuid(),5,TimeUnit.MINUTES);
-    }
-    public void cachuserprofile(Profile profile){
-        User user=profile.getUser();
-        String keycloakid= user.getKeycloakId();
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"uuid",profile.getUuid());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"bio",profile.getBio());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"username",profile.getUsername());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"privateavatarurl",profile.getPrivateavatarurl());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"publicavatarurl",profile.getPublicavatarurl());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"showifonline",profile.isShowifonline());
-        redisTemplate.opsForHash().put("user profile:"+ keycloakid,"isprivate",profile.isIsprivate());
-        redisTemplate.expire("user profile:"+ keycloakid,2,TimeUnit.MINUTES);
-    }
     public void cachuserfollowers(User user,int page) {
         Pageable pageable=PageRequest.of(page,10,Sort.by("accepteddate").descending());
         String keycloakId = user.getKeycloakId();
@@ -176,21 +171,7 @@ public class CachService {
         return followingsmap;
     }
 public Profile getcachedprofile(User user){
-        String keycloakid=user.getKeycloakId();
-     Map<Object,Object> cachedprofile=redisTemplate.opsForHash().entries("user profile:"+keycloakid);
-     if(cachedprofile.isEmpty()){
-         return null;
-     }
-    Profile profile = new Profile();
-    profile.setUuid((String) cachedprofile.get("uuid"));
-    profile.setBio((String) cachedprofile.get("bio"));
-    profile.setUsername((String) cachedprofile.get("username"));
-    profile.setPrivateavatarurl((String) cachedprofile.get("privateavatarurl"));
-    profile.setPublicavatarurl((String)cachedprofile.get("publicavatarurl"));
-    profile.setShowifonline(Boolean.parseBoolean(cachedprofile.get("showifonline").toString()));
-    profile.setIsprivate(Boolean.parseBoolean(cachedprofile.get("isprivate").toString()));
-    profile.setUser(user);
-return profile;
+   return null;
 }
 
 public User getUserbyId(String userid){

@@ -48,13 +48,13 @@ public class UserManagmentTests {
 
         if (incache) {
             verify(profileRepo, never()).findByUser(mockedUser);
-            verify(cachService, never()).cachuserprofile(any());
+            verify(cachService, never()).cacheUserProfile(any());
         } else if (cacheit) {
             verify(profileRepo).findByUser(mockedUser);
-            verify(cachService).cachuserprofile(repoProfile);
+            verify(cachService).cacheUserProfile(repoProfile);
         } else {
             verify(profileRepo).findByUser(mockedUser);
-            verify(cachService, never()).cachuserprofile(any());
+            verify(cachService, never()).cacheUserProfile(any());
         }
     }
     @ParameterizedTest

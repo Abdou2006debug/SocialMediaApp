@@ -36,13 +36,6 @@ public class User {
     private String email;
     private String keycloakId;
     private LocalDate birthday;
-    @ManyToMany(fetch=FetchType.LAZY)
-    @JoinTable(
-            name = "user_chats",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "chat_id")
-    )
-    private List<Chat> chats=new ArrayList<>();
     public User(String username,String firstname,String lastname,String email,String keycloakid){
         this.firstname=firstname;
         this.lastname=lastname;
@@ -57,4 +50,5 @@ public class User {
         this.username=username;
         this.uuid=uuid;
     }
+
 }

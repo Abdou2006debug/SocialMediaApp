@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Securityconfig;
+package com.example.whatsappclone.Configurations.Securityconfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

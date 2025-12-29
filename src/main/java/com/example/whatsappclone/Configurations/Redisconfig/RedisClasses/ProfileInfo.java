@@ -1,0 +1,18 @@
+package com.example.whatsappclone.Configurations.Redisconfig.RedisClasses;
+
+import jakarta.persistence.Id;
+import lombok.Data;
+import org.springframework.data.redis.core.RedisHash;
+
+// this class is used to cache and retrieve user important details to other users
+//  it has longer ttl than the Profile class because its more accessed
+@RedisHash(timeToLive =480,value = "ProfileInfo")
+@Data
+public class ProfileInfo {
+    @Id
+    private String uuid;
+
+    private String bio;
+    private String pfpurl;
+    private String username;
+}

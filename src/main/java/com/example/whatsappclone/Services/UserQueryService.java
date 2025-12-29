@@ -11,8 +11,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Services.CachService;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class UserQueryService {
         Profile cached = cachService.getcachedprofile(requesteduser);
         Profile profile = cached == null ? profileRepo.findByUser(requesteduser).get() : cached;
         if(cachit&&cached==null){
-            cachService.cachuserprofile(profile);
+            cachService.cacheUserProfile(profile);
         }
         return profile;
     }
@@ -43,7 +41,7 @@ public class UserQueryService {
         }
         User user=  userRepo.findByKeycloakId(keycloakid).
                 orElseThrow(()->new UserNotFoundException("user not found"));
-        cachService.cachuser(user);
+        cachService.cacheUser(user);
         return user;
     }
     public account getuser(String useruuid){

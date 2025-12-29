@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Swaggerconfig;
+package com.example.whatsappclone.Configurations.Swaggerconfig;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

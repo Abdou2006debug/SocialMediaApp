@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Redisconfig;
+package com.example.whatsappclone.Configurations.Redisconfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

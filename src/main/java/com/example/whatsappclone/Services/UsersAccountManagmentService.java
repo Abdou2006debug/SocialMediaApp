@@ -2,16 +2,12 @@ package com.example.whatsappclone.Services;
 
 import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.DTO.clientToserver.profile;
-import com.example.whatsappclone.DTO.serverToclient.account;
-import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.NotificationsSettings;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
 import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.*;
 import jakarta.transaction.Transactional;
-import jakarta.validation.executable.ValidateOnExecution;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.CreatedResponseUtil;
@@ -20,7 +16,6 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -28,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 //import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -49,6 +43,7 @@ public class UsersAccountManagmentService {
        private final UserRepo userRepo;
        private final ProfileRepo profileRepo;
        private final RestTemplate restTemplate;
+      // private final WebClient webClient= WebClient.builder().baseUrl().build();
        private final UserQueryService userQueryService;
     @Value("${supabase.key}")
     private String apikey;
@@ -85,7 +80,7 @@ public class UsersAccountManagmentService {
            notificationsSettings.setUser(user);
            notificationSettingsRepo.save(notificationsSettings);
            profileRepo.save(profile);
-           cachService.cachuser(user);
+           cachService.cacheUser(user);
        }else{
           throw new RuntimeException(response.readEntity(String.class));
        }
@@ -150,7 +145,7 @@ Profile currentprofile=userQueryService.getuserprofile(currentuser,false);
         currentprofile.setPublicavatarurl(supabaseUrl+ "/storage/v1/object/public/" +
                 bucketname +"/"+URLEncoder.encode(fileName,StandardCharsets.UTF_8));
         profileRepo.save(currentprofile);
-        cachService.cachuserprofile(currentprofile);
+        cachService.cacheUserProfile(currentprofile);
     }
     public void UpdateProfile(profile p){
         User currentuser=userQueryService.getcurrentuser();
@@ -159,7 +154,7 @@ Profile currentprofile=userQueryService.getuserprofile(currentuser,false);
         currentprofile.setBio(p.getBio());
         currentuser.setUsername(p.getUsername());
         profileRepo.save(currentprofile);
-        cachService.cachuserprofile(currentprofile);
+        cachService.cacheUserProfile(currentprofile);
     }
     public com.example.whatsappclone.DTO.serverToclient.profile getMyProfile(){
         User currentuser=userQueryService.getcurrentuser();
