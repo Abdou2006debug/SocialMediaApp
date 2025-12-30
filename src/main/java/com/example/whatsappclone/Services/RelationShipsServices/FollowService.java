@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.RelationShipsServices;
 
 import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.Follow;
@@ -11,6 +11,8 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ public class FollowService {
     private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
-    private final CachService cachService;
+    private final CacheWriterService cachService;
     private final ApplicationEventPublisher eventPublisher;
     private final Logger logger= LoggerFactory.getLogger(FollowService.class);
     private final UserQueryService userQueryService;
@@ -42,10 +44,10 @@ public class FollowService {
         if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.ACCEPTED)){
             throw new BadFollowRequestException("Already followed");
         }
-        if(blocksRepo.existsByBlockedAndBlocker(currentuser, usertofollow)){
+        if(blocksRepo.existsByBlockerAndBlocked(usertofollow, currentuser)){
             throw new BadFollowRequestException("User has blocked you");
         }
-       if(blocksRepo.existsByBlockedAndBlocker(usertofollow,currentuser)){
+       if(blocksRepo.existsByBlockerAndBlocked(currentuser,usertofollow)){
            throw new BadFollowRequestException("You have blocked this user");
        }
        if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,usertofollow, Follow.Status.PENDING)){

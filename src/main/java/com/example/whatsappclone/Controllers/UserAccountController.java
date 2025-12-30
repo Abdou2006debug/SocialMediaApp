@@ -1,8 +1,7 @@
 package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.serverToclient.account;
-import com.example.whatsappclone.Services.UserQueryService;
-import com.example.whatsappclone.Services.UsersAccountManagmentService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

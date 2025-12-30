@@ -34,17 +34,15 @@ public class User {
     @Email
     @Column(unique = true)
     private String email;
-    private String keycloakId;
     private LocalDate birthday;
-    public User(String username,String firstname,String lastname,String email,String keycloakid){
+    public User(String username,String firstname,String lastname,String email){
         this.firstname=firstname;
         this.lastname=lastname;
         this.email=email;
-        this.keycloakId=keycloakid;
         this.username=username;
     }
-    public User(String username){
-     this(username,null);
+    public User(String uuid){
+     this(null,uuid);
     }
     public User(String username,String uuid){
         this.username=username;

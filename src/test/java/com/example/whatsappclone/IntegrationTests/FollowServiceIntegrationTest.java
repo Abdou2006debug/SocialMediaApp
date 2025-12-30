@@ -1,13 +1,14 @@
 package com.example.whatsappclone.IntegrationTests;
 
 import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.*;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowUtill;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;
@@ -16,7 +17,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;

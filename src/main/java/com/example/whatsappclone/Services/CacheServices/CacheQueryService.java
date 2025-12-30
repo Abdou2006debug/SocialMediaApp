@@ -1,6 +1,5 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.CacheServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.Cachemapper;
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
@@ -17,21 +16,15 @@ public class CacheQueryService {
   private final ProfileCacheRepo profileCacheRepo;
   private final ProfileInfoCacheRepo profileInfoCacheRepo;
   private final Cachemapper mapper;
-  public User getUser(String keycloakId){
-     if(!userCacheRepo.existsBykeycloakId(keycloakId)){
-         return null;
-     }
-      com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.User userCache=userCacheRepo.findBykeycloakId(keycloakId);
-     return mapper.getUser(userCache);
+  public User getUser(String userId){
+    return userCacheRepo.findById(userId).map(mapper::getUser).orElse(null);
   }
-  public Profile getProfile(String keycloakId){
-     if(!profileCacheRepo.existsBykeycloakId(keycloakId)){
-         return null;
-     }
-     com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile profileCache=profileCacheRepo.findBykeycloakId(keycloakId);
-     Profile profile=mapper.getProfile(profileCache);
-     profile.setUser(new User(null,profileCache.getUserId()));
-     return profile;
+  public Profile getProfile(String userId){
+     return profileCacheRepo.findByuserId(userId).map(profileCache -> {
+       Profile profile=mapper.getProfile(profileCache);
+        profile.setUser(new User(null,profileCache.getUserId()));
+        return profile;
+     }).orElse(null);
   }
   public ProfileInfo getProfileInfo(String userId){
 return profileInfoCacheRepo.findById(userId).orElse(null);

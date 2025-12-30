@@ -18,10 +18,11 @@ public interface FollowRepo extends JpaRepository<Follow,String> {
 
   org.springframework.data.domain.Page<Follow> findByFollowingAndStatus(User following, Follow.Status status, org.springframework.data.domain.Pageable pageable);
    Page<Follow> findByFollowerAndStatus(User follower, Follow.Status status, Pageable pageable);
+    Page<Follow> findByFollowerUuidAndStatus(String followerUuid,Follow.Status status,Pageable pageable);
+    Page<Follow> findByFollowingUuidAndStatus(String followingUuid,Follow.Status status,Pageable pageable);
+    long countByFollowingAndStatus(User following,Follow.Status status);
 
-    long countByFollowingAndStatus(User user, Follow.Status status);
-
-    long countByFollowerAndStatus(User user, Follow.Status status);
+    long countByFollowerAndStatus(User follower,Follow.Status status);
 
     boolean existsByFollowerAndFollowingAndStatus(User follower, User following, Follow.Status status);
 

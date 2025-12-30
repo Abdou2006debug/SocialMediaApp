@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.RelationShipsServices;
 
 import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
@@ -8,6 +8,8 @@ import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,17 +26,17 @@ public class BlockService {
     private final FollowService followService;
     private final UserQueryService userQueryService;
     public void block(String useruuid) {
-        User currentuser = userQueryService.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser(false);
+        User requesteduser=new User(useruuid);
+        if(!userRepo.existsById(useruuid)){throw new UserNotFoundException("user not found");}
         if(currentuser.getUuid().equals(useruuid)){throw new BadFollowRequestException("you cant block yourself");}
-        User usertoblock = userRepo.
-                findById(useruuid).orElseThrow(()->new UserNotFoundException("user not found"));
         boolean isalreadyblocked= blocksRepo.
-                existsByBlockedAndBlocker(usertoblock, currentuser);
+                existsByBlockerAndBlocked(currentuser,requesteduser);
         if(isalreadyblocked){
             throw new BadFollowRequestException("you have already blocked this user");
         }
-        Blocks block = new Blocks(currentuser, usertoblock);
-        followRepo.findByFollowerAndFollowing(currentuser, usertoblock).ifPresent(f -> {
+        Blocks block = new Blocks(currentuser,requesteduser);
+        followRepo.findByFollowerAndFollowing(currentuser,requesteduser).ifPresent(f -> {
             if (f.getStatus() == Follow.Status.ACCEPTED) {
                 followService.UnFollow(f.getUuid());
                 return;
@@ -42,7 +44,7 @@ public class BlockService {
             followRequestService.unsendfollowingrequest(f.getUuid());
         });
         followRepo.
-                findByFollowerAndFollowing(usertoblock, currentuser).ifPresent(f -> {
+                findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(f -> {
                     if (f.getStatus() == Follow.Status.ACCEPTED) {
                         followService.removefollower(f.getUuid());
                         return;
@@ -55,7 +57,7 @@ public class BlockService {
 
 
     public void unblock(String useruuid) {
-        User currentuser = userQueryService.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser(false);
         User usertounblock = userRepo.findById(useruuid).
                 orElseThrow(()->new UserNotFoundException("user not found"));
         Blocks block = blocksRepo.
@@ -63,5 +65,4 @@ public class BlockService {
                 orElseThrow(() -> new BadFollowRequestException("you have not blocked this user"));
         blocksRepo.delete(block);
     }
-
 }

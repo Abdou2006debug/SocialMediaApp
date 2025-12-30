@@ -2,8 +2,8 @@ package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
-import com.example.whatsappclone.Services.FollowRequestService;
-import com.example.whatsappclone.Services.UsersAccountManagmentService;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

@@ -3,9 +3,9 @@ package com.example.whatsappclone.UnitTests;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.ProfileRepo;
-import com.example.whatsappclone.Services.CachService;
-import com.example.whatsappclone.Services.UserQueryService;
-import com.example.whatsappclone.Services.UsersAccountManagmentService;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -22,7 +22,7 @@ public class UserManagmentTests {
     @Mock
     private ProfileRepo profileRepo;
     @Mock
-    private CachService cachService;
+    private CacheWriterService cachService;
     @Mock
     private UserQueryService userQueryService;
     @InjectMocks

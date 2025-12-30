@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.RelationShipsServices;
 
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
 import com.example.whatsappclone.DTO.serverToclient.user;
@@ -9,6 +9,9 @@ import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +27,13 @@ public class FollowRequestService {
     private final FollowRepo followRepo;
     private final UsersAccountManagmentService usersManagment;
     private final FollowUtill followHelperService;
-    private final CachService cachService;
+    private final CacheWriterService cachService;
     private final ProfileRepo profileRepo;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
     private final UserQueryService userQueryService;
     public void acceptfollow(String followuuid) {
-        User currentuser =userQueryService.getcurrentuser();
+        User currentuser =userQueryService.getcurrentuser(false);
         Follow followrequest = followRepo.
                 findByUuidAndFollowing(followuuid,currentuser).orElseThrow(()->new BadFollowRequestException("bad request"));
         User userfollower=followrequest.getFollower();
@@ -48,7 +51,7 @@ public class FollowRequestService {
     }
 
     public void rejectfollow(String followuuid) {
-        User currentuser = userQueryService.getcurrentuser();
+        User currentuser = userQueryService.getcurrentuser(false);
         Follow follow = followRepo.findByUuidAndFollowing(followuuid, currentuser).orElseThrow();
         User userfollower=follow.getFollower();
         if (follow.getStatus() == Follow.Status.ACCEPTED) {
@@ -68,10 +71,10 @@ public class FollowRequestService {
     public List<user> ListMyFollowingRequests(int page) {
         return followHelperService
                 .ListMyFollows_Pending(FollowUtill.Position.FOLLOWING,page
-                        ,userQueryService.getcurrentuser());
+                        ,userQueryService.getcurrentuser(false));
     }
     public void unsendfollowingrequest(String followuuid){
-    User currentuser=userQueryService.getcurrentuser();
+    User currentuser=userQueryService.getcurrentuser(false);
     Follow followrequest = followRepo.findByUuidAndFollower(followuuid,currentuser).
             orElseThrow(()->new BadFollowRequestException("bad request"));
         if (followrequest.getStatus() == Follow.Status.ACCEPTED) {
@@ -80,17 +83,5 @@ public class FollowRequestService {
         followRepo.delete(followrequest);
 }
 
-    public void UpdateProfileSettings(profilesettings profilesettings){
-        User currentuser=userQueryService.getcurrentuser();
-       Profile currentprofile=userQueryService.getuserprofile(currentuser,true);
-       boolean currentstatus=currentprofile.isIsprivate();
-        currentprofile.setIsprivate(profilesettings.isIsprivate());
-        currentprofile.setShowifonline(profilesettings.isShowifonline());
-        profileRepo.save(currentprofile);
-        cachService.cacheUserProfile(currentprofile);
-        if(!profilesettings.isIsprivate()&&currentstatus){
-            followRepo.findByFollowingAndStatus(currentuser, Follow.Status.PENDING).
-                    forEach(follow -> rejectfollow(follow.getUuid()));
-        }
-    }
+
 }

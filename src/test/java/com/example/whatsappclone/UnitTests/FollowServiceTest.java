@@ -12,7 +12,10 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.*;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,7 +46,7 @@ public class FollowServiceTest {
     @Mock
     private BlocksRepo blocksRepo;
     @Mock
-    private CachService cachService;
+    private CacheWriterService cachService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock

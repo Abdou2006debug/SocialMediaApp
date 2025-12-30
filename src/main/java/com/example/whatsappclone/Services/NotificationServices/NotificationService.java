@@ -1,11 +1,13 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.NotificationServices;
 
 import com.example.whatsappclone.Entities.NotificationsSettings;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +17,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
 //import com.example.whatsappclone.DTO.serverToclient.notification;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final CachService cachService;
+    private final CacheWriterService cachService;
     private final UserQueryService userQueryService;
     private final NotificationSettingsRepo notificationSettingsRepo;
     private final UsersAccountManagmentService usersManagmentService;
@@ -84,8 +87,8 @@ public class NotificationService {
     @Async
     public void handleNotificationEvents(notification n) {
        notification.notificationType notificationType=n.getType();
-        if(notificationType.equals(com.example.whatsappclone.Events.notification.notificationType.FOLLOW)||
-        notificationType.equals(com.example.whatsappclone.Events.notification.notificationType.FOLLOW_REQUESTED)){
+        if(notificationType.equals(notification.notificationType.FOLLOW)||
+        notificationType.equals(notification.notificationType.FOLLOW_REQUESTED)){
             logger.info("resolving follow event to "+n.getRecipient().getUsername());
             try {
                 follownotification(n);
@@ -93,7 +96,7 @@ public class NotificationService {
                 throw new RuntimeException(e);
             }
         }
-        if(notificationType.equals(com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_ACCEPTED)||
+        if(notificationType.equals(notification.notificationType.FOLLOWING_ACCEPTED)||
                 notificationType.equals(notification.notificationType.FOLLOWING_REJECTED)){
             logger.info("resolving following event to "+n.getRecipient().getUsername());
             try {

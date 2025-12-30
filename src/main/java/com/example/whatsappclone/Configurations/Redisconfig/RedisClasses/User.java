@@ -29,7 +29,5 @@ public class User {
     private String lastname;
     private String username;
     private String email;
-    @Indexed
-    private String keycloakId;
     private LocalDate birthday;
 }

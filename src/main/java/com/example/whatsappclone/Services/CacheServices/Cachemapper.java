@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Configurations.Redisconfig;
+package com.example.whatsappclone.Services.CacheServices;
 
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile;
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;

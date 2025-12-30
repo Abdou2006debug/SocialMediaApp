@@ -1,13 +1,11 @@
 package com.example.whatsappclone.IntegrationTests;
 
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
-import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.NotificationsSettings;
-import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.UsersAccountManagmentService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -15,7 +13,6 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.jwt.JwtDecoder;

@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.RelationShipsServices;
 
 import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.Follow;
@@ -8,11 +8,14 @@ import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
+import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -20,11 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class FollowUtill {
 private final ApplicationEventPublisher applicationEventPublisher;
-private final CachService cachService;
+private final CacheWriterService cachService;
 private final UserRepo userRepo;
 private final ProfileRepo profileRepo;
 private final UsersAccountManagmentService usersManagment;

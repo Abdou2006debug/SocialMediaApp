@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Controllers;
 
-import com.example.whatsappclone.Services.BlockService;
+import com.example.whatsappclone.Services.RelationShipsServices.BlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

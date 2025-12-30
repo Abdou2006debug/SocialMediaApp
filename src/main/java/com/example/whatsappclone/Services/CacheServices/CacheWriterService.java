@@ -1,6 +1,5 @@
-package com.example.whatsappclone.Services;
+package com.example.whatsappclone.Services.CacheServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.Cachemapper;
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
@@ -21,15 +20,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Arrays.stream;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CachService {
+public class CacheWriterService {
     private final RedisTemplate<String,Object> redisTemplate;
     private final FollowRepo followRepo;
     private final BlocksRepo blocksRepo;
@@ -41,63 +40,59 @@ public class CachService {
     com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.User cachedUser=mapper.cacheUser(user);
     usercacheRepo.save(cachedUser);
     }
-    public void cacheProfileInfo(Profile profile){
+    public ProfileInfo cacheProfileInfo(Profile profile){
     ProfileInfo profileInfoCache=mapper.cacheProfileInfo(profile);
     profileInfoCache.setUuid(profile.getUser().getUuid());
-    profileInfoCacheRepo.save(profileInfoCache);
+    return profileInfoCacheRepo.save(profileInfoCache);
     }
     public void cacheUserProfile(Profile profile){
         com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile profileCache=mapper.cacheProfile(profile);
-        profileCache.setKeycloakId(profile.getUser().getKeycloakId());
         profileCache.setUserId(profile.getUser().getUuid());
         profileCacheRepo.save(profileCache);
     }
-
-    public void cachuserfollowers(User user,int page) {
-        Pageable pageable=PageRequest.of(page,10,Sort.by("accepteddate").descending());
-        String keycloakId = user.getKeycloakId();
-        Page<Follow> followerspage = followRepo.findByFollowingAndStatus(user, Follow.Status.ACCEPTED, pageable);
+    public void cachuserfollowers(String userId,int page) {
+        Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
+        Page<Follow> followerspage = followRepo.findByFollowingUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
         List<Follow> followers=followerspage.getContent();
         followers.forEach(follow ->{
-            String followerid=follow.getFollower().getKeycloakId();
-            redisTemplate.opsForHash().put("user:"+keycloakId+":follower:"+followerid,"followid",follow.getUuid());
-            redisTemplate.opsForHash().put("user:"+keycloakId+":follower:"+followerid,"page",page);
-            redisTemplate.opsForZSet().add("user:"+keycloakId+":followers:page:"+page,followerid,follow.getAccepteddate().getEpochSecond());
-            redisTemplate.expire("user:"+keycloakId+":followers:page:"+page,120,TimeUnit.SECONDS);
-            redisTemplate.expire("user:"+keycloakId+":follower:"+followerid,130,TimeUnit.SECONDS);
+            String followerid=follow.getFollower().getUuid();
+            redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"followid",follow.getUuid());
+            redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"page",page);
+            redisTemplate.opsForZSet().add("user:"+userId+":followers:page:"+page,followerid,follow.getAccepteddate().getEpochSecond());
+            redisTemplate.expire("user:"+userId+":followers:page:"+page,120,TimeUnit.SECONDS);
+            redisTemplate.expire("user:"+userId+":follower:"+followerid,130,TimeUnit.SECONDS);
         });
     }
 
-    public void cachuserfollowings(User user,int page) {
-        Pageable pageable=PageRequest.of(page,10,Sort.by("accepteddate").descending());
-        String keycloakId = user.getKeycloakId();
-        Page<Follow> followingspage = followRepo.findByFollowerAndStatus(user, Follow.Status.ACCEPTED, pageable);
+    public void cachuserfollowings(String userId,int page) {
+        Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
+        Page<Follow> followingspage = followRepo.findByFollowerUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
         List<Follow> followings=followingspage.getContent();
         followings.forEach(follow ->{
-            String followingid=follow.getFollowing().getKeycloakId();
-            redisTemplate.opsForHash().put("user:"+keycloakId+":following:"+followingid,"followid",follow.getUuid());
-            redisTemplate.opsForHash().put("user:"+keycloakId+":following:"+followingid,"page",page);
-            redisTemplate.opsForZSet().add("user:"+keycloakId+":followings:page:"+page,followingid,follow.getAccepteddate().getEpochSecond());
-            redisTemplate.expire("user:"+keycloakId+":followings:page:"+page,120,TimeUnit.SECONDS);
-            redisTemplate.expire("user:"+keycloakId+":following:"+followingid,130,TimeUnit.SECONDS);
+            String followingid=follow.getFollowing().getUuid();
+             redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"followid",follow.getUuid());
+             redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"page",page);
+            redisTemplate.opsForZSet().add("user:"+userId+":followings:page:"+page,followingid,follow.getAccepteddate().getEpochSecond());
+
+            redisTemplate.expire("user:"+userId+":followings:page:"+page,120,TimeUnit.SECONDS);
+            //redisTemplate.expire("user:"+keycloakId+":following:"+followingid,130,TimeUnit.SECONDS);
         });
     }
 
-    public void addfollower(User user, Follow follow) {
-        String keycloakId = user.getKeycloakId();
-        String followerId = follow.getFollower().getKeycloakId();
-        String followid=follow.getUuid();
-        boolean followerscached=redisTemplate.hasKey("user:"+keycloakId+":followers:page:"+0);
+    public void addfollower(Follow follow) {
+        String followingId=follow.getFollowing().getUuid();
+        String followerId = follow.getFollower().getUuid();
+        String followId=follow.getUuid();
+        boolean followerscached=redisTemplate.hasKey("user:"+followingId+":followers:page:"+0);
         if(!followerscached){
-            cachuserfollowers(user,0);
+           return;
         }
-        redisTemplate.opsForHash().put("user:"+keycloakId+":follower:"+followerId,"followid",followid);
-        redisTemplate.opsForHash().put("user:"+keycloakId+":follower:"+followerId,"page",0);
-        redisTemplate.opsForZSet().add("user:"+keycloakId+":followers:page:" +0, followerId,follow.getAccepteddate().getEpochSecond());
+        redisTemplate.opsForHash().put("user:"+followingId+":follower:"+followerId,"followid",followId);
+        redisTemplate.opsForHash().put("user:"+followingId+":follower:"+followerId,"page",0);
+        redisTemplate.opsForZSet().add("user:"+followingId+":followers:page:" +0, followerId,follow.getAccepteddate().getEpochSecond());
 
-        redisTemplate.expire("user:"+keycloakId+":followers:page:" +0,120,TimeUnit.SECONDS);
-
-        redisTemplate.expire("user:"+keycloakId+":follower:"+followerId,130,TimeUnit.SECONDS);
+        redisTemplate.expire("user:"+followingId+":followers:page:" +0,120,TimeUnit.SECONDS);
+        redisTemplate.expire("user:"+followingId+":follower:"+followerId,130,TimeUnit.SECONDS);
     }
 
     public void removefollower(User user, Follow follow) {
@@ -112,13 +107,13 @@ public class CachService {
         }
     }
 
-    public void addfollowing(User user, Follow follow) {
-        String keycloakId = user.getKeycloakId();
-        String followingId = follow.getFollowing().getKeycloakId();
+    public void addfollowing(Follow follow) {
+        String followerId = follow.getFollower().getUuid();
+        String followingId = follow.getFollowing().getUuid();
         String followid=follow.getUuid();
         boolean followingscached =redisTemplate.hasKey("user:"+keycloakId+":followings:page:"+0);
         if(!followingscached){
-            cachuserfollowings(user,0);
+           return;
         }
         redisTemplate.opsForHash().put("user:"+keycloakId+":following:"+followingId,"followid",followid);
         redisTemplate.opsForHash().put("user:"+keycloakId+":following:"+followingId,"page",0);

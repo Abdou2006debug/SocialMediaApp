@@ -22,5 +22,4 @@ public class Profile {
     private boolean showifonline=false;
     private boolean isprivate=false;
     private String userId;
-    private String keycloakId;
 }
