@@ -1,7 +1,5 @@
 package com.example.whatsappclone.Controllers;
 
-import com.example.whatsappclone.DTO.serverToclient.user;
-
 import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
 import lombok.RequiredArgsConstructor;
 

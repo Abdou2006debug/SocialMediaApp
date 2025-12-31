@@ -1,7 +1,6 @@
 package com.example.whatsappclone.UnitTests;
 
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
-import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;

@@ -1,6 +1,5 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
-import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;

@@ -1,17 +1,12 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
-import com.example.whatsappclone.DTO.clientToserver.profilesettings;
-import com.example.whatsappclone.DTO.serverToclient.user;
 import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Repositries.FollowRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
-import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowRequestService {
     private final FollowRepo followRepo;
-    private final UsersAccountManagmentService usersManagment;
     private final FollowUtill followHelperService;
     private final CacheWriterService cachService;
-    private final ProfileRepo profileRepo;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
     private final UserQueryService userQueryService;

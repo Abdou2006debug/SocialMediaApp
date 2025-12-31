@@ -11,13 +11,14 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 public class UserUtill {
     @Value("${keycloak.username}")
     private String username;
@@ -26,6 +27,17 @@ public class UserUtill {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
 
+    @Value("${supabase.url}")
+    private String supabaseUri;
+    @Value("${file.bucket}")
+    private String bucket;
+    @Value("${supabase.key}")
+    private String apikey;
+
+    private final WebClient webClient;
+    public UserUtill(WebClient.Builder webclient){
+        this.webClient= webclient.baseUrl(supabaseUri).build();
+    }
     public void UserProvision(userregistration userregistration,String userId){
         Keycloak keycloak= KeycloakBuilder.builder().
                 realm("master").username(username).password(password).
@@ -51,4 +63,7 @@ public class UserUtill {
             }
         }
     }
+    //public void uploadpfp(MultipartFile file,String oldpfp){
+      //  webClient.post().header("Authorization","Bearer "+apikey).header("apikey", apikey)
+    //}
 }

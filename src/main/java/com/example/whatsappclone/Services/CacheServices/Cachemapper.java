@@ -12,6 +12,6 @@ public interface Cachemapper {
   Profile cacheProfile(com.example.whatsappclone.Entities.Profile profile);
   com.example.whatsappclone.Entities.User getUser(User user);
   com.example.whatsappclone.Entities.Profile getProfile(Profile profile);
-  @Mapping(source="publicavatarurl", target = "pfpurl")
+  @Mapping(source="publicavatarurl", target = "avatarurl")
   ProfileInfo cacheProfileInfo(com.example.whatsappclone.Entities.Profile profile);
 }

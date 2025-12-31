@@ -10,9 +10,9 @@ import org.springframework.data.redis.core.RedisHash;
 @Data
 public class ProfileInfo {
     @Id
-    private String uuid;
+    private String userId;
 
     private String bio;
-    private String pfpurl;
+    private String avatarurl;
     private String username;
 }

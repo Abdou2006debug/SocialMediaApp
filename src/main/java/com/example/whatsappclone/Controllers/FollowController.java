@@ -1,7 +1,5 @@
 package com.example.whatsappclone.Controllers;
 
-import com.example.whatsappclone.DTO.serverToclient.user;
-
 import com.example.whatsappclone.Services.RelationShipsServices.FollowQueryService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowUtill;

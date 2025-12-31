@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Services.UserManagmentServices;
 
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
-import com.example.whatsappclone.DTO.serverToclient.account;
+import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
@@ -19,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserQueryService {
@@ -29,9 +31,9 @@ public class UserQueryService {
     private final FollowRepo followRepo;
     private final CacheQueryService cacheQueryService;
     public Profile getuserprofile(User user,Boolean cacheProfile){
-        Profile cached = cacheQueryService.getProfile(user.getUuid());
-        Profile profile = cached == null ? profileRepo.findByUser(user).get() : cached;
-        if(cacheProfile &&cached==null){
+        Optional<Profile> cached = cacheQueryService.getProfile(user.getUuid());
+        Profile profile = cached.orElseGet(() -> profileRepo.findByUser(user).orElseThrow());
+        if(cacheProfile &&cached.isEmpty()){
             cachService.cacheUserProfile(profile);
         }
         return profile;
@@ -44,9 +46,9 @@ public class UserQueryService {
         }
         String userId=((Jwt) authentication.getPrincipal()).getClaimAsString("userId");
         if(fetchfullinfo){
-            User cachedtuser=cacheQueryService.getUser(userId);
-            if(cachedtuser!=null){
-                return cachedtuser;
+            Optional<User> cacheduser=cacheQueryService.getUser(userId);
+            if(cacheduser.isPresent()){
+                return cacheduser.get();
             }
             User user=  userRepo.findById(userId).
                     orElseThrow(()->new UserNotFoundException("user not found"));
@@ -55,7 +57,7 @@ public class UserQueryService {
         }
         return new User(userId);
     }
-    public account getuser(String requestedId){
+    public profileDetails getuser(String requestedId){
         User currentuser=getcurrentuser(false);
         User requesteduser=new User(requestedId);
         if (!userRepo.existsById(requestedId)) {
@@ -90,7 +92,7 @@ public class UserQueryService {
         }
         boolean isonline=cachService.getuserstatus(requesteduser.getUsername());
         String lastseen=isonline?null: cachService.getuserlastseen(requesteduser.getUsername());
-        return new account(requesteduser.getUuid(),requesteduser.getUsername(),
+        return new profileDetails(requesteduser.getUuid(),requesteduser.getUsername(),
                 profileInfo.getPfpurl(),profileInfo.getBio(),status,followersCount(requesteduser),followingsCount(requesteduser),lastseen, isonline);
     }
     public long followersCount(User user){

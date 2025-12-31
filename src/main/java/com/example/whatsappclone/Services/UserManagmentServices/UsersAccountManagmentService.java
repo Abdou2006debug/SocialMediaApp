@@ -4,6 +4,7 @@ import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.DTO.clientToserver.profile;
 import com.example.whatsappclone.DTO.clientToserver.profilesettings;
 import com.example.whatsappclone.DTO.clientToserver.userregistration;
+import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Entities.NotificationsSettings;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
@@ -12,13 +13,7 @@ import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
-import org.keycloak.admin.client.CreatedResponseUtil;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.KeycloakBuilder;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,8 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Transactional
@@ -42,7 +35,6 @@ public class UsersAccountManagmentService {
        private final ProfileRepo profileRepo;
        private final RestTemplate restTemplate;
        private final UserUtill userUtill;
-      // private final WebClient webClient= WebClient.builder().baseUrl().build();
        private final UserQueryService userQueryService;
     @Value("${supabase.key}")
     private String apikey;
@@ -72,11 +64,11 @@ public class UsersAccountManagmentService {
        return new notificationsettings(notificationsSettings.getOnfollowingrequest_Accepted(),notificationsSettings.getOnfollowingrequest_rejected(),notificationsSettings.getOnfollow());
 
 }
-    public void uploadpfp(MultipartFile file) throws IOException {
+    public void changepfp(MultipartFile file) throws IOException {
        User currentuser=userQueryService.getcurrentuser(false);
         Profile currentprofile=userQueryService.getuserprofile(currentuser,false);
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " +apikey);
+        headers.set("Authorization","Bearer "+apikey);
         headers.set("apikey", apikey);
         String prepfp=currentprofile.getPrivateavatarurl();
         if(prepfp!=null){
@@ -129,18 +121,10 @@ public class UsersAccountManagmentService {
         profileRepo.save(currentprofile);
         cachService.cacheUserProfile(currentprofile);
     }
-    public com.example.whatsappclone.DTO.serverToclient.profile getMyProfile(){
+    public profileDetails getMyProfile(){
         User currentuser=userQueryService.getcurrentuser(false);
         Profile profile=userQueryService.getuserprofile(currentuser,true);
-        com.example.whatsappclone.DTO.serverToclient.profile profiledto=
-                new com.example.whatsappclone.DTO.serverToclient.profile();
-        profiledto.setAvatarurl(profile.getPublicavatarurl());
-        profiledto.setBio(profile.getBio());
-        profiledto.setUseruuid(profile.getUser().getUuid());
-        profiledto.setUsername(profile.getUsername());
-        profiledto.setFollowings(userQueryService.followingsCount(currentuser));
-        profiledto.setFollowers(userQueryService.followersCount(currentuser));
-        return profiledto;
+       return null;
     }
     public com.example.whatsappclone.DTO.serverToclient.profilesettings getMyProfileSettings(){
      User currentuser=userQueryService.getcurrentuser(false);

@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Controllers;
 
-import com.example.whatsappclone.DTO.serverToclient.profile;
+import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class UserProfileController {
     private final UsersAccountManagmentService usersManagment;
 
     @GetMapping
-    public profile getMyProfile() {
+    public profileSummary getMyProfile() {
         return usersManagment.getMyProfile();
     }
 
@@ -28,7 +28,7 @@ public class UserProfileController {
 
     @PutMapping("/picture")
     public void updateProfilePicture(@RequestParam MultipartFile file) throws IOException {
-        usersManagment.uploadpfp(file);
+        usersManagment.changepfp(file);
     }
 }
 
