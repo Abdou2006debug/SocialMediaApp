@@ -1,10 +1,16 @@
 package com.example.whatsappclone.DTO.serverToclient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class profileDetails {
     private String userId;
     private String username;
@@ -16,15 +22,4 @@ public class profileDetails {
     private long followings;
     private String lastseen;
     private boolean isonline;
-    public profileDetails(String uuid, String username, String avatarurl, String bio,
-                          RelationshipStatus status, long followers, long followings, String lastseen, boolean isonline){
-        this.username=username;
-        this.avatarurl=avatarurl;
-        this.lastseen=lastseen;
-        this.bio=bio;
-        this.status=status;
-        this.isonline=isonline;
-        this.followers=followers;
-        this.followings=followings;
-    }
 }

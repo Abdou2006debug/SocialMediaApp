@@ -54,14 +54,14 @@ public class UsersAccountManagmentService {
         User currentuser=userQueryService.getcurrentuser(false);
         NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUser(currentuser);
         notificationsSettings.setOnfollow(notification.isOnfollower());
-        notificationsSettings.setOnfollowingrequest_rejected(notification.isOnfollowingrequests_rejected());
-        notificationsSettings.setOnfollowingrequest_Accepted(notification.isOnfollowingrequests_accepted());
+        notificationsSettings.setOnfollowingrequestRejected(notification.isOnfollowingrequests_rejected());
+        notificationsSettings.setOnfollowingrequestAccepted(notification.isOnfollowingrequests_accepted());
         notificationSettingsRepo.save(notificationsSettings);
 }
      public notificationsettings getnotificationsettings(){
        User currentuser=userQueryService.getcurrentuser(false);
        NotificationsSettings notificationsSettings= notificationSettingsRepo.findByUser(currentuser);
-       return new notificationsettings(notificationsSettings.getOnfollowingrequest_Accepted(),notificationsSettings.getOnfollowingrequest_rejected(),notificationsSettings.getOnfollow());
+       return new notificationsettings(notificationsSettings.getOnfollowingrequestAccepted(),notificationsSettings.getOnfollowingrequestRejected(),notificationsSettings.getOnfollow());
 
 }
     public void changepfp(MultipartFile file) throws IOException {

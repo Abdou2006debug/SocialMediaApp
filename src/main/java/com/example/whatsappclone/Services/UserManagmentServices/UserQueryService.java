@@ -1,6 +1,7 @@
 package com.example.whatsappclone.Services.UserManagmentServices;
 
 import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
@@ -45,6 +46,9 @@ public class UserQueryService {
             throw new AuthenticationCredentialsNotFoundException("User not authenticated");
         }
         String userId=((Jwt) authentication.getPrincipal()).getClaimAsString("userId");
+        if(userId==null){
+            throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
+        }
         if(fetchfullinfo){
             Optional<User> cacheduser=cacheQueryService.getUser(userId);
             if(cacheduser.isPresent()){
@@ -58,38 +62,27 @@ public class UserQueryService {
         return new User(userId);
     }
     public profileDetails getuser(String requestedId){
+        if (!userRepo.existsById(requestedId)) {
+            throw new UserNotFoundException("user not found");
+        }
         User currentuser=getcurrentuser(false);
         User requesteduser=new User(requestedId);
-        if (!userRepo.existsById(requestedId)) {
-           throw new UserNotFoundException("user not found");
-        }
-        ProfileInfo profileInfo=cacheQueryService.getProfileInfo(requestedId);
-        if(profileInfo==null){
+        ProfileInfo  profileInfo=cacheQueryService.getProfileInfo(requestedId).orElseGet(()->{
             Profile profile=getuserprofile(requesteduser,false);
-            profileInfo=cachService.cacheProfileInfo(profile);
-        }
-        String status=null;
+            return  cachService.cacheProfileInfo(profile);
+        });
+        RelationshipStatus status;
 
-        boolean hasblocked= blocksRepo.
-                existsByBlockerAndBlocked(currentuser,requesteduser);
-        if(hasblocked){
-            status="you have blocked him";
+        if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)){
+            status= RelationshipStatus.FOLLOWING;
+        }else if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING)){
+            status=RelationshipStatus.FOLLOW_REQUESTED;
+        }else if(followRepo.existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.ACCEPTED)){
+            status=RelationshipStatus.FOLLOWED;
+        }else if(followRepo.existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.PENDING)){
+            status=RelationshipStatus.FOLLOW_REQUEST_RECEIVED;
         }
-        boolean isfolloweraccepted = followRepo.
-                existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED);
-        boolean isfollowerpending=followRepo.
-                existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING);
-        if(isfolloweraccepted){
-            status="following";
-        }else if(isfollowerpending){
-            status="sent";
-        }else{
-            boolean isfollowingaccepted=followRepo.
-                    existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.ACCEPTED);
-            if(isfollowingaccepted){
-                status="follow back";
-            }
-        }
+
         boolean isonline=cachService.getuserstatus(requesteduser.getUsername());
         String lastseen=isonline?null: cachService.getuserlastseen(requesteduser.getUsername());
         return new profileDetails(requesteduser.getUuid(),requesteduser.getUsername(),

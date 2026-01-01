@@ -8,7 +8,7 @@ import com.example.whatsappclone.Repositries.BlocksRepo;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.RelationShipsServices.FollowUtill;
+import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
 import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.function.Executable;
@@ -38,10 +38,10 @@ public class FollowTestHelper {
         profileRepo.save(profile);
         return user;
     }
-    public Map<String,Object> createFollowRecord(Follow.Status status, FollowUtill.Position position){
+    public Map<String,Object> createFollowRecord(Follow.Status status, UserFollowViewHelper.Position position){
         User user=createTestUser();
         User currentuser=userQueryService.getcurrentuser();
-        Follow follow=position== FollowUtill.Position.FOLLOWER?
+        Follow follow=position== UserFollowViewHelper.Position.FOLLOWER?
                 new Follow(currentuser,user,status):new Follow(user,currentuser,status);
         followRepo.saveAndFlush(follow);
         Map<String,Object> map=new HashMap<>();

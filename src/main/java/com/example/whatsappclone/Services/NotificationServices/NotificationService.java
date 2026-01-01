@@ -64,13 +64,13 @@ public class NotificationService {
         String message;
         User trigger=notification.getTrigger();
         if(notification.getType().equals(com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_ACCEPTED)){
-            if(!Settings.getOnfollowingrequest_Accepted()){
+            if(!Settings.getOnfollowingrequestAccepted()){
                 logger.info(recipient.getUsername()+" has disabled the following accepted notifications");
                 return ;
             }
             message=trigger.getUsername()+" accepted your follow";
         }else{
-            if(!Settings.getOnfollowingrequest_rejected()){
+            if(!Settings.getOnfollowingrequestRejected()){
                 logger.info(recipient.getUsername()+" has disabled the following rejected notifications");
                 return;
             }

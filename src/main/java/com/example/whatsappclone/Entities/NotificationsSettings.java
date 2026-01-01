@@ -25,12 +25,12 @@ public class NotificationsSettings{
     @Column(name="follow")
     private Boolean Onfollow;
     @Column(name="followingrequests")
-    private Boolean Onfollowingrequest_Accepted;
+    private Boolean onfollowingrequestAccepted;
     @Column(name="followingrequests_rejected")
-    private Boolean Onfollowingrequest_rejected;
+    private Boolean onfollowingrequestRejected;
     public NotificationsSettings(boolean onfollowingrequest_Accepted,boolean onfollowingrequest_rejected,boolean follow){
-        this.Onfollowingrequest_Accepted=onfollowingrequest_Accepted;
-        this.Onfollowingrequest_rejected=onfollowingrequest_rejected;
+        this.onfollowingrequestAccepted =onfollowingrequest_Accepted;
+        this.onfollowingrequestRejected =onfollowingrequest_rejected;
         this.Onfollow=follow;
     }
 }

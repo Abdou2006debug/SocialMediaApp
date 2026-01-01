@@ -67,8 +67,8 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
         assertTrue(notificationsSettings.isPresent());
         NotificationsSettings notificationsSettings1=notificationsSettings.get();
         assertTrue(notificationsSettings1.getOnfollow());
-        assertTrue(notificationsSettings1.getOnfollowingrequest_Accepted());
-        assertTrue(notificationsSettings1.getOnfollowingrequest_rejected());
+        assertTrue(notificationsSettings1.getOnfollowingrequestAccepted());
+        assertTrue(notificationsSettings1.getOnfollowingrequestRejected());
         //checking if saved in keycloak
         Keycloak keycloakTest=KeycloakBuilder.builder().
                 realm("master").username("admin").password("admin").

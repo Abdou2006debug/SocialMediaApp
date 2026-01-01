@@ -1,5 +1,7 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
+import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
+import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
@@ -33,29 +35,32 @@ public class FollowService {
     private final ApplicationEventPublisher eventPublisher;
     private final Logger logger= LoggerFactory.getLogger(FollowService.class);
     private final UserQueryService userQueryService;
-    public user Follow(String useruuid) {
+    public profileDetails Follow(String userId) {
+        if(!userRepo.existsById(userId)){
+            throw new UserNotFoundException("User not found");
+        }
         User currentuser = userQueryService.getcurrentuser(false);
-        if (currentuser.getUuid().equals(useruuid)) {
+        if (currentuser.getUuid().equals(userId)) {
             throw new BadFollowRequestException("you cant follow yourself");
         }
-        User usertofollow = userRepo.findById(useruuid)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User usertofollow=new User(userId);
         if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.ACCEPTED)){
             throw new BadFollowRequestException("Already followed");
         }
         if(blocksRepo.existsByBlockerAndBlocked(usertofollow, currentuser)){
-            throw new BadFollowRequestException("User has blocked you");
+            throw new BadFollowRequestException("You cant follow this User");
         }
        if(blocksRepo.existsByBlockerAndBlocked(currentuser,usertofollow)){
-           throw new BadFollowRequestException("You have blocked this user");
+           throw new BadFollowRequestException("You cant follow this User");
        }
        if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,usertofollow, Follow.Status.PENDING)){
            throw new BadFollowRequestException("request already sent");
        }
         Follow follow = new Follow(currentuser, usertofollow);
-        Profile profile=profileRepo.findByUser(usertofollow).get();
-       notification notification= new notification(currentuser,usertofollow,
+        Profile profile=userQueryService.getuserprofile(usertofollow,true);
+        notification notification= new notification(currentuser,usertofollow,
                 com.example.whatsappclone.Events.notification.notificationType.FOLLOW,follow.getUuid());
+        RelationshipStatus status;
         if (!profile.isIsprivate()) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setAccepteddate(Instant.now());
@@ -63,15 +68,17 @@ public class FollowService {
             //cachService.addfollowing(currentuser,follow);
             logger.info("publishing follow event for "+usertofollow.getUsername());
             eventPublisher.publishEvent(notification);
+            status=RelationshipStatus.FOLLOWING;
         } else {
             follow.setStatus(Follow.Status.PENDING);
             logger.info("publishing follow request event for "+usertofollow.getUsername());
             notification.setType(com.example.whatsappclone.Events.notification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
+            status=RelationshipStatus.FOLLOW_REQUESTED;
         }
 
         followRepo.save(follow);
-        return new user(useruuid,usertofollow.getUsername(),profile.getPublicavatarurl(),follow.getUuid());
+        return profileDetails.builder().userId(userId).followId(follow.getUuid()).status(status).build();
     }
     public void UnFollow(String followuuid) {
         User currentuser = userQueryService.getcurrentuser(false);
@@ -81,8 +88,8 @@ public class FollowService {
         }
         User userfollowing=follow.getFollowing();
         followRepo.delete(follow);
-        cachService.removefollowing(currentuser,follow);
-        cachService.removefollower(userfollowing,follow);
+      //  cachService.removefollowing(currentuser,follow);
+        //cachService.removefollower(userfollowing,follow);
     }
     public void removefollower(String followuuid) {
         User currentuser = userQueryService.getcurrentuser(false);
@@ -94,8 +101,8 @@ public class FollowService {
         }
         User userfollower=follow.getFollower();
         followRepo.delete(follow);
-        cachService.removefollower(currentuser,follow);
-        cachService.removefollowing(userfollower,follow);
+        //cachService.removefollower(currentuser,follow);
+        //cachService.removefollowing(userfollower,follow);
     }
 }
 

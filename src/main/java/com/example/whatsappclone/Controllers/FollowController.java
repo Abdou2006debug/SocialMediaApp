@@ -1,8 +1,9 @@
 package com.example.whatsappclone.Controllers;
 
+import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowQueryService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
-import com.example.whatsappclone.Services.RelationShipsServices.FollowUtill;
+import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -24,14 +25,16 @@ public class FollowController {
         followService.UnFollow(followid);
     }
 
+
     @GetMapping("/me/followers/{page}")
-    public List<user> getfollowers(@PathVariable int page) {
-        return followQueryService.ListMyfollowers(page);
+    public List<profileSummary> getfollowers(@PathVariable int page) {
+        return followQueryService.listCurrentUserFollowers(page);
     }
 
+
     @GetMapping("/me/followings/{page}")
-    public List<user> getfollowings(@PathVariable int page) {
-        return followQueryService.listMyfollowings(page);
+    public List<profileSummary> getfollowings(@PathVariable int page) {
+        return followQueryService.listCurrentUserFollowings(page);
     }
 
     @DeleteMapping("/me/{followid}/removefollower")
@@ -40,13 +43,13 @@ public class FollowController {
     }
 
     @GetMapping("/{userid}/followers/{page}")
-    public List<user> getuserfollowers(@PathVariable String userid, @PathVariable int page) {
-        return followQueryService.getUserFollow(userid, page, FollowUtill.Position.FOLLOWER);
+    public List<profileSummary> getuserfollowers(@PathVariable String userid, @PathVariable int page) {
+        return followQueryService.listUserFollowers(userid, page);
     }
 
     @GetMapping("/{userid}/followings/{page}")
-    public List<user> getuserfollowings(@PathVariable String userid, @PathVariable int page) {
-        return followQueryService.getUserFollow(userid, page, FollowUtill.Position.FOLLOWING);
+    public List<profileSummary> getuserfollowings(@PathVariable String userid, @PathVariable int page) {
+        return followQueryService.listUserFollowing(userid, page);
     }
 }
 

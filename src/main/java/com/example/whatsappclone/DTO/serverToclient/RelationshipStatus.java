@@ -4,5 +4,6 @@ public enum RelationshipStatus {
         NOT_FOLLOWING,
         FOLLOWING,
         FOLLOW_REQUESTED,
-        FOLLOW_REQUEST_RECEIVED
+        FOLLOW_REQUEST_RECEIVED,
+        FOLLOWED
 }
