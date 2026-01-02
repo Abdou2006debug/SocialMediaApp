@@ -5,19 +5,20 @@ import com.example.whatsappclone.Entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface FollowRepo extends JpaRepository<Follow,String> {
-    Optional<Follow> findByFollowerAndFollowingAndStatus(User follower, User following, Follow.Status status);
    Optional<Follow> findByFollowerAndFollowing(User follower,User following);
    List<Follow> findByFollowingAndStatus(User following, Follow.Status status);
 
   org.springframework.data.domain.Page<Follow> findByFollowingAndStatus(User following, Follow.Status status, org.springframework.data.domain.Pageable pageable);
-   Page<Follow> findByFollowerAndStatus(User follower, Follow.Status status, Pageable pageable);
     Page<Follow> findByFollowerUuidAndStatus(String followerUuid,Follow.Status status,Pageable pageable);
     Page<Follow> findByFollowingUuidAndStatus(String followingUuid,Follow.Status status,Pageable pageable);
     long countByFollowingAndStatus(User following,Follow.Status status);
@@ -26,12 +27,16 @@ public interface FollowRepo extends JpaRepository<Follow,String> {
 
     boolean existsByFollowerAndFollowingAndStatus(User follower, User following, Follow.Status status);
 
-    boolean existsByFollowerAndFollowing_UuidAndStatus(User follower, String followingUuid, Follow.Status status);
     boolean existsByFollowerAndFollowing(User follower,User following);
 Optional<Follow> findByUuidAndFollower(String uuid,User follower);
   Optional<Follow> findByUuidAndFollowing(String uuid,User following);
+    List<Follow> findByFollower_IdAndFollowing_IdIn(
+            String followerId,
+            Collection<String> followingIds
+    );
+    List<Follow> findByFollowing_IdAndFollower_IdIn(
+            String followingId,
+            Collection<String> followerIds
+    );
 
-    boolean existsByFollowerAndFollowingUuid(User follower, String followinguuid);
-
-    boolean existsByFollower_UuidAndFollowingAndStatus(String followeruuid, User following, Follow.Status status);
 }

@@ -28,9 +28,13 @@ public class Profile {
     private String publicavatarurl;
     private boolean showifonline=false;
     private boolean isprivate=false;
-    @OneToOne
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id")
     private User user;
+
+    @Column(name ="user_id",insertable = false,updatable = false)
+    private String userId;
 public Profile(String bio ,String username){
     this.bio=bio;
     this.username=username;

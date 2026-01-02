@@ -18,17 +18,29 @@ public class Follow {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String uuid;
+
     @CreatedDate
     private Instant createddate;
+
     private Instant accepteddate;
+
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="follower_id")
     private User follower;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="following_id")
     private User following;
+
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Column(name = "follower_id",insertable = false,updatable = false)
+    private String follower_id;
+
+    @Column(name = "follower_id",insertable = false,updatable = false)
+    private String following_id;
+
     public Follow( User follower, User following){
        this.follower=follower;
        this.following=following;

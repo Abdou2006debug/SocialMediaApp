@@ -1,15 +1,9 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
 import com.example.whatsappclone.DTO.serverToclient.profileSummary;
-import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.Repositries.BlocksRepo;
-import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,12 +19,12 @@ private final UserQueryService userQueryService;
 
     public List<profileSummary> listCurrentUserFollowers(int page) {
         User currentuser =userQueryService.getcurrentuser(false);
-        return  followViewHelper.ListFollow_Accepted(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page,true);
+        return  followViewHelper.listCurrentUserFollows(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowings(int page) {
         User currentuser =userQueryService.getcurrentuser(false);
-        return  followViewHelper.ListFollow_Accepted(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page,true);
+        return  followViewHelper.listCurrentUserFollows(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
     }
 
     public List<profileSummary> listUserFollowers(int page) {
@@ -45,7 +39,7 @@ private final UserQueryService userQueryService;
         User currentuser=userQueryService.getcurrentuser(false);
         User requesteduser=new User(userId);
         followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWERS);
-        return followViewHelper.ListFollow_Accepted(userId, UserFollowViewHelper.Position.FOLLOWERS,page,false);
+        return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
 
 
 
@@ -81,7 +75,7 @@ private final UserQueryService userQueryService;
         User currentuser=userQueryService.getcurrentuser(false);
         User requesteduser=new User(userId);
         followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWINGS);
-        return followViewHelper.ListFollow_Accepted(userId, UserFollowViewHelper.Position.FOLLOWINGS,page,false);
+        return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
 
     }
 }

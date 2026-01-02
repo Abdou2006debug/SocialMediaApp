@@ -57,11 +57,11 @@ public class FollowService {
            throw new BadFollowRequestException("request already sent");
        }
         Follow follow = new Follow(currentuser, usertofollow);
-        Profile profile=userQueryService.getuserprofile(usertofollow,true);
+
         notification notification= new notification(currentuser,usertofollow,
                 com.example.whatsappclone.Events.notification.notificationType.FOLLOW,follow.getUuid());
         RelationshipStatus status;
-        if (!profile.isIsprivate()) {
+        if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setAccepteddate(Instant.now());
            // cachService.addfollower(usertofollow,follow);

@@ -41,13 +41,13 @@ public class CacheWriterService {
 
     public ProfileInfo cacheProfileInfo(Profile profile){
     ProfileInfo profileInfoCache=mapper.cacheProfileInfo(profile);
-    profileInfoCache.setUserId(profile.getUser().getUuid());
+    profileInfoCache.setUserId(profile.getUserId());
     return profileInfoCacheRepo.save(profileInfoCache);
     }
 
     public void cacheUserProfile(Profile profile){
         com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile profileCache=mapper.cacheProfile(profile);
-        profileCache.setUserId(profile.getUser().getUuid());
+        profileCache.setUserId(profile.getUserId());
         profileCacheRepo.save(profileCache);
     }
 
@@ -56,7 +56,7 @@ public class CacheWriterService {
         Page<Follow> followerspage = followRepo.findByFollowingUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
         List<Follow> followers=followerspage.getContent();
         followers.forEach(follow ->{
-            String followerid=follow.getFollower().getUuid();
+            String followerid=follow.getFollower_id();
             redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"followId",follow.getUuid());
             redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"page",page);
             redisTemplate.opsForZSet().add("user:"+userId+":followers:page:"+page,followerid,follow.getAccepteddate().getEpochSecond());
@@ -71,7 +71,7 @@ public class CacheWriterService {
         Page<Follow> followingspage = followRepo.findByFollowerUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
         List<Follow> followings=followingspage.getContent();
         followings.forEach(follow ->{
-            String followingid=follow.getFollowing().getUuid();
+            String followingid=follow.getFollowing_id();
              redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"followId",follow.getUuid());
              redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"page",page);
             redisTemplate.opsForZSet().add("user:"+userId+":followings:page:"+page,followingid,follow.getAccepteddate().getEpochSecond());
@@ -81,7 +81,6 @@ public class CacheWriterService {
         });
         return null;
     }
-
    //public void cachblockedusers(User user){
      //   String keycloakid=user.getKeycloakId();
      // List<Blocks> usersblocked= blocksRepo.findByBlocker(user);

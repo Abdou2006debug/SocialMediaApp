@@ -39,8 +39,8 @@ public class FollowRequestService {
         logger.info("publishing following accepted event to "+userfollower.getUsername());
         eventPublisher.publishEvent(new notification(currentuser,userfollower,
                 notification.notificationType.FOLLOWING_ACCEPTED));
-        cachService.addfollower(currentuser,followrequest);
-        cachService.addfollowing(userfollower,followrequest);
+      //  cachService.addfollower(currentuser,followrequest);
+        // cachService.addfollowing(userfollower,followrequest);
     }
 
     public void rejectfollow(String followuuid) {

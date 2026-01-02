@@ -7,6 +7,7 @@ import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
+import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
 import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
 import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import jakarta.transaction.Transactional;
@@ -42,9 +43,9 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
     @BeforeEach
     public  void setAuthentication(){
         User currentUser = userRepo.save(
-                new User("Abdoumimi","Abderrahmane","Belkheir","abdoubelkhir63@gmail.com","azertyuiopqsdfghjklmwxcvbn"));
+                new User("Abdoumimi","Abderrahmane","Belkheir","abdoubelkhir63@gmail.com"));
         Jwt jwt = Jwt.withTokenValue("test_token")
-                .claim("sub", currentUser.getKeycloakId())
+                .claim("userId", currentUser.getUuid())
                 .claim("preferred_username", currentUser.getUsername())
                 .header("alg","none")
                 .build();
