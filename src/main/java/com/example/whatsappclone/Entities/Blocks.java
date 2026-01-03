@@ -14,6 +14,9 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
+@Table(indexes = {
+        @Index(name="block",columnList = "blocked_id,blocker_id")
+})
 public class Blocks {
     @Id
     @GeneratedValue(generator = "uuid")

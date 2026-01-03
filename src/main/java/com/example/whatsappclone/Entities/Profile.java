@@ -17,6 +17,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@Table(indexes={
+        @Index(name="user_profile",columnList = "user_id")
+        })
 public class Profile {
     @Id
     @GeneratedValue(generator = "uuid")

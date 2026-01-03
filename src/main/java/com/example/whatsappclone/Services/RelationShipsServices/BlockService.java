@@ -44,12 +44,12 @@ public class BlockService {
             followRequestService.unsendfollowingrequest(f.getUuid());
         });
         followRepo.
-                findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(f -> {
-                    if (f.getStatus() == Follow.Status.ACCEPTED) {
-                        followService.removefollower(f.getUuid());
+                findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(follow -> {
+                    if (follow.getStatus() == Follow.Status.ACCEPTED) {
+                        followService.removefollower(follow.getUuid());
                         return;
                     }
-                    followRequestService.rejectfollow(f.getUuid());
+                    followRequestService.rejectfollow(follow.getUuid());
                 });
         blocksRepo.save(block);
     }

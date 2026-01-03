@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
 
@@ -13,6 +14,11 @@ import java.time.Instant;
 @Entity
 @Data
 @NoArgsConstructor
+@Table(indexes ={
+        @Index(name ="follower_following",columnList = "follower_id,following_id,status",unique = true),
+        @Index(name="follower",columnList = "follower_id,status"),
+        @Index(name="following",columnList = "following_id,status"),
+} )
 public class Follow {
     @Id
     @GeneratedValue(generator = "uuid")

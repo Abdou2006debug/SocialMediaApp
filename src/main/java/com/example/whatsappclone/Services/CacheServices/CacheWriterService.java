@@ -53,7 +53,7 @@ public class CacheWriterService {
 
     public List<profileSummary> cachUserFollowers(String userId,int page) {
         Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
-        Page<Follow> followerspage = followRepo.findByFollowingUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
+        Page<Follow> followerspage = followRepo.findByFollowingAndStatus(new User(userId), Follow.Status.ACCEPTED, pageable);
         List<Follow> followers=followerspage.getContent();
         followers.forEach(follow ->{
             String followerid=follow.getFollower_id();
@@ -68,7 +68,7 @@ public class CacheWriterService {
 
     public List<profileSummary> cachUserFollowings(String userId, int page) {
         Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
-        Page<Follow> followingspage = followRepo.findByFollowerUuidAndStatus(userId, Follow.Status.ACCEPTED, pageable);
+        Page<Follow> followingspage = followRepo.findByFollowerAndStatus(new User(userId), Follow.Status.ACCEPTED, pageable);
         List<Follow> followings=followingspage.getContent();
         followings.forEach(follow ->{
             String followingid=follow.getFollowing_id();

@@ -1,5 +1,6 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
+import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
@@ -56,15 +57,17 @@ public class FollowRequestService {
                 notification.notificationType.FOLLOWING_REJECTED));
     }
 
-    public List<user> ListMyFollowRequests(int page) {
+    public List<profileSummary> listCurrentUserFollowRequests(int page) {
+        User currentUser=userQueryService.getcurrentuser(false);
         return followHelperService.
-                ListMyFollows_Pending(UserFollowViewHelper.Position.FOLLOWER,
-                        page,userQueryService.getcurrentuser());
+                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
     }
-    public List<user> ListMyFollowingRequests(int page) {
-        return followHelperService
-                .ListMyFollows_Pending(UserFollowViewHelper.Position.FOLLOWING,page
-                        ,userQueryService.getcurrentuser(false));
+
+    public List<profileSummary> listCurrentUserFollowingRequests(int page) {
+        User currentUser=userQueryService.getcurrentuser(false);
+        return followHelperService.
+                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
+
     }
     public void unsendfollowingrequest(String followuuid){
     User currentuser=userQueryService.getcurrentuser(false);

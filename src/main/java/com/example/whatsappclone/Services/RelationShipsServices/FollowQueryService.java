@@ -40,33 +40,6 @@ private final UserQueryService userQueryService;
         User requesteduser=new User(userId);
         followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWERS);
         return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
-
-
-
-
-      //  return followViewHelper.ListOtherFollows(position,page,requesteduser).stream().peek(follows-> {
-        //    follows.setFollowuuid(null);
-          //  String status=null;
-         //   String followeruuid= follows.getUseruuid();
-          //  boolean isfolloweraccepted = followRepo.
-           //         existsByFollowerAndFollowing_UuidAndStatus(currentuser,followeruuid, Follow.Status.ACCEPTED);
-           // if(isfolloweraccepted){
-            //    status="following";
-            //}else{
-             //   boolean isfollowerpending=followRepo.
-              //          existsByFollowerAndFollowing_UuidAndStatus(currentuser,followeruuid, Follow.Status.PENDING);
-               // if(isfollowerpending){
-                //    status="sent";
-               // }
-           // }
-           // boolean i=followRepo.existsByFollowerAndFollowingUuid(currentuser, followeruuid);
-           // boolean isfollowingaccepted=followRepo.
-            //        existsByFollower_UuidAndFollowingAndStatus(followeruuid,currentuser, Follow.Status.ACCEPTED);
-            //if(isfollowingaccepted&&!i){
-            //    status="follow back";
-            //}
-            //follows.setStatus(status);
-        //}).toList();
     }
     public List<profileSummary> listUserFollowing(String userId,int page){
         if(!userRepo.existsById(userId)){
