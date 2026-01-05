@@ -27,11 +27,6 @@ private final UserQueryService userQueryService;
         return  followViewHelper.listCurrentUserFollows(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
     }
 
-    public List<profileSummary> listUserFollowers(int page) {
-     //   return followViewHelper.ListMyFollows_Accepted(UserFollowViewHelper.Position.FOLLOWERS,page,userQueryService.getcurrentuser());
-    }
-
-
     public List<profileSummary> listUserFollowers(String userId, int page){
         if(!userRepo.existsById(userId)){
             throw  new UserNotFoundException("user not found");
@@ -45,10 +40,10 @@ private final UserQueryService userQueryService;
         if(!userRepo.existsById(userId)){
             throw  new UserNotFoundException("user not found");
         }
-        User currentuser=userQueryService.getcurrentuser(false);
-        User requesteduser=new User(userId);
-        followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWINGS);
-        return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
+        User currentUser=userQueryService.getcurrentuser(false);
+        User targetUser=new User(userId);
+        followViewHelper.canViewUserFollows(currentUser,targetUser, UserFollowViewHelper.Position.FOLLOWINGS);
+        return followViewHelper.listUserFollows(currentUser.getUuid(),targetUser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
 
     }
 }

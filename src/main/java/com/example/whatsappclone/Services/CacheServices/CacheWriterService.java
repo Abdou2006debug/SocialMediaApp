@@ -4,7 +4,6 @@ import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.UserCacheRepo;
-import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -51,43 +51,40 @@ public class CacheWriterService {
         profileCacheRepo.save(profileCache);
     }
 
-    public List<profileSummary> cachUserFollowers(String userId,int page) {
+    public List<String> cacheUserFollowers(String userId,int page) {
         Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
         Page<Follow> followerspage = followRepo.findByFollowingAndStatus(new User(userId), Follow.Status.ACCEPTED, pageable);
         List<Follow> followers=followerspage.getContent();
+        List<String> followersIds=new ArrayList<>();
         followers.forEach(follow ->{
-            String followerid=follow.getFollower_id();
-            redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"followId",follow.getUuid());
-            redisTemplate.opsForHash().put("user:"+userId+":follower:"+followerid,"page",page);
-            redisTemplate.opsForZSet().add("user:"+userId+":followers:page:"+page,followerid,follow.getAccepteddate().getEpochSecond());
-            redisTemplate.expire("user:"+userId+":followers:page:"+page,120,TimeUnit.SECONDS);
-            redisTemplate.expire("user:"+userId+":follower:"+followerid,130,TimeUnit.SECONDS);
+            String followerId=follow.getFollower_id();
+            followersIds.add(followerId);
+            // used when updating the follow to know exactly which page to update
+            redisTemplate.opsForValue().set("user:"+userId+":follower:"+followerId,page);
+            redisTemplate.opsForZSet().add("user:"+userId+":followers:page:"+page,followerId,follow.getAccepteddate().getEpochSecond());
+            long ttl=page==0?10:5;
+            redisTemplate.expire("user:"+userId+":follower:page:"+page,ttl,TimeUnit.MINUTES);
+            redisTemplate.expire("user:"+userId+":follower:"+followerId,ttl+2,TimeUnit.MINUTES);
         });
-        return null;
+        return followersIds;
     }
 
-    public List<profileSummary> cachUserFollowings(String userId, int page) {
+    public List<String> cacheUserFollowings(String userId, int page) {
         Pageable pageable=PageRequest.of(page,20,Sort.by("accepteddate").descending());
         Page<Follow> followingspage = followRepo.findByFollowerAndStatus(new User(userId), Follow.Status.ACCEPTED, pageable);
         List<Follow> followings=followingspage.getContent();
+        List<String> followingsIds =new ArrayList<>();
         followings.forEach(follow ->{
-            String followingid=follow.getFollowing_id();
-             redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"followId",follow.getUuid());
-             redisTemplate.opsForHash().put("user:"+userId+":following:"+followingid,"page",page);
-            redisTemplate.opsForZSet().add("user:"+userId+":followings:page:"+page,followingid,follow.getAccepteddate().getEpochSecond());
-
-            redisTemplate.expire("user:"+userId+":followings:page:"+page,120,TimeUnit.SECONDS);
-            redisTemplate.expire("user:"+userId+":following:"+followingid,130,TimeUnit.SECONDS);
+            String followingId=follow.getFollowing_id();
+            followingsIds.add(followingId);
+            redisTemplate.opsForValue().set("user:"+userId+":following:"+followingId,page);
+            redisTemplate.opsForZSet().add("user:"+userId+":followings:page:"+page,followingId,follow.getAccepteddate().getEpochSecond());
+            long ttl=page==0?10:5;
+            redisTemplate.expire("user:"+userId+":followings:page:"+page,ttl,TimeUnit.SECONDS);
+            redisTemplate.expire("user:"+userId+":following:"+followingId,ttl+2,TimeUnit.SECONDS);
         });
-        return null;
+        return followingsIds;
     }
-   //public void cachblockedusers(User user){
-     //   String keycloakid=user.getKeycloakId();
-     // List<Blocks> usersblocked= blocksRepo.findByBlocker(user);
-     // List<String> usersblockedid=usersblocked.stream()
-      //        .map(blocks -> blocks.getBlocked().getKeycloakId()).toList();
-     // redisTemplate.opsForSet().add("user blocked:"+keycloakid,usersblockedid.toArray(new String[0]));
-     // redisTemplate.expire("user blocked:"+keycloakid,2,TimeUnit.MINUTES);
-    //}
+
 }
 

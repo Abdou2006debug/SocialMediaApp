@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface FollowRepo extends JpaRepository<Follow,String> {
    Optional<Follow> findByFollowerAndFollowing(User follower,User following);
    List<Follow> findByFollowingAndStatus(User following, Follow.Status status);
-
+   Optional<Follow> findByFollowingAndFollowerAndStatus(User following,User follower,Follow.Status status);
    Page<Follow> findByFollowerAndStatus(User follower,Follow.Status status,Pageable pageable);
     Page<Follow> findByFollowingAndStatus(User following,Follow.Status status,Pageable pageable);
     long countByFollowingAndStatus(User following,Follow.Status status);

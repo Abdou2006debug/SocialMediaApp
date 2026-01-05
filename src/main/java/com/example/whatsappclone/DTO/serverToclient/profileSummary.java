@@ -11,7 +11,6 @@ public class profileSummary {
     private String username;
     private String avatarurl;
     private RelationshipStatus status;
-    private String followId;
     public profileSummary(String userId){
         this.userId=userId;
     }

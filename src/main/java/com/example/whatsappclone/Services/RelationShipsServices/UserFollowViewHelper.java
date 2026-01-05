@@ -55,27 +55,32 @@ private final ProfileRepo profileRepo;
                     targeted=follow.getFollowing();
                 }
                profileSummary profileSummary=buildProfileSummary(targeted.getUuid());
-                profileSummary.setFollowId(follow.getUuid());
                 resolveCurrentUserPendingFollowRelationShip(profileSummary,userId,position);
                 return profileSummary;
         }).toList();
 
     }
     public List<profileSummary> listCurrentUserFollows(String userId, Position position, int page){
-     List<profileSummary> profileSummaries=getProfileSummaries(userId,position,page,true);
-     return profileSummaries.stream().map(profile -> {
-        profileSummary profileSummary= buildProfileSummary(profile.getUserId());
+     List<String> followsIds=getFollowsIdshelper(userId,position,page);
+     return followsIds.stream().map(targetId -> {
+        profileSummary profileSummary= buildProfileSummary(targetId);
              resolveCurrentUserFollowRelationShip(profileSummary,userId,position);
+             profileSummary.setUserId(targetId);
          return profileSummary;
      }).toList();
        }
 
        public List<profileSummary> listUserFollows(String viewerId,String targetedId, Position position, int page){
-           List<profileSummary> profileSummaries=getProfileSummaries(targetedId,position,page,false);
-          List<profileSummary> profileSummaries1=  profileSummaries.stream().map(profile -> buildProfileSummary(profile.getUserId())
+           List<String> followsIds=getFollowsIdshelper(targetedId,position,page);
+          List<profileSummary> profileSummaries=  followsIds.stream().map(targetId ->{
+              profileSummary profileSummary=buildProfileSummary(targetedId);
+              profileSummary.setUserId(targetedId);
+              return profileSummary;
+                  }
            ).toList();
-            return resolveViewerFollowRelationShip(profileSummaries1,viewerId);
+            return resolveViewerFollowRelationShip(profileSummaries,viewerId);
        }
+
        private void resolveCurrentUserPendingFollowRelationShip(profileSummary profile,String userId,Position position){
         User currentUser=new User(userId);
         User targetedUser=new User(profile.getUserId());
@@ -130,7 +135,6 @@ private final ProfileRepo profileRepo;
         for (Follow follow : outgoing) {
             profileSummary summary = summaryMap.get(follow.getFollowing_id());
             if (summary != null) {
-                summary.setFollowId(follow.getUuid());
                 RelationshipStatus status = follow.getStatus() == Follow.Status.PENDING
                         ? RelationshipStatus.FOLLOW_REQUESTED
                         : RelationshipStatus.FOLLOWING;
@@ -143,7 +147,6 @@ private final ProfileRepo profileRepo;
         for (Follow follow : incoming) {
             profileSummary summary = summaryMap.get(follow.getFollower_id());
             if (summary != null && summary.getStatus() == null) {
-                summary.setFollowId(follow.getUuid());
                 RelationshipStatus status = follow.getStatus() == Follow.Status.PENDING
                         ? RelationshipStatus.FOLLOW_REQUEST_RECEIVED
                         : RelationshipStatus.FOLLOWED;
@@ -167,11 +170,11 @@ private final ProfileRepo profileRepo;
         });
           return usermapper.toSummary(profileInfocache);
 }
-        private List<profileSummary> getProfileSummaries(String userId,Position position,int page,boolean fetchFollowId){
+        private List<String> getFollowsIdshelper(String userId,Position position,int page){
            if(position==Position.FOLLOWERS){
-               return cacheQueryService.getuserCachedFollowers(userId,page, fetchFollowId).orElseGet(()->cacheWriterService.cachUserFollowers(userId,page));
+               return cacheQueryService.getuserCachedFollowers(userId,page).orElseGet(()->cacheWriterService.cacheUserFollowers(userId,page));
            }
-            return cacheQueryService.getusercachedfollowings(userId,page, fetchFollowId).orElseGet(()->cacheWriterService.cachUserFollowings(userId,page));
+            return cacheQueryService.getusercachedfollowings(userId,page).orElseGet(()->cacheWriterService.cacheUserFollowings(userId,page));
 }
 
         public void canViewUserFollows(User currentUser,User requestedUser,Position position){

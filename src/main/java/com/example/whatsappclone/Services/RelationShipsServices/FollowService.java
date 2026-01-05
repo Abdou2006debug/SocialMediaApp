@@ -3,7 +3,6 @@ package com.example.whatsappclone.Services.RelationShipsServices;
 import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
@@ -22,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -64,8 +64,7 @@ public class FollowService {
         if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setAccepteddate(Instant.now());
-           // cachService.addfollower(usertofollow,follow);
-            //cachService.addfollowing(currentuser,follow);
+
             logger.info("publishing follow event for "+usertofollow.getUsername());
             eventPublisher.publishEvent(notification);
             status=RelationshipStatus.FOLLOWING;
@@ -78,31 +77,27 @@ public class FollowService {
         }
 
         followRepo.save(follow);
-        return profileDetails.builder().userId(userId).followId(follow.getUuid()).status(status).build();
+        return profileDetails.builder().userId(userId).status(status).build();
     }
-    public void UnFollow(String followuuid) {
-        User currentuser = userQueryService.getcurrentuser(false);
-        Follow follow = followRepo.findByUuidAndFollower(followuuid, currentuser).orElseThrow(()->new BadFollowRequestException("bad request"));
-        if (follow.getStatus().equals(Follow.Status.PENDING)) {
-            throw new BadFollowRequestException("you are not following this user try to unsend the request");
+    public void UnFollow(String userId) {
+        if(!userRepo.existsById(userId)){
+            throw new UserNotFoundException("user not found");
         }
-        User userfollowing=follow.getFollowing();
+        User currentUser = userQueryService.getcurrentuser(false);
+        User targetUser=new User(userId);
+        Follow follow = followRepo.findByFollowingAndFollowerAndStatus( targetUser,currentUser, Follow.Status.ACCEPTED).
+                orElseThrow(()->new BadFollowRequestException("couldn't perform unfollow action"));
         followRepo.delete(follow);
-      //  cachService.removefollowing(currentuser,follow);
-        //cachService.removefollower(userfollowing,follow);
     }
-    public void removefollower(String followuuid) {
-        User currentuser = userQueryService.getcurrentuser(false);
-        Follow follow = followRepo.
-                findByUuidAndFollowing(followuuid,currentuser).
-                orElseThrow(()->new BadFollowRequestException("bad request"));
-        if (follow.getStatus() == Follow.Status.PENDING) {
-            throw new BadFollowRequestException("user not in followers try to reject the request");
+    public void removefollower(String userId) {
+        if(!userRepo.existsById(userId)){
+            throw new UserNotFoundException("user not found");
         }
-        User userfollower=follow.getFollower();
+        User currentUser = userQueryService.getcurrentuser(false);
+        User targetUser=new User(userId);
+        Follow follow = followRepo.findByFollowingAndFollowerAndStatus(currentUser,targetUser, Follow.Status.ACCEPTED).
+                orElseThrow(()->new BadFollowRequestException("couldn't perform remove follower action"));
         followRepo.delete(follow);
-        //cachService.removefollower(currentuser,follow);
-        //cachService.removefollowing(userfollower,follow);
     }
 }
 

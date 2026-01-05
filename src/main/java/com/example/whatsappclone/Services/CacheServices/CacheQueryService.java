@@ -4,7 +4,6 @@ import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
 import com.example.whatsappclone.Configurations.Redisconfig.Repositries.UserCacheRepo;
-import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import lombok.RequiredArgsConstructor;
@@ -42,37 +41,21 @@ public class CacheQueryService {
      return profileInfoCacheRepo.findById(userId);
   }
 
-    public Optional<List<profileSummary>> getuserCachedFollowers(String userId , int page, boolean fetchfollowId){
-        Pageable pageable= PageRequest.of(page,10, Sort.by("accepteddate").descending());
+    public Optional<List<String>> getuserCachedFollowers(String userId , int page){
         boolean arefollowerscached = redisTemplate.hasKey("user:"+userId+":followers:page:"+page);
         if(arefollowerscached){
-            Set<String> followersid= redisTemplate.opsForZSet().reverseRange("user:"+userId+":followers:page:"+page,0,-1);
-           List<profileSummary> followers=followersid.stream().map(followerid->{
-               profileSummary profileSummary=new profileSummary(followerid);
-                if(fetchfollowId){
-                    Map<Object,Object> followentries=  redisTemplate.opsForHash().entries("user:"+userId+":follower:"+followerid);
-                    profileSummary.setFollowId((String) followentries.get("followId"));
-                }
-           return profileSummary;
-            }).toList();
+            Set<String> followersIds= redisTemplate.opsForZSet().reverseRange("user:"+userId+":followers:page:"+page,0,-1);
+           List<String> followers=followersIds.stream().toList();
              return Optional.of(followers);
         }
          return Optional.empty();
     }
 
-    public Optional<List<profileSummary>>  getusercachedfollowings(String userId,int page,boolean fetchfollowId){
-        Pageable pageable= PageRequest.of(page,10, Sort.by("accepteddate").descending());
+    public Optional<List<String>>  getusercachedfollowings(String userId,int page){
         boolean arefollowingscached = redisTemplate.hasKey("user:"+userId+":followings:page:"+page);
         if(arefollowingscached){
-            Set<String> followersid= redisTemplate.opsForZSet().reverseRange("user:"+userId+":followings:page:"+page,0,-1);
-            List<profileSummary> followings =followersid.stream().map(followerid->{
-                profileSummary profileSummary=new profileSummary(followerid);
-                if(fetchfollowId){
-                    Map<Object,Object> followentries=  redisTemplate.opsForHash().entries("user:"+userId+":following:"+followerid);
-                    profileSummary.setFollowId((String) followentries.get("followId"));
-                }
-                return profileSummary;
-            }).toList();
+            Set<String> followingsIds = redisTemplate.opsForZSet().reverseRange("user:"+userId+":followings:page:"+page,0,-1);
+            List<String> followings = followingsIds.stream().toList();
             return Optional.of(followings);
         }
         return Optional.empty();
