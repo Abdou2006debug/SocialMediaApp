@@ -147,7 +147,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
     class FollowRequestTests{
         @Test
         public void acceptFollowerDontExist(){
-            assertthrows(BadFollowRequestException.class,()->followRequestService.acceptfollow("test"),"bad request");
+            assertthrows(BadFollowRequestException.class,()->followRequestService.acceptFollow("test"),"bad request");
         }
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
@@ -155,12 +155,12 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
             Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWING);
             String followid=(String)map.get("followid");
             if(followStatus== Follow.Status.ACCEPTED){
-                assertthrows(BadFollowRequestException.class, () ->followRequestService.acceptfollow(followid),
+                assertthrows(BadFollowRequestException.class, () ->followRequestService.acceptFollow(followid),
                         "user already follow you");
                 return;
             }
             User user=(User)map.get("user");
-            followRequestService.acceptfollow(followid);
+            followRequestService.acceptFollow(followid);
             User currentUser = userQueryService.getcurrentuser();
             assertTrue(followRepo.existsByFollowerAndFollowingAndStatus(user, currentUser, Follow.Status.ACCEPTED));
             assertTrue(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":following:" + currentUser.getKeycloakId()));
@@ -172,13 +172,13 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
             Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWER);
             String followid=(String)map.get("followid");
             if(followStatus== Follow.Status.ACCEPTED){
-                assertthrows(BadFollowRequestException.class, () ->followRequestService.unsendfollowingrequest(followid),
+                assertthrows(BadFollowRequestException.class, () ->followRequestService.unsendFollowingRequest(followid),
                         "you already follow this user");
                 return;
             }
           User user=(User)map.get("user");
            User currentUser = userQueryService.getcurrentuser();
-            followRequestService.unsendfollowingrequest(followid);
+            followRequestService.unsendFollowingRequest(followid);
             assertFalse(followRepo.existsByFollowerAndFollowing(currentUser, user));
         }
     }

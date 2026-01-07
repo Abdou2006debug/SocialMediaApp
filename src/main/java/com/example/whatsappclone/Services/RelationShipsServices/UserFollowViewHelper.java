@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,90 +48,80 @@ private final ProfileRepo profileRepo;
                 followRepo.findByFollowingAndStatus(new User(userId), Follow.Status.PENDING,pageable):
                 followRepo.findByFollowerAndStatus(new User(userId), Follow.Status.PENDING,pageable);
         List<Follow> pendingFollows=pendingFollowsPage.getContent();
-       return pendingFollows.stream().map(follow -> {
-            User targeted;
-                if(position==Position.FOLLOWERS){
-                    targeted=follow.getFollower();
-                }else{
-                    targeted=follow.getFollowing();
-                }
-               profileSummary profileSummary=buildProfileSummary(targeted.getUuid());
-                resolveCurrentUserPendingFollowRelationShip(profileSummary,userId,position);
-                return profileSummary;
-        }).toList();
-
+        List<String> followsIds=pendingFollows.stream().
+                map(follow -> position==Position.FOLLOWERS?follow.getFollower_id():follow.getFollowing_id()).toList();
+       List<profileSummary> profileSummaries= buildProfileSummaries(followsIds);
+        resolveCurrentUserFollowRelationShip(profileSummaries,userId,position, Follow.Status.PENDING);
+        return profileSummaries;
     }
+
     public List<profileSummary> listCurrentUserFollows(String userId, Position position, int page){
-     List<String> followsIds=getFollowsIdshelper(userId,position,page);
-     return followsIds.stream().map(targetId -> {
-        profileSummary profileSummary= buildProfileSummary(targetId);
-             resolveCurrentUserFollowRelationShip(profileSummary,userId,position);
-             profileSummary.setUserId(targetId);
-         return profileSummary;
-     }).toList();
+     List<String> followsIds= getFollowsIdsfetch(userId,position,page);
+     List<profileSummary> profileSummaries= buildProfileSummaries(followsIds);
+     resolveCurrentUserFollowRelationShip(profileSummaries,userId,position, Follow.Status.ACCEPTED);
+     return profileSummaries;
        }
 
        public List<profileSummary> listUserFollows(String viewerId,String targetedId, Position position, int page){
-           List<String> followsIds=getFollowsIdshelper(targetedId,position,page);
-          List<profileSummary> profileSummaries=  followsIds.stream().map(targetId ->{
-              profileSummary profileSummary=buildProfileSummary(targetedId);
-              profileSummary.setUserId(targetedId);
-              return profileSummary;
+           List<String> followsIds= getFollowsIdsfetch(targetedId,position,page);
+          List<profileSummary> profileSummaries=  buildProfileSummaries(followsIds);
+          resolveViewerFollowRelationShip(profileSummaries,viewerId);
+            return profileSummaries;
+       }
+
+
+       private void resolveCurrentUserFollowRelationShip(List<profileSummary> profileSummaries, String viewerId, Position position,Follow.Status followStatus){
+           Map<String, profileSummary> summaryMap = profileSummaries.stream()
+                   .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));
+
+           List<String> targetUserIds = profileSummaries.stream()
+                   .map(profileSummary::getUserId)
+                   .toList();
+           if(position==Position.FOLLOWERS){
+               if(followStatus== Follow.Status.ACCEPTED){
+                   profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOWED));
+               }else{
+                   profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUEST_RECEIVED));
+               }
+               List<Follow> followers =followRepo.findByFollower_IdAndFollowing_IdIn(viewerId,targetUserIds);
+               for(Follow follow: followers){
+                  profileSummary profileSummary= summaryMap.get(follow.getFollowing_id());
+                  if(profileSummary!=null){
+                      if(follow.getStatus()== Follow.Status.ACCEPTED){
+                          profileSummary.setStatus(RelationshipStatus.FOLLOWING);
+                      }else{
+                          profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUESTED);
+                      }
                   }
-           ).toList();
-            return resolveViewerFollowRelationShip(profileSummaries,viewerId);
-       }
-
-       private void resolveCurrentUserPendingFollowRelationShip(profileSummary profile,String userId,Position position){
-        User currentUser=new User(userId);
-        User targetedUser=new User(profile.getUserId());
-        if(position==Position.FOLLOWERS){
-            if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetedUser, Follow.Status.ACCEPTED)){
-                profile.setStatus(RelationshipStatus.FOLLOWING);
-                return;
-            }
-            if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetedUser, Follow.Status.PENDING)){
-                profile.setStatus(RelationshipStatus.FOLLOW_REQUESTED);
-                return;
-            }
-            profile.setStatus(RelationshipStatus.FOLLOW_REQUEST_RECEIVED);
-            return;
-        }
-        if(followRepo.existsByFollowerAndFollowingAndStatus(targetedUser,currentUser, Follow.Status.ACCEPTED)){
-            profile.setStatus(RelationshipStatus.FOLLOWED);
-            return;
-        }
-        if(followRepo.existsByFollowerAndFollowingAndStatus(targetedUser,currentUser,Follow.Status.PENDING)){
-            profile.setStatus(RelationshipStatus.FOLLOW_REQUEST_RECEIVED);
-            return;
-        }
-        profile.setStatus(RelationshipStatus.FOLLOW_REQUESTED);
-
-       }
-       private void resolveCurrentUserFollowRelationShip(profileSummary profile, String userId, Position position){
-               if(position==Position.FOLLOWINGS){
-                   profile.setStatus(RelationshipStatus.FOLLOWING);
-                   return;
                }
-               if(!followRepo.existsByFollowerAndFollowing(new User(userId),new User(profile.getUserId()))){
-                   profile.setStatus(RelationshipStatus.NOT_FOLLOWING);
-                   return;
+               return;
+           }
+           if(followStatus== Follow.Status.ACCEPTED){
+               profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOWING));
+           }else{
+               profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUESTED));
+           }
+           List<Follow> followings=followRepo.findByFollowing_IdAndFollower_IdIn(viewerId,targetUserIds);
+           for(Follow follow: followings){
+               profileSummary profileSummary= summaryMap.get(follow.getFollower_id());
+               if(profileSummary!=null){
+                   if(follow.getStatus()== Follow.Status.ACCEPTED){
+                       profileSummary.setStatus(RelationshipStatus.FOLLOWED);
+                   }else{
+                       profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUEST_RECEIVED);
+                   }
                }
-              if(followRepo.existsByFollowerAndFollowingAndStatus(new User(userId),new User(profile.getUserId()), Follow.Status.PENDING)){
-                  profile.setStatus(RelationshipStatus.FOLLOW_REQUESTED);
-                  return;
-              }
-                  profile.setStatus(RelationshipStatus.FOLLOWING);
+           }
        }
 
-    private List<profileSummary> resolveViewerFollowRelationShip(List<profileSummary> profileSummaries, String viewerId) {
+    private void resolveViewerFollowRelationShip(List<profileSummary> profileSummaries, String viewerId) {
         Map<String, profileSummary> summaryMap = profileSummaries.stream()
                 .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));
 
         List<String> targetUserIds = profileSummaries.stream()
                 .map(profileSummary::getUserId)
                 .toList();
-
+           profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.NOT_FOLLOWING));
         List<Follow> outgoing = followRepo.findByFollower_IdAndFollowing_IdIn(viewerId, targetUserIds);
         for (Follow follow : outgoing) {
             profileSummary summary = summaryMap.get(follow.getFollowing_id());
@@ -145,32 +136,46 @@ private final ProfileRepo profileRepo;
 
         List<Follow> incoming = followRepo.findByFollowing_IdAndFollower_IdIn(viewerId,targetUserIds);
         for (Follow follow : incoming) {
-            profileSummary summary = summaryMap.get(follow.getFollower_id());
-            if (summary != null && summary.getStatus() == null) {
+            profileSummary profileSummary = summaryMap.get(follow.getFollower_id());
+            if (profileSummary != null && profileSummary.getStatus() == null) {
                 RelationshipStatus status = follow.getStatus() == Follow.Status.PENDING
                         ? RelationshipStatus.FOLLOW_REQUEST_RECEIVED
                         : RelationshipStatus.FOLLOWED;
-                summary.setStatus(status);
+                profileSummary.setStatus(status);
             }
         }
 
-
-        summaryMap.values().forEach(summary -> {
-            if (summary.getStatus() == null) {
-                summary.setStatus(RelationshipStatus.NOT_FOLLOWING);
-            }
-        });
-        return summaryMap.values().stream().toList();
     }
 
-    private profileSummary buildProfileSummary(String userId){
-        ProfileInfo profileInfocache = cacheQueryService.getProfileInfo(userId).orElseGet(()->{
-                Profile profile=userQueryService.getuserprofile(new User(userId),false);
-           return cacheWriterService.cacheProfileInfo(profile);
+    private List<profileSummary> buildProfileSummaries(List<String> usersIds){
+        List<profileSummary> profileSummaries=usersIds.stream().map(profileSummary::new).toList();
+        Map<String, profileSummary> summaryMap = profileSummaries.stream()
+                .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));
+
+        usersIds.forEach(userId->{
+            Optional<ProfileInfo> profileInfo= cacheQueryService.getProfileInfo(userId);
+            if(profileInfo.isPresent()){
+               profileSummary profileSummary=summaryMap.get(userId);
+               ProfileInfo profileInfo1 = profileInfo.get();
+               profileSummary.setAvatarurl(profileInfo1.getAvatarurl());
+               profileSummary.setUsername(profileInfo1.getUsername());
+            }
         });
-          return usermapper.toSummary(profileInfocache);
-}
-        private List<String> getFollowsIdshelper(String userId,Position position,int page){
+        usersIds=summaryMap.entrySet().stream().
+                filter(e->e.getValue().getUsername()==null).map(Map.Entry::getKey).toList();
+        List<Profile> profiles= profileRepo.findByUserIdIn(usersIds);
+        for(Profile profile:profiles){
+            profileSummary profileSummary=summaryMap.get(profile.getUserId());
+            profileSummary.setUsername(profile.getUsername());
+            profileSummary.setAvatarurl(profile.getPublicavatarurl());
+            cacheWriterService.cacheProfileInfo(profile);
+        }
+
+           return profileSummaries;
+        }
+
+
+        private List<String> getFollowsIdsfetch(String userId, Position position, int page){
            if(position==Position.FOLLOWERS){
                return cacheQueryService.getuserCachedFollowers(userId,page).orElseGet(()->cacheWriterService.cacheUserFollowers(userId,page));
            }

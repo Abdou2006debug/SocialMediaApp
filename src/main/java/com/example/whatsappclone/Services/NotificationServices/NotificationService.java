@@ -41,7 +41,7 @@ public class NotificationService {
         }
         User trigger=notification.getTrigger();
         Profile triggerprofile=userQueryService.getuserprofile(trigger,true);
-        String triggerusername=triggerprofile.getUsername();
+        String triggerusername=triggerprofile.getUuid();
         String triggerpfp=triggerprofile.getPublicavatarurl();
         String triggeruuid=trigger.getUuid();
         String message;
@@ -108,8 +108,8 @@ public class NotificationService {
     }
    private void sendnotification(User recipient,com.example.whatsappclone.DTO.serverToclient.notification  notification) throws JsonProcessingException {
         ObjectMapper mapper=new ObjectMapper();
-       logger.info("sending notification to "+recipient.getUsername());
+       logger.info("sending notification to "+recipient.getUuid());
         logger.info(recipient.getUsername());
-        simpMessagingTemplate.convertAndSendToUser(recipient.getUsername(),"/queue/notifications",mapper.writeValueAsString(notification));
+        simpMessagingTemplate.convertAndSendToUser(recipient.getUuid(),"/queue/notifications",mapper.writeValueAsString(notification));
     }
 }

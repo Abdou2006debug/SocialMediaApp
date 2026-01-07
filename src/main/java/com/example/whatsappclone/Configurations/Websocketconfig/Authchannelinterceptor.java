@@ -33,9 +33,9 @@ private final Logger log= LoggerFactory.getLogger(Authchannelinterceptor.class);
                 String header=accessor.getFirstNativeHeader("Authorization");
                 String token=header.substring(7);
                 Jwt jwt= jwtDecoder.decode(token);
-               String username= jwt.getClaims().get("preferred_username").toString();
-                accessor.setUser(()->username);
-                log.info(username);
+               String userId = jwt.getClaims().get("userId").toString();
+                accessor.setUser(()-> userId);
+                log.info(userId);
             }catch (Exception e){
                 throw new BadRequestException("something went wrong");
             }

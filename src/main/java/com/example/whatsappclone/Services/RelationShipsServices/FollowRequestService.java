@@ -1,10 +1,11 @@
 package com.example.whatsappclone.Services.RelationShipsServices;
 
-import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.User;
+import com.example.whatsappclone.Events.followAdded;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
+import com.example.whatsappclone.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
@@ -17,7 +18,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,61 +29,57 @@ public class FollowRequestService {
     private final ApplicationEventPublisher eventPublisher;
     private final UserQueryService userQueryService;
     private final UserRepo userRepo;
-    public void acceptfollow(String userId) {
+    public void acceptFollow(String userId) {
         if(!userRepo.existsById(userId)){
             throw new UserNotFoundException("user not found");
         }
         User currentuser =userQueryService.getcurrentuser(false);
         User targetUser=new User(userId);
-        Follow followrequest = followRepo.
-                findByFollowingAndFollowerAndStatus(currentuser,targetUser, Follow.Status.PENDING).
-                orElseThrow(()->new BadFollowRequestException("couldn't perform accept follow action"));
-        followrequest.setStatus(Follow.Status.ACCEPTED);
-        followrequest.setAccepteddate(Instant.now());
-        followRepo.save(followrequest);
+        Follow followRequest = followRepo.
+                findByFollowerAndFollowing(targetUser,currentuser).
+                orElseThrow(()->new NoRelationShipException("No relation with user found"));
+        if(followRequest.getStatus()== Follow.Status.ACCEPTED){
+            throw new BadFollowRequestException("couldn't perform accept follow action on this user");
+        }
+        followRequest.setStatus(Follow.Status.ACCEPTED);
+        followRequest.setAccepteddate(Instant.now());
+        followRepo.save(followRequest);
         logger.info("publishing following accepted event to "+targetUser.getUsername());
         eventPublisher.publishEvent(new notification(currentuser,targetUser,
                 notification.notificationType.FOLLOWING_ACCEPTED));
+        eventPublisher.publishEvent(new followAdded(followRequest));
     }
 
-    public void rejectfollow(String userId) {
+    public void rejectFollow(String userId) {
         if(!userRepo.existsById(userId)){
             throw new UserNotFoundException("user not found");
         }
         User currentUser = userQueryService.getcurrentuser(false);
         User targetUser=new User(userId);
-        Follow follow = followRepo.findByFollowingAndFollowerAndStatus(currentUser,targetUser, Follow.Status.PENDING).
-                orElseThrow(()->new BadFollowRequestException("couldn't perform reject follow action"));
+        Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
+                orElseThrow(()->new NoRelationShipException("No relation with user found"));
+        if(follow.getStatus()== Follow.Status.ACCEPTED){
+            throw new BadFollowRequestException("couldn't perform reject follow action on this user");
+        }
         followRepo.delete(follow);
         logger.info("publishing following rejected event to "+targetUser.getUsername());
         eventPublisher.publishEvent(new notification(currentUser,targetUser,
                 notification.notificationType.FOLLOWING_REJECTED));
     }
 
-    public List<profileSummary> listCurrentUserFollowRequests(int page) {
-        User currentUser=userQueryService.getcurrentuser(false);
-        return followHelperService.
-                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
-    }
 
-    public List<profileSummary> listCurrentUserFollowingRequests(int page) {
-        User currentUser=userQueryService.getcurrentuser(false);
-        return followHelperService.
-                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
-
-    }
-    public void unsendfollowingrequest(String userId){
+    public void unsendFollowingRequest(String userId){
         if(!userRepo.existsById(userId)){
             throw new UserNotFoundException("user not found");
         }
-    User currentUser=userQueryService.getcurrentuser(false);
+        User currentUser=userQueryService.getcurrentuser(false);
         User targetUser=new User(userId);
-    Follow followrequest = followRepo.findByFollowingAndFollowerAndStatus().
-            orElseThrow(()->new BadFollowRequestException("bad request"));
-        if (followrequest.getStatus() == Follow.Status.ACCEPTED) {
-        throw new BadFollowRequestException("you already follow this user");
+    Follow followingRequest = followRepo.findByFollowerAndFollowing(currentUser,targetUser).
+            orElseThrow(()->new NoRelationShipException("No relation with user found"));
+        if (followingRequest.getStatus() == Follow.Status.ACCEPTED) {
+        throw new BadFollowRequestException("couldn't perform unsend follow request on this user");
     }
-        followRepo.delete(followrequest);
+        followRepo.delete(followingRequest);
 }
 
 

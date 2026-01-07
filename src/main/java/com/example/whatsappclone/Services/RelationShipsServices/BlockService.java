@@ -41,7 +41,7 @@ public class BlockService {
                 followService.UnFollow(f.getUuid());
                 return;
             }
-            followRequestService.unsendfollowingrequest(f.getUuid());
+            followRequestService.unsendFollowingRequest(f.getUuid());
         });
         followRepo.
                 findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(follow -> {
@@ -49,7 +49,7 @@ public class BlockService {
                         followService.removefollower(follow.getUuid());
                         return;
                     }
-                    followRequestService.rejectfollow(follow.getUuid());
+                    followRequestService.rejectFollow(follow.getUuid());
                 });
         blocksRepo.save(block);
     }

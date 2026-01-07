@@ -28,7 +28,7 @@ public class UserQueryService {
     private final CacheWriterService cachService;
     private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
-    private final BlocksRepo blocksRepo;
+    private final Usermapper usermapper;
     private final FollowRepo followRepo;
     private final CacheQueryService cacheQueryService;
     public Profile getuserprofile(User user,Boolean cacheProfile){
@@ -71,8 +71,7 @@ public class UserQueryService {
             Profile profile=getuserprofile(requesteduser,false);
             return  cachService.cacheProfileInfo(profile);
         });
-        RelationshipStatus status;
-
+        RelationshipStatus status=RelationshipStatus.NOT_FOLLOWING;
         if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.ACCEPTED)){
             status= RelationshipStatus.FOLLOWING;
         }else if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,requesteduser, Follow.Status.PENDING)){
@@ -82,11 +81,12 @@ public class UserQueryService {
         }else if(followRepo.existsByFollowerAndFollowingAndStatus(requesteduser,currentuser, Follow.Status.PENDING)){
             status=RelationshipStatus.FOLLOW_REQUEST_RECEIVED;
         }
+        profileDetails profileDetails=usermapper.toprofileDetails(profileInfo);
+        profileDetails.setStatus(status);
+        profileDetails.setFollowers(followersCount(requesteduser));
+        profileDetails.setFollowings(followingsCount(requesteduser));
 
-        boolean isonline=cachService.getuserstatus(requesteduser.getUsername());
-        String lastseen=isonline?null: cachService.getuserlastseen(requesteduser.getUsername());
-        return new profileDetails(requesteduser.getUuid(),requesteduser.getUsername(),
-                profileInfo.getPfpurl(),profileInfo.getBio(),status,followersCount(requesteduser),followingsCount(requesteduser),lastseen, isonline);
+        return profileDetails;
     }
     public long followersCount(User user){
         return followRepo.countByFollowingAndStatus(user, Follow.Status.ACCEPTED);
