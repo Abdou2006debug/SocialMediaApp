@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Events;
 
-import com.example.whatsappclone.Entities.User;
+import com.example.whatsappclone.Identity.domain.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

@@ -1,14 +1,12 @@
 package com.example.whatsappclone.Services.CacheServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.UserCacheRepo;
-import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
-import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Repositries.BlocksRepo;
-import com.example.whatsappclone.Repositries.FollowRepo;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.ProfileCacheRepo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.ProfileInfoCacheRepo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.UserCacheRepo;
+import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.Profile.domain.Profile;
+import com.example.whatsappclone.SocialGraph.domain.Follow;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,8 +32,9 @@ public class CacheWriterService {
     private final ProfileInfoCacheRepo profileInfoCacheRepo;
     private final Cachemapper mapper;
 
-    public void cacheUser(User user){
-    com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.User cachedUser=mapper.cacheUser(user);
+    public void cacheUser(
+            User user){
+    com.example.whatsappclone.Configurations.Redis.RedisClasses.User cachedUser=mapper.cacheUser(user);
     usercacheRepo.save(cachedUser);
     }
 
@@ -46,7 +45,7 @@ public class CacheWriterService {
     }
 
     public void cacheUserProfile(Profile profile){
-        com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile profileCache=mapper.cacheProfile(profile);
+        com.example.whatsappclone.Configurations.Redis.RedisClasses.Profile profileCache=mapper.cacheProfile(profile);
         profileCache.setUserId(profile.getUserId());
         profileCacheRepo.save(profileCache);
     }

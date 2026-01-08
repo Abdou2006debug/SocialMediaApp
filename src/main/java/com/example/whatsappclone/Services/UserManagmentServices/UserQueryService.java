@@ -1,18 +1,17 @@
 package com.example.whatsappclone.Services.UserManagmentServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
 import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.DTO.serverToclient.profileDetails;
-import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
-import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.Repositries.BlocksRepo;
-import com.example.whatsappclone.Repositries.FollowRepo;
-import com.example.whatsappclone.Repositries.ProfileRepo;
-import com.example.whatsappclone.Repositries.UserRepo;
+import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Profile.domain.Profile;
+import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheQueryService;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
+import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -31,36 +30,29 @@ public class UserQueryService {
     private final Usermapper usermapper;
     private final FollowRepo followRepo;
     private final CacheQueryService cacheQueryService;
-    public Profile getuserprofile(User user,Boolean cacheProfile){
-        Optional<Profile> cached = cacheQueryService.getProfile(user.getUuid());
-        Profile profile = cached.orElseGet(() -> profileRepo.findByUser(user).orElseThrow());
-        if(cacheProfile &&cached.isEmpty()){
-            cachService.cacheUserProfile(profile);
-        }
-        return profile;
-    }
 
-    public User getcurrentuser(boolean fetchfullinfo){
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
-            throw new AuthenticationCredentialsNotFoundException("User not authenticated");
-        }
-        String userId=((Jwt) authentication.getPrincipal()).getClaimAsString("userId");
-        if(userId==null){
-            throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
-        }
-        if(fetchfullinfo){
-            Optional<User> cacheduser=cacheQueryService.getUser(userId);
-            if(cacheduser.isPresent()){
-                return cacheduser.get();
-            }
-            User user=  userRepo.findById(userId).
-                    orElseThrow(()->new UserNotFoundException("user not found"));
-            cachService.cacheUser(user);
-            return user;
-        }
-        return new User(userId);
-    }
+
+  //  public User getcurrentuser(boolean fetchfullinfo){
+    //    Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+     //   if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
+      //      throw new AuthenticationCredentialsNotFoundException("User not authenticated");
+      //  }
+      //  String userId=((Jwt) authentication.getPrincipal()).getClaimAsString("userId");
+      //  if(userId==null){
+       //     throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
+       // }
+        //if(fetchfullinfo){
+         //   Optional<User> cacheduser=cacheQueryService.getUser(userId);
+          //  if(cacheduser.isPresent()){
+           //     return cacheduser.get();
+           // }
+           // User user=  userRepo.findById(userId).
+           //         orElseThrow(()->new UserNotFoundException("user not found"));
+           // cachService.cacheUser(user);
+           // return user;
+       // }
+       // return new User(userId);
+   // }
     public profileDetails getuser(String requestedId){
         if (!userRepo.existsById(requestedId)) {
             throw new UserNotFoundException("user not found");

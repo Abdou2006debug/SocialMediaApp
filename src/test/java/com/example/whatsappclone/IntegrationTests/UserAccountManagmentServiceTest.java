@@ -5,7 +5,6 @@ import com.example.whatsappclone.Entities.NotificationsSettings;
 import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;

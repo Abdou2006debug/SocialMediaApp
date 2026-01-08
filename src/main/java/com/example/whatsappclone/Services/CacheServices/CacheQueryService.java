@@ -1,15 +1,12 @@
 package com.example.whatsappclone.Services.CacheServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileCacheRepo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.ProfileInfoCacheRepo;
-import com.example.whatsappclone.Configurations.Redisconfig.Repositries.UserCacheRepo;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.ProfileCacheRepo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.ProfileInfoCacheRepo;
+import com.example.whatsappclone.Configurations.Redis.Repositries.UserCacheRepo;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 

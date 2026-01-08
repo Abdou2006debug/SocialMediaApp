@@ -4,8 +4,6 @@ import com.example.whatsappclone.Entities.Blocks;
 import com.example.whatsappclone.Entities.Follow;
 import com.example.whatsappclone.Entities.Profile;
 import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Repositries.BlocksRepo;
-import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;

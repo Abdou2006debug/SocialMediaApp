@@ -7,8 +7,6 @@ import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.Repositries.BlocksRepo;
-import com.example.whatsappclone.Repositries.FollowRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;

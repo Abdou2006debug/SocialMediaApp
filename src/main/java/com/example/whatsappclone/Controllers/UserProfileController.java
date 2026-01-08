@@ -1,7 +1,6 @@
 package com.example.whatsappclone.Controllers;
 
 import com.example.whatsappclone.DTO.serverToclient.profileSummary;
-import com.example.whatsappclone.Services.UserManagmentServices.UsersAccountManagmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

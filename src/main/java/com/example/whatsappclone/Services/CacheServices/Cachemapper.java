@@ -1,8 +1,8 @@
 package com.example.whatsappclone.Services.CacheServices;
 
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.Profile;
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.ProfileInfo;
-import com.example.whatsappclone.Configurations.Redisconfig.RedisClasses.User;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.Profile;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
+import com.example.whatsappclone.Configurations.Redis.RedisClasses.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
