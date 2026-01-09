@@ -1,14 +1,17 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Configurations.Redis.RedisClasses.Profile;
-import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
 import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
-import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.Profile.api.dto.profileSummary;
+import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
+import com.example.whatsappclone.Profile.domain.Profile;
+import com.example.whatsappclone.Profile.domain.cache.ProfileInfo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheQueryService;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.example.whatsappclone.Shared.Exceptions.FollowListNotVisibleException;
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheReader;
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
@@ -30,15 +33,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserFollowViewHelper {
 
-private final CacheWriterService cacheWriterService;
-private final CacheQueryService cacheQueryService;
-private final FollowRepo followRepo;
-private final BlocksRepo blocksRepo;
-private final ProfileRepo profileRepo;
+    private final ProfileCacheManager profileCacheManager;
+    private final CacheQueryService cacheQueryService;
+    private final FollowCacheReader followCacheReader;
+    private final FollowCacheWriter followCacheWriter;
+    private final FollowRepo followRepo;
+    private final BlocksRepo blocksRepo;
+    private final ProfileRepo profileRepo;
     public enum Position {FOLLOWERS, FOLLOWINGS}
 
 
-    public List<profileSummary> listCurrentUserPendingFollows(String userId,Position position,int page){
+    public List<profileSummary> listCurrentUserPendingFollows(String userId, Position position, int page){
         Pageable pageable= PageRequest.of(page,10);
         Page<Follow> pendingFollowsPage=position==Position.FOLLOWERS?
                 followRepo.findByFollowingAndStatus(new User(userId), Follow.Status.PENDING,pageable):
@@ -165,7 +170,7 @@ private final ProfileRepo profileRepo;
             profileSummary profileSummary=summaryMap.get(profile.getUserId());
             profileSummary.setUsername(profile.getUsername());
             profileSummary.setAvatarurl(profile.getPublicavatarurl());
-            cacheWriterService.cacheProfileInfo(profile);
+            profileCacheManager.cacheProfileInfo(profile);
         }
 
            return profileSummaries;
@@ -174,9 +179,9 @@ private final ProfileRepo profileRepo;
 
         private List<String> getFollowsIdsfetch(String userId, Position position, int page){
            if(position==Position.FOLLOWERS){
-               return cacheQueryService.getuserCachedFollowers(userId,page).orElseGet(()->cacheWriterService.cacheUserFollowers(userId,page));
+               return followCacheReader.getuserCachedFollowers(userId,page).orElseGet(()->followCacheWriter.cacheUserFollowers(userId,page));
            }
-            return cacheQueryService.getusercachedfollowings(userId,page).orElseGet(()->cacheWriterService.cacheUserFollowings(userId,page));
+            return followCacheReader.getusercachedfollowings(userId,page).orElseGet(()->followCacheWriter.cacheUserFollowings(userId,page));
 }
 
         public void canViewUserFollows(User currentUser,User requestedUser,Position position){

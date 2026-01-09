@@ -1,19 +1,16 @@
 package com.example.whatsappclone.Profile.application;
 
-import com.example.whatsappclone.DTO.clientToserver.profile;
-import com.example.whatsappclone.DTO.clientToserver.profilesettings;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Profile.api.dto.profile;
+import com.example.whatsappclone.Profile.api.dto.profilesettings;
+import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
 import com.example.whatsappclone.Profile.domain.Profile;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -34,7 +31,7 @@ public class ProfileUpdatingService {
 
     private final AuthenticatedUserService authenticatedUserService;
     private final ProfileRepo profileRepo;
-    private final CacheWriterService cacheWriterService;
+    private final ProfileCacheManager profileCacheManager;
     private final RestTemplate restTemplate;
     private final UserRepo userRepo;
     private final ProfileQueryService profileQueryService;
@@ -48,7 +45,7 @@ public class ProfileUpdatingService {
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
         profileRepo.save(currentprofile);
-        cacheWriterService.cacheUserProfile(currentprofile);
+        profileCacheManager.cacheUserProfile(currentprofile);
     }
 
     public void changepfp(MultipartFile file) throws IOException {
@@ -94,7 +91,7 @@ public class ProfileUpdatingService {
         currentprofile.setPublicavatarurl(supabaseUrl+ "/storage/v1/object/public/" +
                 profileAvatars +"/"+ URLEncoder.encode(fileName, StandardCharsets.UTF_8));
         profileRepo.save(currentprofile);
-        cacheWriterService.cacheUserProfile(currentprofile);
+        profileCacheManager.cacheUserProfile(currentprofile);
     }
     public void UpdateProfile(profile p){
         User currentuser= authenticatedUserService.getcurrentuser(true);
@@ -105,6 +102,6 @@ public class ProfileUpdatingService {
         currentprofile.setUsername(p.getUsername());
         userRepo.save(currentuser);
         profileRepo.save(currentprofile);
-        cacheWriterService.cacheUserProfile(currentprofile);
+        profileCacheManager.cacheUserProfile(currentprofile);
     }
 }

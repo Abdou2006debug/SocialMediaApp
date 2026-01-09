@@ -1,15 +1,14 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Events.followAdded;
 import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,12 +21,13 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 public class FollowRequestService {
+
     private final FollowRepo followRepo;
     private final AuthenticatedUserService authenticatedUserService;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
-    private final UserQueryService userQueryService;
     private final UserRepo userRepo;
+
     public void acceptFollow(String userId) {
         if(!userRepo.existsById(userId)){
             throw new UserNotFoundException("user not found");

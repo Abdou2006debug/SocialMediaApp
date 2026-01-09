@@ -1,8 +1,6 @@
 package com.example.whatsappclone.Services.UserManagmentServices;
 
-import com.example.whatsappclone.Configurations.Redis.RedisClasses.ProfileInfo;
 import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
-import com.example.whatsappclone.DTO.serverToclient.profileDetails;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
 import com.example.whatsappclone.Profile.domain.Profile;
@@ -13,13 +11,7 @@ import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +19,6 @@ public class UserQueryService {
     private final CacheWriterService cachService;
     private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
-    private final Usermapper usermapper;
     private final FollowRepo followRepo;
     private final CacheQueryService cacheQueryService;
 

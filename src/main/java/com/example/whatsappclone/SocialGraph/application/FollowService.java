@@ -1,19 +1,18 @@
 package com.example.whatsappclone.SocialGraph.application;
 
 import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
-import com.example.whatsappclone.DTO.serverToclient.profileDetails;
-import com.example.whatsappclone.Events.followAdded;
-import com.example.whatsappclone.Events.followRemoved;
-import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Notification.domain.events.notification;
+import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
+import com.example.whatsappclone.SocialGraph.domain.events.followRemoved;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import jakarta.transaction.Transactional;
@@ -35,7 +34,7 @@ public class FollowService {
     private final BlocksRepo blocksRepo;
     private final AuthenticatedUserService authenticatedUserService;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserQueryService userQueryService;
+
     public profileDetails Follow(String userId) {
         if(!userRepo.existsById(userId)){
             throw new UserNotFoundException("User not found");
@@ -60,7 +59,7 @@ public class FollowService {
         Follow follow = new Follow(currentuser, usertofollow);
 
         notification notification= new notification(currentuser,usertofollow,
-                com.example.whatsappclone.Events.notification.notificationType.FOLLOW,follow.getUuid());
+                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW,follow.getUuid());
         RelationshipStatus status;
         if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
             follow.setStatus(Follow.Status.ACCEPTED);
@@ -72,7 +71,7 @@ public class FollowService {
         } else {
             follow.setStatus(Follow.Status.PENDING);
             log.info("publishing follow request event for "+usertofollow.getUsername());
-            notification.setType(com.example.whatsappclone.Events.notification.notificationType.FOLLOW_REQUESTED);
+            notification.setType(com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
             status=RelationshipStatus.FOLLOW_REQUESTED;
         }
@@ -80,6 +79,7 @@ public class FollowService {
         followRepo.save(follow);
         return profileDetails.builder().userId(userId).status(status).build();
     }
+
     // this method works for both pending and accepted followings
     public void UnFollow(String userId) {
         if(!userRepo.existsById(userId)){
@@ -94,6 +94,7 @@ public class FollowService {
             eventPublisher.publishEvent(new followRemoved(follow));
         }
     }
+
     // this method works for both pending and accepted followers
     public void removefollower(String userId) {
         if(!userRepo.existsById(userId)){
@@ -106,6 +107,8 @@ public class FollowService {
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
+        }else{
+            eventPublisher.publishEvent(new notification(currentUser,targetUser, notification.notificationType.FOLLOWING_REJECTED));
         }
     }
 }

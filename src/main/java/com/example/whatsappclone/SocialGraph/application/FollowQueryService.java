@@ -1,10 +1,9 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.DTO.serverToclient.profileSummary;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import java.util.List;
 public class FollowQueryService {
     private final UserFollowViewHelper followViewHelper;
     private final UserRepo userRepo;
-    private final UserQueryService userQueryService;
     private final AuthenticatedUserService authenticatedUserService;
 
     public List<profileSummary> listCurrentUserFollowers(int page) {
@@ -51,6 +49,7 @@ public class FollowQueryService {
         followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWERS);
         return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
     }
+
     public List<profileSummary> listUserFollowing(String userId,int page){
         if(!userRepo.existsById(userId)){
             throw  new UserNotFoundException("user not found");

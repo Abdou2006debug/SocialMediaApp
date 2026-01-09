@@ -1,6 +1,5 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.DTO.clientToserver.userregistration;
 import com.example.whatsappclone.Entities.NotificationsSettings;
 import com.example.whatsappclone.Repositries.NotificationSettingsRepo;
 import com.example.whatsappclone.Repositries.ProfileRepo;

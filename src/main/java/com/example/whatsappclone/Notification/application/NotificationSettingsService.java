@@ -1,8 +1,8 @@
 package com.example.whatsappclone.Notification.application;
 
-import com.example.whatsappclone.DTO.clientToserver.notificationsettings;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.Notification.api.dto.notificationsettings;
 import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import com.example.whatsappclone.Notification.persistence.NotificationSettingsRepo;
 import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 public class NotificationSettingsService {
 
     private final NotificationSettingsRepo notificationSettingsRepo;
-    private final UserQueryService userQueryService;
     private final AuthenticatedUserService authenticatedUserService;
 
     public void updateNotificationSettings(notificationsettings notification){
@@ -27,10 +26,12 @@ public class NotificationSettingsService {
         notificationsSettings.setOnfollowingrequestAccepted(notification.isOnfollowingrequests_accepted());
         notificationSettingsRepo.save(notificationsSettings);
     }
+
     public notificationsettings getnotificationsettings(){
         User currentuser=authenticatedUserService.getcurrentuser(false);
         NotificationsSettings notificationsSettings= notificationSettingsRepo.findByUser(currentuser);
         return new notificationsettings(notificationsSettings.getOnfollowingrequestAccepted(),notificationsSettings.getOnfollowingrequestRejected(),notificationsSettings.getOnfollow());
 
     }
+
 }
