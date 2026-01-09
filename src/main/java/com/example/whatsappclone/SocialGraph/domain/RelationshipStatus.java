@@ -1,4 +1,4 @@
-package com.example.whatsappclone.DTO.serverToclient;
+package com.example.whatsappclone.SocialGraph.domain;
 
 public enum RelationshipStatus {
         NOT_FOLLOWING,

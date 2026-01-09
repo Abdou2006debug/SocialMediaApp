@@ -8,7 +8,6 @@ import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
 import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;

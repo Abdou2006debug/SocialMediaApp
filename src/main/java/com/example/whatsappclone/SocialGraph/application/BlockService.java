@@ -3,7 +3,7 @@ package com.example.whatsappclone.SocialGraph.application;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
+import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Blocks;
@@ -24,11 +24,11 @@ public class BlockService {
     private final FollowRepo followRepo;
     private final FollowRequestService followRequestService;
     private final FollowService followService;
-    private final UserQueryService userQueryService;
+
+    @CheckUserExistence
     public void block(String useruuid) {
         User currentuser = authenticatedUserService.getcurrentuser(false);
         User requesteduser=new User(useruuid);
-        if(!userRepo.existsById(useruuid)){throw new UserNotFoundException("user not found");}
         if(currentuser.getUuid().equals(useruuid)){throw new BadFollowRequestException("you cant block yourself");}
         boolean isalreadyblocked= blocksRepo.
                 existsByBlockerAndBlocked(currentuser,requesteduser);
@@ -55,11 +55,10 @@ public class BlockService {
     }
 
 
-
-    public void unblock(String useruuid) {
+    @CheckUserExistence
+    public void unblock(String userId) {
         User currentuser = authenticatedUserService.getcurrentuser(false);
-        User usertounblock = userRepo.findById(useruuid).
-                orElseThrow(()->new UserNotFoundException("user not found"));
+        User usertounblock = new User(userId);
         Blocks block = blocksRepo.
                 findByBlockedAndBlocker(usertounblock, currentuser).
                 orElseThrow(() -> new BadFollowRequestException("you have not blocked this user"));

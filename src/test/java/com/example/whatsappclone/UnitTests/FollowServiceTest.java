@@ -11,7 +11,6 @@ import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
 import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Profile.api.dto;
 
-import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
+import com.example.whatsappclone.SocialGraph.domain.RelationshipStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 

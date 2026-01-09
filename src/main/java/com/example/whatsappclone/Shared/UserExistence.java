@@ -1,0 +1,29 @@
+package com.example.whatsappclone.Shared;
+
+import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+@RequiredArgsConstructor
+public class UserExistence {
+
+    private final UserRepo userRepo;
+
+
+    @Before("@annotation(CheckUserExistence)")
+    public void checkUserExistence(JoinPoint joinPoint){
+        Object[] args = joinPoint.getArgs();
+
+            if (args[0] instanceof String userId) {
+                if (!userRepo.existsById(userId)) {
+                    throw new UserNotFoundException("User not found");
+                }
+            }
+    }
+}

@@ -7,6 +7,7 @@ import com.example.whatsappclone.Identity.persistence.UserRepo;
 import com.example.whatsappclone.Notification.domain.events.notification;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
+import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
@@ -28,17 +29,15 @@ import java.time.Instant;
 @Transactional
 @Slf4j
 public class FollowService {
+
     private final FollowRepo followRepo;
-    private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
     private final AuthenticatedUserService authenticatedUserService;
     private final ApplicationEventPublisher eventPublisher;
 
+    @CheckUserExistence
     public profileDetails Follow(String userId) {
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("User not found");
-        }
         User currentuser = authenticatedUserService.getcurrentuser(false);
         if (currentuser.getUuid().equals(userId)) {
             throw new BadFollowRequestException("you cant follow yourself");
@@ -81,10 +80,8 @@ public class FollowService {
     }
 
     // this method works for both pending and accepted followings
+    @CheckUserExistence
     public void UnFollow(String userId) {
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("user not found");
-        }
         User currentUser = authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing( currentUser,targetUser).
@@ -96,10 +93,8 @@ public class FollowService {
     }
 
     // this method works for both pending and accepted followers
+    @CheckUserExistence
     public void removefollower(String userId) {
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("user not found");
-        }
         User currentUser= authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).

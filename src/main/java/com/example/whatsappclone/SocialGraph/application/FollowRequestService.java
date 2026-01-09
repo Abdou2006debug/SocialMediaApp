@@ -1,9 +1,10 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Events.notification;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Notification.domain.events.notification;
+import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
@@ -26,12 +27,9 @@ public class FollowRequestService {
     private final AuthenticatedUserService authenticatedUserService;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
-    private final UserRepo userRepo;
 
+    @CheckUserExistence
     public void acceptFollow(String userId) {
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("user not found");
-        }
         User currentuser =authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
         Follow followRequest = followRepo.
@@ -44,15 +42,14 @@ public class FollowRequestService {
         followRequest.setAccepteddate(Instant.now());
         followRepo.save(followRequest);
         logger.info("publishing following accepted event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new notification(currentuser,targetUser,
-                notification.notificationType.FOLLOWING_ACCEPTED));
+        eventPublisher.publishEvent(new com.example.whatsappclone.Notification.domain.events.notification(currentuser,targetUser,
+                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOWING_ACCEPTED));
         eventPublisher.publishEvent(new followAdded(followRequest));
     }
 
+    @CheckUserExistence
     public void rejectFollow(String userId) {
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("user not found");
-        }
+
         User currentUser = authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
@@ -62,15 +59,12 @@ public class FollowRequestService {
         }
         followRepo.delete(follow);
         logger.info("publishing following rejected event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new notification(currentUser,targetUser,
-                notification.notificationType.FOLLOWING_REJECTED));
+        eventPublisher.publishEvent(new com.example.whatsappclone.Notification.domain.events.notification(currentUser,targetUser,
+                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOWING_REJECTED));
     }
 
-
+    @CheckUserExistence
     public void unsendFollowingRequest(String userId){
-        if(!userRepo.existsById(userId)){
-            throw new UserNotFoundException("user not found");
-        }
         User currentUser=authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
     Follow followingRequest = followRepo.findByFollowerAndFollowing(currentUser,targetUser).

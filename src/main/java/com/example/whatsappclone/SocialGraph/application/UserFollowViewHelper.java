@@ -1,6 +1,5 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
@@ -13,6 +12,7 @@ import com.example.whatsappclone.Shared.Exceptions.FollowListNotVisibleException
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheReader;
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.domain.RelationshipStatus;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;

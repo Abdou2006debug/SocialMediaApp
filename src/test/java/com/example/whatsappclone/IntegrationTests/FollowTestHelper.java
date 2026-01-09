@@ -7,7 +7,6 @@ import com.example.whatsappclone.Entities.User;
 import com.example.whatsappclone.Repositries.ProfileRepo;
 import com.example.whatsappclone.Repositries.UserRepo;
 import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;

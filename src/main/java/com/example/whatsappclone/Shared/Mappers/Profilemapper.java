@@ -10,9 +10,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface Profilemapper {
-  //  profileDetails toprofileDetails(ProfileInfo profileInfo);
+   profileDetails toprofileDetails(ProfileInfo profileInfo);
 
    // profileSummary toprofileSummary(ProfileInfo profileInfo);
+
 
     Profile toprofile(com.example.whatsappclone.Profile.domain.cache.Profile profile);
 

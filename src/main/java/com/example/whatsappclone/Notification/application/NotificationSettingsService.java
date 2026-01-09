@@ -5,7 +5,6 @@ import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Notification.api.dto.notificationsettings;
 import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import com.example.whatsappclone.Notification.persistence.NotificationSettingsRepo;
-import com.example.whatsappclone.Services.UserManagmentServices.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
