@@ -7,6 +7,8 @@ import com.example.whatsappclone.Profile.application.ProfileQueryService;
 import com.example.whatsappclone.Profile.application.ProfileUpdatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,8 +23,8 @@ public class UserProfileController {
     private final ProfileUpdatingService profileUpdatingService;
 
     @GetMapping
-    public profileDetails getMyProfile() {
-        return profileQueryService.getMyProfile();
+    public profileDetails getMyProfile(@AuthenticationPrincipal Jwt jwt) {
+        return profileQueryService.getUserProfile(jwt.getClaimAsString("userId"));
     }
 
     @PostMapping
@@ -32,7 +34,7 @@ public class UserProfileController {
 
     @PutMapping("/picture")
     public void updateProfilePicture(@RequestParam MultipartFile file) throws IOException {
-        profileUpdatingService.changepfp(file);
+        profileUpdatingService.changeProfileAvatar(file);
     }
 
     @GetMapping("/settings")

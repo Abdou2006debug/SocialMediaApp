@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 public class BlockService {
     private final BlocksRepo blocksRepo;
     private final AuthenticatedUserService authenticatedUserService;
-    private final UserRepo userRepo;
     private final FollowRepo followRepo;
     private final FollowRequestService followRequestService;
     private final FollowService followService;
@@ -36,13 +35,16 @@ public class BlockService {
             throw new BadFollowRequestException("you have already blocked this user");
         }
         Blocks block = new Blocks(currentuser,requesteduser);
-        followRepo.findByFollowerAndFollowing(currentuser,requesteduser).ifPresent(f -> {
+        // removing the follow from the current user side to the target side
+        followRepo.
+                findByFollowerAndFollowing(currentuser,requesteduser).ifPresent(f -> {
             if (f.getStatus() == Follow.Status.ACCEPTED) {
                 followService.UnFollow(f.getUuid());
                 return;
             }
             followRequestService.unsendFollowingRequest(f.getUuid());
         });
+        // removing the follow from the target side to the current user side
         followRepo.
                 findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(follow -> {
                     if (follow.getStatus() == Follow.Status.ACCEPTED) {

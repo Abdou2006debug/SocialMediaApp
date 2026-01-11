@@ -2,10 +2,8 @@ package com.example.whatsappclone.SocialGraph.application;
 
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Shared.CheckUserExistence;
-import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,29 +13,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowQueryService {
 
-    private final UserFollowViewHelper followViewHelper;
+    private final FollowQueryHelper followViewResolver;
     private final AuthenticatedUserService authenticatedUserService;
+    private final FollowVisibilityPolicy followVisibilityPolicy;
 
     public List<profileSummary> listCurrentUserFollowers(int page) {
         User currentuser =authenticatedUserService.getcurrentuser(false);
-        return  followViewHelper.listCurrentUserFollows(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
+        return  followViewResolver.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowings(int page) {
         User currentuser = authenticatedUserService.getcurrentuser(false);
-        return  followViewHelper.listCurrentUserFollows(currentuser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
+        return  followViewResolver.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowRequests(int page) {
         User currentUser= authenticatedUserService.getcurrentuser(false);
-        return followViewHelper.
-                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
+        return followViewResolver.
+                listCurrentUserPendingFollows(currentUser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowingRequests(int page) {
         User currentUser= authenticatedUserService.getcurrentuser(false);
-        return followViewHelper.
-                listCurrentUserPendingFollows(currentUser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
+        return followViewResolver.
+                listCurrentUserPendingFollows(currentUser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
 
     }
 
@@ -45,16 +44,16 @@ public class FollowQueryService {
     public List<profileSummary> listUserFollowers(String userId, int page){
         User currentuser= authenticatedUserService.getcurrentuser(false);
         User requesteduser=new User(userId);
-        followViewHelper.canViewUserFollows(currentuser,requesteduser, UserFollowViewHelper.Position.FOLLOWERS);
-        return followViewHelper.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), UserFollowViewHelper.Position.FOLLOWERS,page);
+        followVisibilityPolicy.canViewUserFollows(currentuser,requesteduser, FollowQueryHelper.Position.FOLLOWERS);
+        return followViewResolver.listUserFollows(currentuser.getUuid(),requesteduser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     @CheckUserExistence
     public List<profileSummary> listUserFollowing(String userId,int page){
         User currentUser= authenticatedUserService.getcurrentuser(false);
         User targetUser=new User(userId);
-        followViewHelper.canViewUserFollows(currentUser,targetUser, UserFollowViewHelper.Position.FOLLOWINGS);
-        return followViewHelper.listUserFollows(currentUser.getUuid(),targetUser.getUuid(), UserFollowViewHelper.Position.FOLLOWINGS,page);
+        followVisibilityPolicy.canViewUserFollows(currentUser,targetUser, FollowQueryHelper.Position.FOLLOWINGS);
+        return followViewResolver.listUserFollows(currentUser.getUuid(),targetUser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
 
     }
 

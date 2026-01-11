@@ -1,13 +1,14 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Exceptions.BadFollowRequestException;
-import com.example.whatsappclone.Exceptions.UserNotFoundException;
-import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.RelationShipsServices.FollowRequestService;
-import com.example.whatsappclone.Services.RelationShipsServices.FollowService;
-import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
+import com.example.whatsappclone.Identity.domain.cache.User;
+import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
+import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
+import com.example.whatsappclone.SocialGraph.application.FollowRequestService;
+import com.example.whatsappclone.SocialGraph.application.FollowService;
+import com.example.whatsappclone.SocialGraph.application.FollowQueryHelper;
+import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;
@@ -65,7 +66,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void follow_recordFound_throwsBadFollowException(Follow.Status followStatus){
-            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWER);
+            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWER);
             User user=(User)map.get("user");
             String expectedMessage=followStatus== Follow.Status.ACCEPTED?"Already followed":"request already sent";
     assertthrows(BadFollowRequestException.class,
@@ -107,7 +108,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
       @EnumSource(Follow.Status.class)
         public void unfollow(Follow.Status followStatus){
-            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWER);
+            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWER);
             String followid=(String) map.get("followid");
            if(followStatus== Follow.Status.PENDING){
                assertthrows(BadFollowRequestException.class,
@@ -125,7 +126,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void removeFollower(Follow.Status followStatus){
-            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWING);
+            Map<String,Object> map=followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWING);
             String followid=(String) map.get("followid");
             if(followStatus== Follow.Status.PENDING){
                 assertthrows(BadFollowRequestException.class,
@@ -150,7 +151,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void acceptFollower(Follow.Status followStatus){
-            Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWING);
+            Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWING);
             String followid=(String)map.get("followid");
             if(followStatus== Follow.Status.ACCEPTED){
                 assertthrows(BadFollowRequestException.class, () ->followRequestService.acceptFollow(followid),
@@ -167,7 +168,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void unsendFollow(Follow.Status followStatus){
-            Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, UserFollowViewHelper.Position.FOLLOWER);
+            Map<String,Object> map= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWER);
             String followid=(String)map.get("followid");
             if(followStatus== Follow.Status.ACCEPTED){
                 assertthrows(BadFollowRequestException.class, () ->followRequestService.unsendFollowingRequest(followid),

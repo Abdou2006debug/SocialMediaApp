@@ -1,12 +1,13 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Entities.Blocks;
-import com.example.whatsappclone.Entities.Follow;
-import com.example.whatsappclone.Entities.Profile;
-import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Repositries.ProfileRepo;
-import com.example.whatsappclone.Repositries.UserRepo;
-import com.example.whatsappclone.Services.RelationShipsServices.UserFollowViewHelper;
+import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.Profile.persistence.ProfileRepo;
+import com.example.whatsappclone.SocialGraph.application.FollowService;
+import com.example.whatsappclone.SocialGraph.domain.Blocks;
+import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
+import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;

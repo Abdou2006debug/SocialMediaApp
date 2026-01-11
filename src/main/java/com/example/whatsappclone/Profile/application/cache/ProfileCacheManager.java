@@ -20,17 +20,6 @@ public class ProfileCacheManager {
     private final Profilemapper profilemapper;
     private final ProfileInfoCacheRepo profileInfoCacheRepo;
 
-    public Optional<Profile> getProfile(String userId){
-        return profileCacheRepo.findByuserId(userId).map(profileCache -> {
-            com.example.whatsappclone.Profile.domain.Profile profile=profilemapper.toprofile(profileCache);
-            profile.setUser(new User(profileCache.getUserId()));
-            return profile;
-        });
-    }
-
-    public Optional<ProfileInfo> getProfileInfo(String userId){
-        return profileInfoCacheRepo.findById(userId);
-    }
 
     public ProfileInfo cacheProfileInfo(Profile profile){
         ProfileInfo profileInfoCache=profilemapper.toprofileInfo(profile);
@@ -42,6 +31,18 @@ public class ProfileCacheManager {
         com.example.whatsappclone.Profile.domain.cache.Profile profileCache=profilemapper.toprofileCache(profile);
         profileCache.setUserId(profile.getUserId());
         profileCacheRepo.save(profileCache);
+    }
+
+    public Optional<Profile> getProfile(String userId){
+        return profileCacheRepo.findByuserId(userId).map(profileCache -> {
+            Profile profile=profilemapper.toprofile(profileCache);
+            profile.setUser(new User(profileCache.getUserId()));
+            return profile;
+        });
+    }
+
+    public Optional<ProfileInfo>  getProfileInfo(String userId){
+        return profileInfoCacheRepo.findById(userId);
     }
 
 }

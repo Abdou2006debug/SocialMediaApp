@@ -1,6 +1,5 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Identity.persistence.UserRepo;
@@ -12,6 +11,7 @@ import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.domain.RelationshipStatus;
 import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.domain.events.followRemoved;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
@@ -58,7 +58,7 @@ public class FollowService {
         Follow follow = new Follow(currentuser, usertofollow);
 
         notification notification= new notification(currentuser,usertofollow,
-                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW,follow.getUuid());
+                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW);
         RelationshipStatus status;
         if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
             follow.setStatus(Follow.Status.ACCEPTED);

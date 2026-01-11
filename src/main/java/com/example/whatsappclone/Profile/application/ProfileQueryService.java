@@ -1,6 +1,5 @@
 package com.example.whatsappclone.Profile.application;
 
-import com.example.whatsappclone.DTO.serverToclient.RelationshipStatus;
 import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
 import com.example.whatsappclone.Identity.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
@@ -13,12 +12,16 @@ import com.example.whatsappclone.Profile.domain.cache.ProfileInfo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Services.CacheServices.CacheQueryService;
 import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Mappers.Profilemapper;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.domain.RelationshipStatus;
+import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;;import java.util.Optional;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -26,12 +29,13 @@ import org.springframework.stereotype.Service;;import java.util.Optional;
 public class ProfileQueryService {
 
     private final AuthenticatedUserService authenticatedUserService;
-    private final CacheQueryService cacheQueryService;
     private final ProfileCacheManager profileCacheManager;
     private final ProfileRepo profileRepo;
     private final Profilemapper profilemapper;
     private final FollowRepo followRepo;
+    private final BlocksRepo blocksRepo;
 
+    @CheckUserExistence
     public profileDetails getUserProfile(String userId){
        User currentUser=authenticatedUserService.getcurrentuser(false);
        User targetUser=new User(userId);
@@ -40,16 +44,24 @@ public class ProfileQueryService {
          profileCacheManager.cacheProfileInfo(profile);
          return profilemapper.toprofileInfo(profile);
      });
+        profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
 
-     profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
+        profileDetails.setFollowers(followRepo.countByFollowingAndStatus(targetUser, Follow.Status.ACCEPTED));
+        profileDetails.setFollowings(followRepo.countByFollowerAndStatus(targetUser, Follow.Status.ACCEPTED));
 
-     profileDetails.setFollowers(followRepo.countByFollowingAndStatus(targetUser, Follow.Status.ACCEPTED));
-     profileDetails.setFollowings(followRepo.countByFollowerAndStatus(targetUser, Follow.Status.ACCEPTED));
+        if(userId.equals(currentUser.getUuid())){
+            return profileDetails;
+        }
 
-     if(userId.equals(currentUser.getUuid())){
+     if(blocksRepo.existsByBlockerAndBlocked(currentUser,targetUser)||blocksRepo.existsByBlockerAndBlocked(targetUser,currentUser)){
+         profileDetails.setBio(null);
+         profileDetails.setAvatarurl(null);
+         profileDetails.setUsername("Instagram User");
          return profileDetails;
      }
-        RelationshipStatus status=RelationshipStatus.NOT_FOLLOWING;
+
+
+     RelationshipStatus status=RelationshipStatus.NOT_FOLLOWING;
 
         if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetUser, Follow.Status.ACCEPTED)){
             status= RelationshipStatus.FOLLOWING;
@@ -71,11 +83,12 @@ public class ProfileQueryService {
     }
 
     public Profile getuserprofile(User user, Boolean cacheProfile){
-        Optional<Profile> cached = cacheQueryService.getProfile(user.getUuid());
+        Optional<Profile> cached = profileCacheManager.getProfile(user.getUuid());
         Profile profile = cached.orElseGet(() -> profileRepo.findByUser(user).orElseThrow());
         if(cacheProfile &&cached.isEmpty()){
             profileCacheManager.cacheUserProfile(profile);
         }
         return profile;
     }
+
 }
