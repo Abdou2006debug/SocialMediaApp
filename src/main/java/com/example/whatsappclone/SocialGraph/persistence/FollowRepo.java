@@ -1,6 +1,6 @@
 package com.example.whatsappclone.SocialGraph.persistence;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

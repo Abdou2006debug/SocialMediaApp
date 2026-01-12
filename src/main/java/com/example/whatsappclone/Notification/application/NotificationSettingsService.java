@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Notification.application;
 
-import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Notification.api.dto.notificationsettings;
 import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import com.example.whatsappclone.Notification.persistence.NotificationSettingsRepo;

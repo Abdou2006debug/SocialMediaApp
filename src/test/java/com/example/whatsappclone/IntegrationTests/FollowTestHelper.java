@@ -1,7 +1,7 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.User.domain.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.SocialGraph.application.FollowService;
 import com.example.whatsappclone.SocialGraph.domain.Blocks;

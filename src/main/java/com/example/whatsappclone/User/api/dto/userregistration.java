@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Identity.api.dto;
+package com.example.whatsappclone.User.api.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

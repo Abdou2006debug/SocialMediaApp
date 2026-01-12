@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Notification.domain;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

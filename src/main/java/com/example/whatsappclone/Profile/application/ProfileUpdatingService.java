@@ -1,15 +1,14 @@
 package com.example.whatsappclone.Profile.application;
 
-import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
-import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Profile.api.dto.profile;
 import com.example.whatsappclone.Profile.api.dto.profilesettings;
 import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
 import com.example.whatsappclone.Profile.domain.Profile;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Storage.StorageService;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;

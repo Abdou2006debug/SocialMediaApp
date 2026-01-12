@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Messaging.domain;
 
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

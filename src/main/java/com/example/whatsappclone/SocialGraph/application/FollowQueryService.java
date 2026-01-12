@@ -1,7 +1,7 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Shared.CheckUserExistence;
 import lombok.RequiredArgsConstructor;

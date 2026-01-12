@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Notification.persistence;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Profile.application.cache;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.domain.Profile;
 import com.example.whatsappclone.Profile.domain.cache.ProfileInfo;
 import com.example.whatsappclone.Profile.persistence.ProfileCacheRepo;

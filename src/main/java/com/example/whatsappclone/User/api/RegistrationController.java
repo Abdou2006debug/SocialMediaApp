@@ -1,7 +1,7 @@
-package com.example.whatsappclone.Identity.api;
+package com.example.whatsappclone.User.api;
 
-import com.example.whatsappclone.Identity.api.dto.userregistration;
-import com.example.whatsappclone.Identity.application.IdentityRegistrationService;
+import com.example.whatsappclone.User.api.dto.userregistration;
+import com.example.whatsappclone.User.application.RegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RegistrationController {
 
-    private final IdentityRegistrationService identityRegistrationService;
+    private final RegistrationService registrationService;
 
     @PostMapping("/register")
     public void register(@RequestBody @Valid userregistration user) {
-        identityRegistrationService.registerUser(user);
+        registrationService.registerUser(user);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.example.whatsappclone.SocialGraph.application.cache;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;

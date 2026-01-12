@@ -1,7 +1,7 @@
 package com.example.whatsappclone.UnitTests;
 
-import com.example.whatsappclone.Identity.domain.cache.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.User.domain.cache.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Notification.domain.events.notification;
 import com.example.whatsappclone.Profile.api.dto.profilesettings;
 import com.example.whatsappclone.Profile.domain.Profile;

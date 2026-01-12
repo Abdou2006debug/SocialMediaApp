@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Identity.domain.cache;
+package com.example.whatsappclone.User.domain.cache;
 
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;

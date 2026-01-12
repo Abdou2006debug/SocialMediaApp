@@ -15,19 +15,24 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/users/me/profile")
+@RequestMapping("/api/v1/users/profile")
 @RequiredArgsConstructor
 public class UserProfileController {
 
     private final ProfileQueryService profileQueryService;
     private final ProfileUpdatingService profileUpdatingService;
 
-    @GetMapping
+    @GetMapping("/me")
     public profileDetails getMyProfile(@AuthenticationPrincipal Jwt jwt) {
         return profileQueryService.getUserProfile(jwt.getClaimAsString("userId"));
     }
 
-    @PostMapping
+    @GetMapping("/{userid}")
+    public profileDetails getaccount(@PathVariable String userid) {
+        return profileQueryService.getUserProfile(userid);
+    }
+
+    @PutMapping
     public void updateProfile(@RequestBody @Valid profile profile) {
         profileUpdatingService.UpdateProfile(profile);
     }

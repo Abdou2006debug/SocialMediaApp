@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Identity.domain;
+package com.example.whatsappclone.User.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

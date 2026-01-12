@@ -1,13 +1,10 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
-import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Notification.domain.events.notification;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
-import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;

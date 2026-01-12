@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Profile.persistence;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.domain.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 

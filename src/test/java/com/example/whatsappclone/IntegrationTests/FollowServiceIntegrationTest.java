@@ -1,7 +1,7 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Identity.domain.cache.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.User.domain.cache.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import com.example.whatsappclone.SocialGraph.application.FollowRequestService;

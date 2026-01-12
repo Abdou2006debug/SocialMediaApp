@@ -95,7 +95,7 @@ public class FollowRelationShipResolver {
         List<Follow> incoming = followRepo.findByFollowing_IdAndFollower_IdIn(viewerId,targetUserIds);
         for (Follow follow : incoming) {
             profileSummary profileSummary = summaryMap.get(follow.getFollower_id());
-            if (profileSummary != null && profileSummary.getStatus() == null) {
+            if (profileSummary != null && profileSummary.getStatus() == RelationshipStatus.NOT_FOLLOWING) {
                 RelationshipStatus status = follow.getStatus() == Follow.Status.PENDING
                         ? RelationshipStatus.FOLLOW_REQUEST_RECEIVED
                         : RelationshipStatus.FOLLOWED;

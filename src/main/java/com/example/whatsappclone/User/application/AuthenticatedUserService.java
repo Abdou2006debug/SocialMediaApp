@@ -1,9 +1,7 @@
-package com.example.whatsappclone.Identity.application;
+package com.example.whatsappclone.User.application;
 
-import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Services.CacheServices.CacheQueryService;
-import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
+import com.example.whatsappclone.User.domain.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +18,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthenticatedUserService {
 
-    private final CacheQueryService cacheQueryService;
+   // private final CacheQueryService cacheQueryService;
     private final UserRepo userRepo;
-    private final CacheWriterService cacheWriterService;
+   // private final CacheWriterService cacheWriterService;
 
     public User getcurrentuser(boolean fetchfullinfo){
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
@@ -34,13 +32,13 @@ public class AuthenticatedUserService {
             throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
         }
         if(fetchfullinfo){
-            Optional<User> cacheduser=cacheQueryService.getUser(userId);
-            if(cacheduser.isPresent()){
-                return cacheduser.get();
-            }
+           // Optional<User> cacheduser=cacheQueryService.getUser(userId);
+          //  if(cacheduser.isPresent()){
+          //      return cacheduser.get();
+          //  }
             User user=  userRepo.findById(userId).
                     orElseThrow(()->new UserNotFoundException("user not found"));
-            cacheWriterService.cacheUser(user);
+            //cacheWriterService.cacheUser(user);
             return user;
         }
         return new User(userId);

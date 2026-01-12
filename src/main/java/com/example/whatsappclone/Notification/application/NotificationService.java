@@ -1,11 +1,10 @@
 package com.example.whatsappclone.Notification.application;
 import com.example.whatsappclone.Notification.api.dto.notification;
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import com.example.whatsappclone.Notification.persistence.NotificationSettingsRepo;
 import com.example.whatsappclone.Profile.application.ProfileQueryService;
 import com.example.whatsappclone.Profile.domain.Profile;
-import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

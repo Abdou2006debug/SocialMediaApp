@@ -1,4 +1,4 @@
-package com.example.whatsappclone.Services.UserManagmentServices;
+package com.example.whatsappclone.User.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

@@ -1,17 +1,8 @@
-package com.example.whatsappclone.Identity.application;
+package com.example.whatsappclone.User.application;
 
 
-import com.example.whatsappclone.Identity.api.*;
-import com.example.whatsappclone.Identity.api.dto.userregistration;
-import com.example.whatsappclone.Identity.domain.User;
-import com.example.whatsappclone.Identity.persistence.UserRepo;
-import com.example.whatsappclone.Notification.domain.NotificationsSettings;
-import com.example.whatsappclone.Notification.persistence.NotificationSettingsRepo;
-import com.example.whatsappclone.Profile.domain.Profile;
-import com.example.whatsappclone.Profile.persistence.ProfileRepo;
+import com.example.whatsappclone.User.api.dto.userregistration;
 import com.example.whatsappclone.Shared.Exceptions.UserProvisioningException;
-import com.example.whatsappclone.Shared.Mappers.Usermapper;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
@@ -27,12 +18,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class IdentityRegistrationService {
-
-    private final UserRepo userRepo;
-    private final ProfileRepo profileRepo;
-    private final NotificationSettingsRepo notificationSettingsRepo;
-    private final Usermapper usermapper;
+public class KeycloakRegistrationService implements IdentityService {
 
     // injecting keycloak details from properties
     @Value("${keycloak.username}")
@@ -42,23 +28,7 @@ public class IdentityRegistrationService {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
 
-
-    // method responsible for creating the User and initializing profile and notification settings
-    // transactional is none negotiable because user provisioning might not happen so the user shouldn't exists in the db
-    @Transactional
-    public void registerUser(userregistration userregistration){
-        User user=userRepo.save(usermapper.toUserentity(userregistration));
-        Profile profile=new Profile(null,userregistration.getUsername());
-        profile.setUser(user);
-        NotificationsSettings notificationsSettings=NotificationsSettings.builder().
-                user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
-        notificationSettingsRepo.save(notificationsSettings);
-        profileRepo.save(profile);
-        UserProvision(userregistration,user.getUuid());
-    }
-
-
-    // method responsible for creating the user record inside the identity provider which in my case is keycloak
+    // method responsible for creating the user record inside the identity provider
     public void UserProvision(userregistration userregistration,String userId){
         Keycloak keycloak= KeycloakBuilder.builder().
                 realm("master").username(username).password(password).

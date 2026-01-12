@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Profile.application;
 
-import com.example.whatsappclone.Identity.application.AuthenticatedUserService;
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.api.dto.profilesettings;
 import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
@@ -10,8 +10,6 @@ import com.example.whatsappclone.Profile.domain.Profile;
 
 import com.example.whatsappclone.Profile.domain.cache.ProfileInfo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
-import com.example.whatsappclone.Services.CacheServices.CacheQueryService;
-import com.example.whatsappclone.Services.CacheServices.CacheWriterService;
 import com.example.whatsappclone.Shared.CheckUserExistence;
 import com.example.whatsappclone.Shared.Mappers.Profilemapper;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
@@ -48,10 +46,11 @@ public class ProfileQueryService {
 
         profileDetails.setFollowers(followRepo.countByFollowingAndStatus(targetUser, Follow.Status.ACCEPTED));
         profileDetails.setFollowings(followRepo.countByFollowerAndStatus(targetUser, Follow.Status.ACCEPTED));
-
+        // no relation should be set
         if(userId.equals(currentUser.getUuid())){
             return profileDetails;
         }
+
 
      if(blocksRepo.existsByBlockerAndBlocked(currentUser,targetUser)||blocksRepo.existsByBlockerAndBlocked(targetUser,currentUser)){
          profileDetails.setBio(null);

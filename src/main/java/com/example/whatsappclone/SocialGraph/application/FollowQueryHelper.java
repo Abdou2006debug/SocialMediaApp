@@ -1,9 +1,8 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Identity.domain.User;
+import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
-import com.example.whatsappclone.Shared.Exceptions.FollowListNotVisibleException;
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheReader;
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
 import com.example.whatsappclone.SocialGraph.domain.Follow;

@@ -1,6 +1,6 @@
 package com.example.whatsappclone.Shared;
 
-import com.example.whatsappclone.Identity.persistence.UserRepo;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
