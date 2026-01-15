@@ -1,7 +1,7 @@
 version: '3.9'
 
 services:
-  # PostgreSQL Database
+
 
   postgres:
     image: postgres:15
@@ -28,14 +28,14 @@ services:
       - postgres
     volumes:
       - pgadmin-data:/var/lib/pgadmin
-  # Redis
+
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
 
-  # Keycloak (OAuth2 / JWT)
+
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
     container_name: keycloak
@@ -46,11 +46,9 @@ services:
     ports:
       - "8080:8080"
 
-  # Spring Boot App
-  whatsappclone:
-    build:
-      context: .
-      dockerfile: Dockerfile
+
+  SocialMediaApp:
+    build: .
     image: whatsappclone
     container_name: instagramclone
     environment:

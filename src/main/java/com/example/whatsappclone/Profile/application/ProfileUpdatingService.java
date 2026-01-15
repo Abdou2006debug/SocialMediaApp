@@ -1,5 +1,7 @@
 package com.example.whatsappclone.Profile.application;
 
+import com.example.whatsappclone.SocialGraph.domain.Follow;
+import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
@@ -20,7 +22,6 @@ import java.io.IOException;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConfigurationProperties(prefix = "storage.bucket")
 public class ProfileUpdatingService {
 
     private final AuthenticatedUserService authenticatedUserService;
@@ -29,20 +30,25 @@ public class ProfileUpdatingService {
     private final UserRepo userRepo;
     private final ProfileQueryService profileQueryService;
     private final StorageService storageService;
-
+    private final FollowRepo followRepo;
 
     public void UpdateProfileSettings(profilesettings profilesettings){
         User currentuser= authenticatedUserService.getcurrentuser(false);
-        Profile currentprofile= profileQueryService.getuserprofile(currentuser,false);
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
+        boolean preStatus=currentprofile.isIsprivate();
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
         profileRepo.save(currentprofile);
         profileCacheManager.cacheUserProfile(currentprofile);
+        // if profile was set from private to public all follow request to this user must be deleted
+        if(preStatus&&!profilesettings.isIsprivate()){
+            followRepo.deleteByFollowingAndStatus(currentuser, Follow.Status.PENDING);
+        }
     }
 
     public void changeProfileAvatar(MultipartFile file) throws IOException {
         User currentuser= authenticatedUserService.getcurrentuser(false);
-        Profile currentprofile= profileQueryService.getuserprofile(currentuser,false);
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
 
         String oldAvatarUri=currentprofile.getPrivateavatarurl();
 
@@ -56,7 +62,7 @@ public class ProfileUpdatingService {
 
     public void UpdateProfile(profile p){
         User currentuser= authenticatedUserService.getcurrentuser(true);
-        Profile currentprofile= profileQueryService.getuserprofile(currentuser,false);
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
         currentprofile.setUsername(p.getUsername());
         currentprofile.setBio(p.getBio());
         currentuser.setUsername(p.getUsername());

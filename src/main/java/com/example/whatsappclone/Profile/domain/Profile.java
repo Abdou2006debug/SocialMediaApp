@@ -14,7 +14,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
-@Builder
 @AllArgsConstructor
 @Table(indexes={
         @Index(name="user_profile",columnList = "user_id")
@@ -44,4 +43,6 @@ public Profile(String bio , String username){
 public Profile(boolean isprivate){
     this.isprivate=isprivate;
 }
+
+
 }

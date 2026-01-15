@@ -32,5 +32,5 @@ Optional<Follow> findByUuidAndFollower(String uuid,User follower);
             String followingId,
             Collection<String> followerIds
     );
-
+    void deleteByFollowingAndStatus(User following, Follow.Status status);
 }
