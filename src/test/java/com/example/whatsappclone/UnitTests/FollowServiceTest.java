@@ -2,7 +2,7 @@ package com.example.whatsappclone.UnitTests;
 
 import com.example.whatsappclone.User.domain.cache.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
-import com.example.whatsappclone.Notification.domain.events.notification;
+import com.example.whatsappclone.Notification.domain.events.FollowNotification;
 import com.example.whatsappclone.Profile.api.dto.profilesettings;
 import com.example.whatsappclone.Profile.domain.Profile;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
@@ -212,9 +212,9 @@ public class FollowServiceTest {
             verify(followRepo).save(captor.capture());
             Follow follow=captor.getValue();
             assertEquals(Follow.Status.ACCEPTED, follow.getStatus());
-            ArgumentCaptor<notification> captor1=ArgumentCaptor.forClass(notification.class);
+            ArgumentCaptor<FollowNotification> captor1=ArgumentCaptor.forClass(FollowNotification.class);
             verify(eventPublisher).publishEvent(captor1.capture());
-            notification notification=captor1.getValue();
+            FollowNotification notification=captor1.getValue();
             assertEquals(notification.getType(), com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_ACCEPTED);
             assertEquals(notification.getTrigger(),currentuser);
             assertEquals(notification.getRecipient(),requesteduser);
@@ -240,9 +240,9 @@ public class FollowServiceTest {
             when(followRepo.findByUuidAndFollowing(followUUID,currentuser)).thenReturn(Optional.of(follow));
             assertDoesNotThrow(()->followRequestService.rejectFollow(followUUID));
             verify(followRepo).delete(follow);
-            ArgumentCaptor<notification> captor=ArgumentCaptor.forClass(notification.class);
+            ArgumentCaptor<FollowNotification> captor=ArgumentCaptor.forClass(FollowNotification.class);
             verify(eventPublisher).publishEvent(captor.capture());
-            notification notification=captor.getValue();
+            FollowNotification notification=captor.getValue();
             assertEquals(notification.getType(), com.example.whatsappclone.Events.notification.notificationType.FOLLOWING_REJECTED);
             assertEquals(notification.getTrigger(),currentuser);
             assertEquals(notification.getRecipient(),requesteduser);

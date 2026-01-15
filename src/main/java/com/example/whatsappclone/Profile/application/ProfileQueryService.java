@@ -37,11 +37,7 @@ public class ProfileQueryService {
     public profileDetails getUserProfile(String userId){
        User currentUser=authenticatedUserService.getcurrentuser(false);
        User targetUser=new User(userId);
-     ProfileInfo profileInfo= profileCacheManager.getProfileInfo(userId).orElseGet(()->{
-         Profile profile=getuserprofile(new User(userId),false);
-         profileCacheManager.cacheProfileInfo(profile);
-         return profilemapper.toprofileInfo(profile);
-     });
+       ProfileInfo profileInfo= getUserProfileInfo(userId);
         profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
 
         profileDetails.setFollowers(followRepo.countByFollowingAndStatus(targetUser, Follow.Status.ACCEPTED));
@@ -77,17 +73,27 @@ public class ProfileQueryService {
 
     public profilesettings getMyProfileSettings(){
         User currentuser=authenticatedUserService.getcurrentuser(false);
-        Profile profile=getuserprofile(currentuser,true);
+        Profile profile=getUserProfile(currentuser.getUuid(),true);
         return profilemapper.toprofilesettings(profile);
     }
 
-    public Profile getuserprofile(User user, Boolean cacheProfile){
-        Optional<Profile> cached = profileCacheManager.getProfile(user.getUuid());
-        Profile profile = cached.orElseGet(() -> profileRepo.findByUser(user).orElseThrow());
-        if(cacheProfile &&cached.isEmpty()){
+    public Profile getUserProfile(String userId, Boolean cacheProfile){
+        Profile profile = profileCacheManager.getProfile(userId).orElseGet(() -> profileRepo.findByUser(new User(userId)).orElseThrow());
+        if(cacheProfile){
             profileCacheManager.cacheUserProfile(profile);
         }
         return profile;
     }
 
+
+    // this method is used to fetch and cache if needed for operation that needs only the main properties of a profile {username,bio,avatar}
+    public ProfileInfo getUserProfileInfo(String userId){
+
+        return profileCacheManager.getProfileInfo(userId).orElseGet(()->{
+           Profile profile=getUserProfile(userId,false);
+           profileCacheManager.cacheProfileInfo(profile);
+           return profilemapper.toprofileInfo(profile);
+        });
+
+    }
 }

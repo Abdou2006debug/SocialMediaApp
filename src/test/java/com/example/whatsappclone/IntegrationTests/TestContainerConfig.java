@@ -1,7 +1,5 @@
 package com.example.whatsappclone.IntegrationTests;
 
-import com.example.whatsappclone.Entities.User;
-import com.example.whatsappclone.Repositries.UserRepo;
 import lombok.Getter;
 import net.bytebuddy.utility.dispatcher.JavaDispatcher;
 import org.junit.jupiter.api.BeforeEach;

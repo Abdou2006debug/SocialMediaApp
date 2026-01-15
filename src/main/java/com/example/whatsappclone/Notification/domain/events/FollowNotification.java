@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class notification {
+public class FollowNotification {
     private User trigger;
     private User recipient;
     private notificationType type;

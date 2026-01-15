@@ -1,5 +1,7 @@
 package com.example.whatsappclone.Shared.Mappers;
 
+import com.example.whatsappclone.Notification.api.dto.notificationsettings;
+import com.example.whatsappclone.Notification.domain.NotificationsSettings;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Profile.api.dto.profilesettings;
@@ -23,4 +25,5 @@ public interface Profilemapper {
 
     @Mapping(target = "avatarurl", source = "publicavatarurl")
     ProfileInfo toprofileInfo(Profile profile);
+    notificationsettings tonotificationsettings(NotificationsSettings notificationsSettings);
 }

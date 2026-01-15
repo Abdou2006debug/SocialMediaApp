@@ -17,7 +17,6 @@ public class FollowRelationShipResolver {
 
     private final FollowRepo followRepo;
 
-
     public void resolveCurrentUserFollowRelationShip(List<profileSummary> profileSummaries, String viewerId, FollowQueryHelper.Position position, Follow.Status followStatus){
         Map<String, profileSummary> summaryMap = profileSummaries.stream()
                 .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));

@@ -2,7 +2,7 @@ package com.example.whatsappclone.SocialGraph.application;
 
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
-import com.example.whatsappclone.Notification.domain.events.notification;
+import com.example.whatsappclone.Notification.domain.events.FollowNotification;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Shared.CheckUserExistence;
@@ -55,8 +55,8 @@ public class FollowService {
        }
         Follow follow = new Follow(currentuser, usertofollow);
 
-        notification notification= new notification(currentuser,usertofollow,
-                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW);
+        FollowNotification notification= new FollowNotification(currentuser,usertofollow,
+                FollowNotification.notificationType.FOLLOW);
         RelationshipStatus status;
         if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
             follow.setStatus(Follow.Status.ACCEPTED);
@@ -68,7 +68,7 @@ public class FollowService {
         } else {
             follow.setStatus(Follow.Status.PENDING);
             log.info("publishing follow request event for "+usertofollow.getUsername());
-            notification.setType(com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOW_REQUESTED);
+            notification.setType(FollowNotification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
             status=RelationshipStatus.FOLLOW_REQUESTED;
         }
@@ -101,7 +101,7 @@ public class FollowService {
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
         }else{
-            eventPublisher.publishEvent(new notification(currentUser,targetUser, notification.notificationType.FOLLOWING_REJECTED));
+            eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser, FollowNotification.notificationType.FOLLOWING_REJECTED));
         }
     }
 }

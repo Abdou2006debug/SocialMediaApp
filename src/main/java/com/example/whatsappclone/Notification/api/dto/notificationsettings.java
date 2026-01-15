@@ -1,5 +1,6 @@
 package com.example.whatsappclone.Notification.api.dto;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class notificationsettings {
-    private boolean onfollowingrequests_accepted;
-    private boolean onfollowingrequests_rejected;
-    private boolean onfollower;
+    private Boolean onfollowingrequestAccepted;
+    private Boolean onfollowingrequestRejected;
+    private Boolean Onfollow;
 }

@@ -1,5 +1,6 @@
 package com.example.whatsappclone.SocialGraph.application;
 
+import com.example.whatsappclone.Notification.domain.events.FollowNotification;
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Shared.CheckUserExistence;
@@ -39,8 +40,8 @@ public class FollowRequestService {
         followRequest.setAccepteddate(Instant.now());
         followRepo.save(followRequest);
         logger.info("publishing following accepted event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new com.example.whatsappclone.Notification.domain.events.notification(currentuser,targetUser,
-                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOWING_ACCEPTED));
+        eventPublisher.publishEvent(new FollowNotification(currentuser,targetUser,
+                FollowNotification.notificationType.FOLLOWING_ACCEPTED));
         eventPublisher.publishEvent(new followAdded(followRequest));
     }
 
@@ -56,8 +57,8 @@ public class FollowRequestService {
         }
         followRepo.delete(follow);
         logger.info("publishing following rejected event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new com.example.whatsappclone.Notification.domain.events.notification(currentUser,targetUser,
-                com.example.whatsappclone.Notification.domain.events.notification.notificationType.FOLLOWING_REJECTED));
+        eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser,
+                FollowNotification.notificationType.FOLLOWING_REJECTED));
     }
 
     @CheckUserExistence

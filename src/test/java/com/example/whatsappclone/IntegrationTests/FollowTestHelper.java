@@ -1,5 +1,6 @@
 package com.example.whatsappclone.IntegrationTests;
 
+import com.example.whatsappclone.Profile.domain.Profile;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Service
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class FollowTestHelper {
-    private final UserQueryService userQueryService;
+
     private final FollowRepo followRepo;
     private final FollowService followService;
     private final ProfileRepo profileRepo;

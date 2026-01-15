@@ -12,24 +12,24 @@ import java.util.concurrent.TimeUnit;
 public class UserActivityService {
     private final RedisTemplate<String,String> redisTemplate;
 
-    public void setuserstatus(boolean status,String username){
+    public void setuserstatus(boolean status,String userId){
         if(!status){
-            redisTemplate.delete("user: "+username);
+            redisTemplate.delete("user: "+userId);
             return;
         }
-        redisTemplate.opsForValue().set("user: "+username,"online");
-        redisTemplate.expire("user: "+username,30, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("user: "+userId,"online");
+        redisTemplate.expire("user: "+userId,30, TimeUnit.SECONDS);
     }
 
     public void setUserLastSeen(String username){
-        redisTemplate.opsForValue().set("user lastseen:"+username, Instant.now().toString());
+        redisTemplate.opsForValue().set("user lastSeen:"+username, Instant.now().toString());
     }
 
     public String getUserLastSeen(String username){
-        return (String)redisTemplate.opsForValue().get("user lastseen:"+username);
+        return (String) redisTemplate.opsForValue().get("user lastSeen:"+username);
     }
 
-    public boolean getUserStatus(String username){
-        return redisTemplate.hasKey("user: "+username);
+    public boolean getUserStatus(String userId){
+        return redisTemplate.hasKey("user: "+ userId);
     }
 }
