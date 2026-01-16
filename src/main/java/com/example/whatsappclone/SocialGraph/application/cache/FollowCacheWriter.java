@@ -32,7 +32,7 @@ public class FollowCacheWriter {
             String followerId=follow.getFollower_id();
             followersIds.add(followerId);
             // used when updating the follow to know exactly which page to update
-            redisTemplate.opsForValue().set("user:"+userId+":follower:"+followerId,page);
+            redisTemplate.opsForValue().set("user:"+userId+":follower:"+followerId,String.valueOf(page));
             redisTemplate.opsForZSet().add("user:"+userId+":followers:page:"+page,followerId,follow.getAccepteddate().getEpochSecond());
             long ttl=page==0?10:5;
             redisTemplate.expire("user:"+userId+":follower:page:"+page,ttl, TimeUnit.MINUTES);
@@ -49,7 +49,7 @@ public class FollowCacheWriter {
         followings.forEach(follow ->{
             String followingId=follow.getFollowing_id();
             followingsIds.add(followingId);
-            redisTemplate.opsForValue().set("user:"+userId+":following:"+followingId,page);
+            redisTemplate.opsForValue().set("user:"+userId+":following:"+followingId,String.valueOf(page));
             redisTemplate.opsForZSet().add("user:"+userId+":followings:page:"+page,followingId,follow.getAccepteddate().getEpochSecond());
             long ttl=page==0?10:5;
             redisTemplate.expire("user:"+userId+":followings:page:"+page,ttl,TimeUnit.SECONDS);
@@ -58,6 +58,6 @@ public class FollowCacheWriter {
         return followingsIds;
     }
 
-
+}
 
 
