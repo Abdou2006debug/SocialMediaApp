@@ -24,13 +24,14 @@ public interface FollowRepo extends JpaRepository<Follow,String> {
     boolean existsByFollowerAndFollowing(User follower,User following);
 Optional<Follow> findByUuidAndFollower(String uuid,User follower);
   Optional<Follow> findByUuidAndFollowing(String uuid,User following);
-    List<Follow> findByFollower_IdAndFollowing_IdIn(
-            String followerId,
-            Collection<String> followingIds
+
+    List<Follow> findByFollower_UuidAndFollowing_UuidIn(
+            String followerUuid,
+            Collection<String> followings
     );
-    List<Follow> findByFollowing_IdAndFollower_IdIn(
-            String followingId,
-            Collection<String> followerIds
+    List<Follow> findByFollowing_UuidAndFollower_UuidIn(
+            String followingUuid,
+            Collection<String> followers
     );
     void deleteByFollowingAndStatus(User following, Follow.Status status);
 }

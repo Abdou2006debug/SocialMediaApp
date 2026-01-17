@@ -1,6 +1,9 @@
 package com.example.whatsappclone.IntegrationTests;
 
+import com.example.whatsappclone.IntegrationTests.SoicalGraph.FollowServiceIntegrationTest;
 import com.example.whatsappclone.Profile.domain.Profile;
+import com.example.whatsappclone.SocialGraph.application.FollowQueryHelper;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
@@ -28,6 +31,7 @@ public class FollowTestHelper {
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
     private final UserRepo userRepo;
+    private final AuthenticatedUserService authenticatedUserService;
 
 
     public User followUser(FollowServiceIntegrationTest.ProfileType profiletype){
@@ -37,16 +41,14 @@ public class FollowTestHelper {
         profileRepo.save(profile);
         return user;
     }
-    public Map<String,Object> createFollowRecord(Follow.Status status, UserFollowViewHelper.Position position){
+
+    public User createFollowRecord(Follow.Status status, FollowQueryHelper.Position position){
         User user=createTestUser();
-        User currentuser=userQueryService.getcurrentuser();
-        Follow follow=position== UserFollowViewHelper.Position.FOLLOWER?
-                new Follow(currentuser,user,status):new Follow(user,currentuser,status);
+        User currentuser=authenticatedUserService.getcurrentuser(false);
+        Follow follow=position== FollowQueryHelper.Position.FOLLOWERS?
+                new Follow(user,currentuser,status):new Follow(currentuser,user,status);
         followRepo.saveAndFlush(follow);
-        Map<String,Object> map=new HashMap<>();
-            map.put("user",user);
-            map.put("followid",follow.getUuid());
-        return map;
+        return user;
     }
 
     public static void assertthrows(Class<? extends Exception> expected, Executable executable, String expectedMessage){
@@ -56,7 +58,7 @@ public class FollowTestHelper {
 
     public User createBlockRecord(boolean isCurrentBlocked){
         User user=createTestUser();
-        User currentuser=userQueryService.getcurrentuser();
+        User currentuser=authenticatedUserService.getcurrentuser(false);
         Blocks blocks=new Blocks();
         if(isCurrentBlocked){
             blocks.setBlocked(currentuser);
@@ -71,7 +73,7 @@ public class FollowTestHelper {
 
 
     public User createTestUser(){
-        User user=new User("test","test","test","test@test.com","1234");
+        User user=new User();
         return userRepo.save(user);
     }
 }
