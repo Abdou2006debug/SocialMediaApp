@@ -24,13 +24,8 @@ public class Chat {
     private String uuid;
     @CreatedDate
     private Instant createddate;
-    @ManyToOne()
-    private User creator;
-    @ManyToMany(mappedBy = "chats")
-    private Set<User> users=new HashSet<>();
     private boolean isgroup;
     public Chat(User creator, boolean isgroup){
         this.isgroup=isgroup;
-        this.creator=creator;
     }
 }

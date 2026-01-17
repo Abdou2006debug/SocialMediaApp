@@ -34,7 +34,7 @@ public class ProfileCacheManager {
     }
 
     public Optional<Profile> getProfile(String userId){
-        return profileCacheRepo.findByuserId(userId).map(profileCache -> {
+        return profileCacheRepo.findByUserId(userId).map(profileCache -> {
             Profile profile=profilemapper.toprofile(profileCache);
             profile.setUser(new User(profileCache.getUserId()));
             return profile;

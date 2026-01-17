@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class profileDetails {
     private String userId;
     private String username;
@@ -22,4 +21,8 @@ public class profileDetails {
     private long followings;
     private String lastseen;
     private boolean isonline;
+    public profileDetails(String userId,RelationshipStatus status){
+        this.userId=userId;
+        this.status=status;
+    }
 }

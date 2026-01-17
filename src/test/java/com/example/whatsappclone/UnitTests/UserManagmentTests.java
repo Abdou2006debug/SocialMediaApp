@@ -29,7 +29,7 @@ public class UserManagmentTests {
     private void helper(boolean incache, boolean cacheit) {
         Profile mockedProfile = incache ? new Profile() : null;
         User mockedUser = new User();
-
+        mockedUser;
 
         when(cachService.getcachedprofile(mockedUser)).thenReturn(mockedProfile);
 

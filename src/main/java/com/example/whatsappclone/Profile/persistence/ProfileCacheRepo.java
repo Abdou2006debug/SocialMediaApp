@@ -6,5 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface ProfileCacheRepo extends CrudRepository<Profile,String> {
-    Optional<Profile> findByuserId(String userId);
+    Optional<Profile> findByUserId(String userId);
 }

@@ -74,7 +74,7 @@ public class FollowService {
         }
 
         followRepo.save(follow);
-        return profileDetails.builder().userId(userId).status(status).build();
+        return new profileDetails(userId,status);
     }
 
     // this method works for both pending and accepted followings
