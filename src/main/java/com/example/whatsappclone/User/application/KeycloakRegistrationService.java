@@ -38,6 +38,8 @@ public class KeycloakRegistrationService implements IdentityService {
         org.keycloak.representations.idm.UserRepresentation userRepresentation= new org.keycloak.representations.idm.UserRepresentation();
         userRepresentation.setEmail(userregistration.getEmail());
         userRepresentation.setUsername(userregistration.getUsername());
+        userRepresentation.setFirstName(userRepresentation.getFirstName());
+        userRepresentation.setLastName(userRepresentation.getLastName());
         userRepresentation.setEmailVerified(true);
         CredentialRepresentation credentialRepresentation=new CredentialRepresentation();
         credentialRepresentation.setTemporary(false);

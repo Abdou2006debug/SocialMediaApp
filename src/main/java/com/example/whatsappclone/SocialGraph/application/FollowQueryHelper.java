@@ -1,5 +1,6 @@
 package com.example.whatsappclone.SocialGraph.application;
 
+import com.example.whatsappclone.Profile.application.ProfileSummaryService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
@@ -25,8 +26,6 @@ public class FollowQueryHelper {
     private final FollowCacheReader followCacheReader;
     private final FollowCacheWriter followCacheWriter;
     private final FollowRepo followRepo;
-    private final BlocksRepo blocksRepo;
-    private final ProfileRepo profileRepo;
     private final FollowRelationShipResolver followRelationShipResolver;
     private final ProfileSummaryService profileSummaryService;
     public enum Position {FOLLOWERS, FOLLOWINGS}

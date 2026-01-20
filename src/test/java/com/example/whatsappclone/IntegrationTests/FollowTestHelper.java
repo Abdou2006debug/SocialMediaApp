@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FollowTestHelper {
 
     private final FollowRepo followRepo;
-    private final FollowService followService;
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
     private final UserRepo userRepo;

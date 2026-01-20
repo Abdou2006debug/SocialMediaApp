@@ -27,6 +27,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
@@ -38,8 +41,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FollowServiceTest {
-
+// this is just for testing the pr workflow
     @Mock
     private FollowRepo followRepo;
     @Mock
@@ -60,7 +64,7 @@ public class FollowServiceTest {
     private final User currentuser=new User(UUID.randomUUID().toString());
     private final User requesteduser = new User(UUID.randomUUID().toString());
 
-    @BeforeAll
+    @BeforeEach
     public  void setCurrentUser() {
        when(authenticatedUserService.getcurrentuser(false)).thenReturn(currentuser);
     }

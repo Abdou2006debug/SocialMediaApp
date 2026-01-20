@@ -1,7 +1,7 @@
 package com.example.whatsappclone.Profile.domain.cache;
 
-import jakarta.persistence.Id;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 // this class is used to cache and retrieve user important details to other users

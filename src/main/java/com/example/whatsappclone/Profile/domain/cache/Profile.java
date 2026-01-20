@@ -1,10 +1,13 @@
 package com.example.whatsappclone.Profile.domain.cache;
 
-import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+
+import java.util.UUID;
 
 //this class is used to cache the profile record from the db it has all the info of the actual record its used by the owing user
 // it has shorter ttl than ProfileInfo class because its less accessed (only in profile updating)
@@ -23,4 +26,8 @@ public class Profile {
     private boolean showifonline=false;
     private boolean isprivate=false;
     private String userId;
+    @PrePersist
+   public void prePersist() {
+      this.uuid= UUID.randomUUID().toString();
+    }
 }
