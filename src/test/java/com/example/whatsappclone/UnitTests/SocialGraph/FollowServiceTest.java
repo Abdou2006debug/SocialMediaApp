@@ -44,6 +44,7 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class FollowServiceTest {
 // this is just for testing the pr workflow
+    // this is just for testing pr workflow 2
     @Mock
     private FollowRepo followRepo;
     @Mock
