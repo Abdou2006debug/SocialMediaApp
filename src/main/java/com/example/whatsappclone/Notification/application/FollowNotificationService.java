@@ -26,7 +26,7 @@ public class FollowNotificationService {
 
     @Async
     @EventListener
-    private void FollowNotificationProcessing(FollowNotification notificationEvent) {
+    public void FollowNotificationProcessing(FollowNotification notificationEvent) {
 
         User recipient= notificationEvent.getRecipient();
         boolean Send= canSendNotification(recipient.getUuid(),notificationEvent.getType());

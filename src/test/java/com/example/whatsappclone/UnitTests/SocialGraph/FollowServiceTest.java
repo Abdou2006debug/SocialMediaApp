@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FollowServiceTest {
 
     @Mock
@@ -46,8 +46,6 @@ public class FollowServiceTest {
     private ProfileRepo profileRepo;
     @Mock
     private BlocksRepo blocksRepo;
-    @Mock
-    private FollowCacheWriter followCacheWriter;
     @Mock
     private AuthenticatedUserService authenticatedUserService;
     @Mock
@@ -60,9 +58,9 @@ public class FollowServiceTest {
     private final User currentuser=new User(UUID.randomUUID().toString());
     private final User requesteduser = new User(UUID.randomUUID().toString());
 
-    @BeforeAll
+    @BeforeEach
     public  void setCurrentUser() {
-       when(authenticatedUserService.getcurrentuser(false)).thenReturn(currentuser);
+       when(authenticatedUserService.getcurrentuser(any(boolean.class))).thenReturn(currentuser);
     }
 
     // FOLLOW CREATION TESTS
@@ -87,7 +85,7 @@ public class FollowServiceTest {
 
         @Test
         public void follow_pendingFollowRequest_throwsBadFollowRequestException() {
-           when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, requesteduser, Follow.Status.PENDING))
+          lenient().when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, requesteduser, Follow.Status.PENDING))
                     .thenReturn(true);
             assertthrows(BadFollowRequestException.class,
                     () -> followService.Follow(requesteduser.getUuid()), "request already sent");
@@ -95,7 +93,7 @@ public class FollowServiceTest {
 
         @Test
         public void follow_userBlockedByCurrentUser_throwsBadFollowRequestException() {
-            when(blocksRepo.existsByBlockerAndBlocked(currentuser,requesteduser)).thenReturn(true);
+            lenient().when(blocksRepo.existsByBlockerAndBlocked(currentuser,requesteduser)).thenReturn(true);
             assertthrows(BadFollowRequestException.class,
                     () -> followService.Follow(requesteduser.getUuid()), "You cant follow this User");
         }
@@ -116,8 +114,8 @@ public class FollowServiceTest {
             ArgumentCaptor<Follow> captor=ArgumentCaptor.forClass(Follow.class);
             verify(followRepo).save(captor.capture());
             Follow follow=captor.getValue();
-            assertEquals(follow.getFollower_id(),currentuser.getUuid());
-            assertEquals(follow.getFollowing_id(),requesteduser.getUuid());
+            assertEquals(follow.getFollower().getUuid(),currentuser.getUuid());
+            assertEquals(follow.getFollowing().getUuid(),requesteduser.getUuid());
             ArgumentCaptor<FollowNotification> captor2=ArgumentCaptor.forClass(FollowNotification.class);
             verify(eventPublisher).publishEvent(captor2.capture());
             FollowNotification followNotification=captor2.getValue();
@@ -223,8 +221,8 @@ public class FollowServiceTest {
             verify(followRepo).save(captor.capture());
             Follow follow=captor.getValue();
             assertEquals(Follow.Status.ACCEPTED, follow.getStatus());
-            assertEquals(requesteduser.getUuid(),follow.getFollower_id());
-            assertEquals(currentuser.getUuid(),follow.getFollowing_id());
+            assertEquals(follow.getFollower().getUuid(),requesteduser.getUuid());
+            assertEquals(follow.getFollowing().getUuid(),currentuser.getUuid());
 
             ArgumentCaptor<Object> captor1=ArgumentCaptor.forClass(Object.class);
             verify(eventPublisher,times(2)).publishEvent(captor1.capture());
@@ -252,7 +250,7 @@ public class FollowServiceTest {
         @Test
         public void rejectAlreadyFollower_throwsBadFollowRequestException(){
             when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED)));
-            assertthrows(BadFollowRequestException.class,()->followRequestService.rejectFollow(requesteduser.getUuid()),"No relation with user found");
+            assertthrows(BadFollowRequestException.class,()->followRequestService.rejectFollow(requesteduser.getUuid()),"couldn't perform reject follow action on this user");
         }
 
         @Test

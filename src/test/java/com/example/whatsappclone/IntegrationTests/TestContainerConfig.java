@@ -65,9 +65,9 @@ static {
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri",
-                ()->"http://"+keycloak.getHost()+":"+keycloak.getMappedPort(8080)+"/realms/master");
+                ()->"http://localhost:8080/realms/Realm");
         registry.add("keycloak.username",()->"admin");
-        registry.add("keycloak.password",()->"admin");
+        registry.add("keycloak.password",()->"Admin123!");
     }
 
 

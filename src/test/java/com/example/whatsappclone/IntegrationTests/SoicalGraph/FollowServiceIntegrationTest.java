@@ -1,6 +1,5 @@
 package com.example.whatsappclone.IntegrationTests.SoicalGraph;
 
-import com.example.whatsappclone.IntegrationTests.FollowTestHelper;
 import com.example.whatsappclone.IntegrationTests.TestContainerConfig;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
@@ -20,21 +19,19 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.util.Map;
+import java.util.UUID;
 
-import static com.example.whatsappclone.IntegrationTests.FollowTestHelper.assertthrows;
+import static com.example.whatsappclone.UnitTests.SocialGraph.FollowServiceTest.assertthrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FollowServiceIntegrationTest extends TestContainerConfig {
     private final FollowRepo followRepo;
     private final UserRepo userRepo;
@@ -44,15 +41,13 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
     private final AuthenticatedUserService authenticatedUserService;
     public  enum ProfileType { PRIVATE, PUBLIC }
 
-    @BeforeAll
+    @BeforeEach
     public  void setAuthentication(){
-        User currentUser = userRepo.save(new User());
-        Jwt jwt = Jwt.withTokenValue("test_token")
-                .claim("userId", currentUser.getUuid())
+        User currentUser = userRepo.saveAndFlush(new User(UUID.randomUUID().toString()));
+        Jwt jwt = Jwt.withTokenValue("test_token").subject(currentUser.getUuid())
                 .header("alg","none")
                 .build();
         JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(jwt);
-        
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
     }
 
@@ -146,11 +141,11 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
             User targetuser= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWERS);
             if(followStatus== Follow.Status.ACCEPTED){
                 assertthrows(BadFollowRequestException.class, () ->followRequestService.rejectFollow(targetuser.getUuid()),
-                        "couldn't perform accept follow action on this user");
+                        "couldn't perform reject follow action on this user");
                 return;
             }
             followRequestService.rejectFollow(targetuser.getUuid());
-            assertTrue(followRepo.existsByFollowerAndFollowing(targetuser, currentUser));
+            assertFalse(followRepo.existsByFollowerAndFollowing(targetuser, currentUser));
         }
 
         @ParameterizedTest
@@ -173,6 +168,6 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
      */
     @Test
     public void test_user_existence(){
-        assertthrows(UserNotFoundException.class,()-> followService.Follow("test"),"user not found");
+        assertthrows(UserNotFoundException.class,()-> followService.Follow("test"),"User not found");
     }
 }

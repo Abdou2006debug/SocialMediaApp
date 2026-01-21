@@ -37,7 +37,6 @@ import java.util.UUID;
 @Transactional
 public class UserAccountManagmentServiceTest extends TestContainerConfig{
 
-    private final RestTemplate restTemplate;
     private final RegistrationService registrationService;
     private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
@@ -76,17 +75,17 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
         assertTrue(notificationsSettings1.getOnfollowingrequestRejected());
         //checking if saved in keycloak
         Keycloak keycloakTest=KeycloakBuilder.builder().
-                realm("master").username("admin").password("admin").
-                serverUrl("http://localhost:"+keycloak.getMappedPort(8080)).clientId("admin-cli").build();
-        assertEquals(1,keycloakTest.realm("master").users().searchByUsername(username,true).size());
+                realm("master").username("admin").password("Admin123!").
+                serverUrl("http://localhost:8080").clientId("admin-cli").build();
+        assertEquals(1,keycloakTest.realm("Realm").users().searchByUsername(username,true).size());
 
        // testing jwt decoder with the registred user
         WebClient webClient=WebClient.builder().
-                baseUrl("http://localhost:"+keycloak.getMappedPort(8080)+"/realms/master/protocol/openid-connect/token").
+                baseUrl("http://localhost:8080/realms/Realm/protocol/openid-connect/token").
                 defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE).build();
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "password");
-        form.add("client_id", "admin-cli");
+        form.add("client_id", "app");
         form.add("username", username);
         form.add("password", "test");
         String response=webClient.post().body(BodyInserters.fromFormData(form)).retrieve().bodyToMono(String.class).block();
@@ -94,7 +93,7 @@ public class UserAccountManagmentServiceTest extends TestContainerConfig{
         JsonNode node = mapper.readTree(response);
         String accessToken = node.get("access_token").asText();
         assertDoesNotThrow(()->jwtDecoder.decode(accessToken));
-        assertEquals(jwtDecoder.decode(accessToken).getClaim("userId"),userId);
+        assertEquals(jwtDecoder.decode(accessToken).getSubject(),userId);
     }
 
 }

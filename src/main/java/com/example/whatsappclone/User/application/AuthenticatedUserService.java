@@ -27,7 +27,7 @@ public class AuthenticatedUserService {
         if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
             throw new AuthenticationCredentialsNotFoundException("User not authenticated");
         }
-        String userId=((Jwt) authentication.getPrincipal()).getClaimAsString("userId");
+        String userId=((Jwt) authentication.getPrincipal()).getSubject();
         if(userId==null){
             throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
         }

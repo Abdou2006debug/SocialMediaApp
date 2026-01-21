@@ -13,8 +13,8 @@ public class FollowController {
     private final FollowService followService;
 
     @PostMapping("/{userId}/follow")
-    public profileDetails follow(@PathVariable String userid) {
-        return followService.Follow(userid);
+    public profileDetails follow(@PathVariable String userId) {
+        return followService.Follow(userId);
     }
 
     @DeleteMapping("/{userId}/unfollow")

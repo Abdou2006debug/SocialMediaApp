@@ -1,9 +1,10 @@
 package com.example.whatsappclone.Profile.domain.cache;
 
-import jakarta.persistence.Id;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 //this class is used to cache the profile record from the db it has all the info of the actual record its used by the owing user

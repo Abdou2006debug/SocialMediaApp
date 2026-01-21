@@ -1,23 +1,22 @@
-package com.example.whatsappclone.IntegrationTests;
+package com.example.whatsappclone.IntegrationTests.SoicalGraph;
 
-import com.example.whatsappclone.IntegrationTests.SoicalGraph.FollowServiceIntegrationTest;
 import com.example.whatsappclone.Profile.domain.Profile;
-import com.example.whatsappclone.SocialGraph.application.FollowQueryHelper;
-import com.example.whatsappclone.User.application.AuthenticatedUserService;
-import com.example.whatsappclone.User.domain.User;
-import com.example.whatsappclone.User.persistence.UserRepo;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
+import com.example.whatsappclone.SocialGraph.application.FollowQueryHelper;
 import com.example.whatsappclone.SocialGraph.application.FollowService;
 import com.example.whatsappclone.SocialGraph.domain.Blocks;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.domain.User;
+import com.example.whatsappclone.User.persistence.UserRepo;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FollowTestHelper {
 
     private final FollowRepo followRepo;
-    private final FollowService followService;
     private final ProfileRepo profileRepo;
     private final BlocksRepo blocksRepo;
     private final UserRepo userRepo;
@@ -51,11 +49,6 @@ public class FollowTestHelper {
         return user;
     }
 
-    public static void assertthrows(Class<? extends Exception> expected, Executable executable, String expectedMessage){
-        Exception exception=assertThrows(expected,executable);
-        assertEquals(expectedMessage,exception.getMessage());
-    }
-
     public User createBlockRecord(boolean isCurrentBlocked){
         User user=createTestUser();
         User currentuser=authenticatedUserService.getcurrentuser(false);
@@ -73,7 +66,7 @@ public class FollowTestHelper {
 
 
     public User createTestUser(){
-        User user=new User();
-        return userRepo.save(user);
+        User user=new User(UUID.randomUUID().toString());
+        return userRepo.saveAndFlush(user);
     }
 }

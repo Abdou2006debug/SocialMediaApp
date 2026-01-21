@@ -19,8 +19,6 @@ import java.time.LocalDate;
 @Data
 public class User {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String uuid;
     @CreatedDate
     private Instant createddate;
@@ -41,7 +39,7 @@ public class User {
         this.username=username;
     }
     public User(String uuid){
-     this(null,uuid);
+     this.uuid=uuid;
     }
     public User(String username, String uuid){
         this.username=username;

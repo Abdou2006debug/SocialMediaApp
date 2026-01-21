@@ -25,18 +25,27 @@ public class RegistrationService {
     private final IdentityService identityService;
 
 
-    // method responsible for creating the User and initializing profile and notification settings
-    // transactional is none negotiable because user provisioning might not happen so the user shouldn't exists in the db
+
     @Transactional
     public void registerUser(userregistration userregistration){
-        User user=userRepo.save(usermapper.toUserentity(userregistration));
+        String userId=identityService.UserProvision(userregistration);
+        User user=usermapper.toUserentity(userregistration);
+        user.setUuid(userId);
+        try{
+            userRepo.saveAndFlush(user);
+        }catch (Exception e){
+            identityService.UserRemoval(userId);
+          log.error("failed to save user in database removing it from auth server");
+            return;
+        }
+
         Profile profile=new Profile(null,userregistration.getUsername());
         profile.setUser(user);
         NotificationsSettings notificationsSettings=NotificationsSettings.builder().
                 user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
         notificationSettingsRepo.save(notificationsSettings);
         profileRepo.save(profile);
-        identityService.UserProvision(userregistration,user.getUuid());
+
     }
 
 }
