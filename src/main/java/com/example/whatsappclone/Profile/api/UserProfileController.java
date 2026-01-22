@@ -24,7 +24,7 @@ public class UserProfileController {
 
     @GetMapping("/me")
     public profileDetails getMyProfile(@AuthenticationPrincipal Jwt jwt) {
-        return profileQueryService.getUserProfile(jwt.getClaimAsString("userId"));
+        return profileQueryService.getUserProfile(jwt.getSubject());
     }
 
     @GetMapping("/{userid}")

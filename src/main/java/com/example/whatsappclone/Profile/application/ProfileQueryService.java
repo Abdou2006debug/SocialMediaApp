@@ -1,5 +1,6 @@
 package com.example.whatsappclone.Profile.application;
 
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileDetails;
@@ -19,7 +20,6 @@ import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -32,7 +32,7 @@ public class ProfileQueryService {
     private final Profilemapper profilemapper;
     private final FollowRepo followRepo;
     private final BlocksRepo blocksRepo;
-
+    private final FollowCacheWriter followCacheWriter;
     @CheckUserExistence
     public profileDetails getUserProfile(String userId){
        User currentUser=authenticatedUserService.getcurrentuser(false);
@@ -40,8 +40,8 @@ public class ProfileQueryService {
        ProfileInfo profileInfo= getUserProfileInfo(userId);
         profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
 
-        profileDetails.setFollowers(followRepo.countByFollowingAndStatus(targetUser, Follow.Status.ACCEPTED));
-        profileDetails.setFollowings(followRepo.countByFollowerAndStatus(targetUser, Follow.Status.ACCEPTED));
+        profileDetails.setFollowers(followCacheWriter.UserFollowerCount(userId));
+        profileDetails.setFollowings(followCacheWriter.UserFollowingCount(userId));
         // no relation should be set
         if(userId.equals(currentUser.getUuid())){
             return profileDetails;

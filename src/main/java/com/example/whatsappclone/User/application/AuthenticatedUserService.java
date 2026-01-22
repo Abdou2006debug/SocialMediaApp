@@ -18,9 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthenticatedUserService {
 
-   // private final CacheQueryService cacheQueryService;
     private final UserRepo userRepo;
-   // private final CacheWriterService cacheWriterService;
 
     public User getcurrentuser(boolean fetchfullinfo){
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();

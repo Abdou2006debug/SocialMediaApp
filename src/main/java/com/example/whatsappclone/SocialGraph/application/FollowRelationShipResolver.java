@@ -21,9 +21,7 @@ public class FollowRelationShipResolver {
         Map<String, profileSummary> summaryMap = profileSummaries.stream()
                 .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));
 
-        List<String> targetUserIds = profileSummaries.stream()
-                .map(profileSummary::getUserId)
-                .toList();
+        List<String> targetUserIds = summaryMap.keySet().stream().toList();
         if(position== FollowQueryHelper.Position.FOLLOWERS){
             // starting from the well know relation which in this case followed if the method is used on followers list
             // or follow request received if its used to get follow requests
@@ -73,9 +71,7 @@ public class FollowRelationShipResolver {
         Map<String, profileSummary> summaryMap = profileSummaries.stream()
                 .collect(Collectors.toMap(profileSummary::getUserId, Function.identity()));
 
-        List<String> targetUserIds = profileSummaries.stream()
-                .map(profileSummary::getUserId)
-                .toList();
+        List<String> targetUserIds = summaryMap.keySet().stream().toList();
         // here there is no relation know in advanced so starting from not following
         // and then tring to resolve the relation starting from the viewer side
         profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.NOT_FOLLOWING));
@@ -101,7 +97,11 @@ public class FollowRelationShipResolver {
                 profileSummary.setStatus(status);
             }
         }
-
+        //checking if list fetched has the viewer user
+        profileSummary profileSummary=summaryMap.get(viewerId);
+        if(profileSummary!=null){
+           profileSummary.setStatus(null);
     }
 
+}
 }

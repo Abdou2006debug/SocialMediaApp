@@ -45,7 +45,6 @@ public class RegistrationService {
                 user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
         notificationSettingsRepo.save(notificationsSettings);
         profileRepo.save(profile);
-
     }
 
 }

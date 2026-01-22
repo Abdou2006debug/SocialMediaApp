@@ -57,6 +57,7 @@ public class ProfileUpdatingService {
         currentprofile.setPublicavatarurl(profileAvatarUri);
         profileRepo.save(currentprofile);
         // in case of cache still valid to update it to avoid any inconsistencies
+        profileCacheManager.cacheUserProfile(currentprofile);
         profileCacheManager.cacheProfileInfo(currentprofile);
     }
 
@@ -70,5 +71,6 @@ public class ProfileUpdatingService {
         userRepo.save(currentuser);
         profileRepo.save(currentprofile);
         profileCacheManager.cacheUserProfile(currentprofile);
+        profileCacheManager.cacheProfileInfo(currentprofile);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.whatsappclone.SocialGraph.application;
 
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheUpdater;
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Notification.domain.events.FollowNotification;
@@ -14,6 +15,7 @@ import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.domain.events.followRemoved;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ public class FollowService {
     private final BlocksRepo blocksRepo;
     private final AuthenticatedUserService authenticatedUserService;
     private final ApplicationEventPublisher eventPublisher;
+    private final FollowCacheUpdater followCacheUpdater;
 
     @CheckUserExistence
     public profileDetails Follow(String userId) {
@@ -65,6 +68,8 @@ public class FollowService {
             eventPublisher.publishEvent(notification);
             eventPublisher.publishEvent(new followAdded(follow));
             status=RelationshipStatus.FOLLOWING;
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentuser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.INCREMENT);
         } else {
             follow.setStatus(Follow.Status.PENDING);
             log.info("publishing follow request event for "+usertofollow.getUsername());
@@ -87,6 +92,8 @@ public class FollowService {
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentUser.getUuid(), FollowCacheUpdater.UpdateType.DECREMENT);
         }
     }
 
@@ -100,6 +107,8 @@ public class FollowService {
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUser.getUuid(), FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
         }else{
             eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser, FollowNotification.notificationType.FOLLOWING_REJECTED));
         }

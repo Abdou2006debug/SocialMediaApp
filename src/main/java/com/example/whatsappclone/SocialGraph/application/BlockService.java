@@ -23,10 +23,10 @@ public class BlockService {
     private final FollowService followService;
 
     @CheckUserExistence
-    public void block(String useruuid) {
+    public void block(String userId) {
         User currentuser = authenticatedUserService.getcurrentuser(false);
-        User requesteduser=new User(useruuid);
-        if(currentuser.getUuid().equals(useruuid)){throw new BadFollowRequestException("you cant block yourself");}
+        User requesteduser=new User(userId);
+        if(currentuser.getUuid().equals(userId)){throw new BadFollowRequestException("you cant block yourself");}
         boolean isalreadyblocked= blocksRepo.
                 existsByBlockerAndBlocked(currentuser,requesteduser);
         if(isalreadyblocked){
@@ -35,21 +35,21 @@ public class BlockService {
         Blocks block = new Blocks(currentuser,requesteduser);
         // removing the follow from the current user side to the target side
         followRepo.
-                findByFollowerAndFollowing(currentuser,requesteduser).ifPresent(f -> {
-            if (f.getStatus() == Follow.Status.ACCEPTED) {
-                followService.UnFollow(f.getUuid());
+                findByFollowerAndFollowing(currentuser,requesteduser).ifPresent(follow -> {
+            if (follow.getStatus() == Follow.Status.ACCEPTED) {
+                followService.UnFollow(userId);
                 return;
             }
-            followRequestService.unsendFollowingRequest(f.getUuid());
+            followRequestService.unsendFollowingRequest(follow.getUuid());
         });
         // removing the follow from the target side to the current user side
         followRepo.
                 findByFollowerAndFollowing(requesteduser, currentuser).ifPresent(follow -> {
                     if (follow.getStatus() == Follow.Status.ACCEPTED) {
-                        followService.removefollower(follow.getUuid());
+                        followService.removefollower(userId);
                         return;
                     }
-                    followRequestService.rejectFollow(follow.getUuid());
+                    followRequestService.rejectFollow(userId);
                 });
         blocksRepo.save(block);
     }

@@ -17,10 +17,8 @@ public class profileDetails {
     private String avatarurl;
     private String bio;
     private RelationshipStatus status;
-    private long followers;
-    private long followings;
-    private String lastseen;
-    private boolean isonline;
+    private String followers;
+    private String followings;
     public profileDetails(String userId,RelationshipStatus status){
         this.userId=userId;
         this.status=status;

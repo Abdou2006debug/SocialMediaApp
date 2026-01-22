@@ -48,7 +48,7 @@ public class FollowQueryService {
         User targetUser =new User(userId);
        boolean isAllowed= visibilityPolicy.isAllowed(currentUser, targetUser);
        if(!isAllowed){
-           throw new FollowListNotVisibleException("followers list for user is not visible: the profile is private.");
+           throw new FollowListNotVisibleException("followers list for user is not visible.");
        }
         return followViewResolver.listUserFollows(currentUser.getUuid(), targetUser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
@@ -59,9 +59,9 @@ public class FollowQueryService {
         User targetUser=new User(userId);
         boolean isAllowed= visibilityPolicy.isAllowed(currentUser,targetUser);
         if(!isAllowed){
-            throw new FollowListNotVisibleException("followings list for user is not visible: the profile is private.");
+            throw new FollowListNotVisibleException("followings list for user is not visible.");
         }
-        return followViewResolver.listUserFollows(currentUser.getUuid(),targetUser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
+        return followViewResolver.listUserFollows(currentUser.getUuid(),userId, FollowQueryHelper.Position.FOLLOWINGS,page);
 
     }
 

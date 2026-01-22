@@ -1,4 +1,4 @@
-package com.example.whatsappclone.SocialGraph.application;
+package com.example.whatsappclone.Profile.application;
 
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.Profile.application.cache.ProfileCacheManager;
