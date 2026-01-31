@@ -66,9 +66,9 @@ public class AuthenticatedUserService {
                     .retrieve()
                     .bodyToMono(Map.class).map(map -> (String) map.get("access_token")).block();
 
-           return "/swagger-custom.html#?token=" + accesstoken;
+           return "/swagger.html#token=" + accesstoken;
         }
-        throw  new RuntimeException("state not found");
+        return redirect();
     }
 
     public String redirect(){

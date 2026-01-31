@@ -15,9 +15,9 @@ public class Securityconfig {
         .csrf(AbstractHttpConfigurer::disable).
                 oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer -> httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults())).
                 authorizeHttpRequests(authorization -> authorization.requestMatchers("api/v1/users/auth/**",
-                        "/swagger-custom.html",
-                        "/swagger-token.js",
+                        "/swagger.html",
                         "/swagger-ui/**",
+                        "/ws/**",
                         "/v3/api-docs/**").permitAll().anyRequest().authenticated());
         return http.build();
     }

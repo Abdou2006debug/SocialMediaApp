@@ -43,7 +43,7 @@ public class FollowNotificationService {
             case FOLLOWING_ACCEPTED -> message.append(" Accepted Your follow");
             case FOLLOWING_REJECTED -> message.append(" Rejected Your follow");
         }
-
+        log.info("publishing "+message.toString() +" to "+recipient.getUuid());
         notification notification=new notification(message.toString(),profileInfo.getAvatarurl(),profileInfo.getUserId());
         simpMessagingTemplate.convertAndSendToUser(recipient.getUuid(),"/queue/notifications",notification);
     }
@@ -51,8 +51,10 @@ public class FollowNotificationService {
     private boolean canSendNotification(String userId, FollowNotification.notificationType notificationType){
        boolean Online= userActivityService.getUserStatus(userId);
        if(!Online){
+           log.error("user "+userId+" is not online ");
            return false;
        }
+
        NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUser(new User(userId));
        switch (notificationType){
            case FOLLOW,FOLLOW_REQUESTED-> {

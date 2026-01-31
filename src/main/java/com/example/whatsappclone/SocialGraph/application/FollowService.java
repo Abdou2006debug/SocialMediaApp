@@ -15,7 +15,6 @@ import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.domain.events.followRemoved;
 import com.example.whatsappclone.SocialGraph.persistence.BlocksRepo;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,40 +38,40 @@ public class FollowService {
 
     @CheckUserExistence
     public profileDetails Follow(String userId) {
-        User currentuser = authenticatedUserService.getcurrentuser();
-        if (currentuser.getUuid().equals(userId)) {
+        User currentUser = authenticatedUserService.getcurrentuser();
+        if (currentUser.getUuid().equals(userId)) {
             throw new BadFollowRequestException("you cant follow yourself");
         }
-        User usertofollow=new User(userId);
-        if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, usertofollow, Follow.Status.ACCEPTED)){
+        User tagretUser=new User(userId);
+        if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser, tagretUser, Follow.Status.ACCEPTED)){
             throw new BadFollowRequestException("Already followed");
         }
-        if(blocksRepo.existsByBlockerAndBlocked(usertofollow, currentuser)){
+        if(blocksRepo.existsByBlockerAndBlocked(tagretUser, currentUser)){
             throw new BadFollowRequestException("You cant follow this User");
         }
-       if(blocksRepo.existsByBlockerAndBlocked(currentuser,usertofollow)){
+       if(blocksRepo.existsByBlockerAndBlocked(currentUser,tagretUser)){
            throw new BadFollowRequestException("You cant follow this User");
        }
-       if(followRepo.existsByFollowerAndFollowingAndStatus(currentuser,usertofollow, Follow.Status.PENDING)){
+       if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,tagretUser, Follow.Status.PENDING)){
            throw new BadFollowRequestException("request already sent");
        }
-        Follow follow = new Follow(currentuser, usertofollow);
+        Follow follow = new Follow(currentUser,tagretUser);
 
-        FollowNotification notification= new FollowNotification(currentuser,usertofollow,
+        FollowNotification notification= new FollowNotification(currentUser,tagretUser,
                 FollowNotification.notificationType.FOLLOW);
         RelationshipStatus status;
-        if (profileRepo.existsByUserAndIsprivateFalse(usertofollow)) {
+        if (profileRepo.existsByUserAndIsprivateFalse(tagretUser)) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setAccepteddate(Instant.now());
-            log.info("publishing follow event for "+usertofollow.getUsername());
+            log.info("publishing follow event for "+tagretUser.getUsername());
             eventPublisher.publishEvent(notification);
             eventPublisher.publishEvent(new followAdded(follow));
             status=RelationshipStatus.FOLLOWING;
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentuser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, currentUser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
             followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.INCREMENT);
         } else {
             follow.setStatus(Follow.Status.PENDING);
-            log.info("publishing follow request event for "+usertofollow.getUsername());
+            log.info("publishing follow request event for "+tagretUser.getUsername());
             notification.setType(FollowNotification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
             status=RelationshipStatus.FOLLOW_REQUESTED;

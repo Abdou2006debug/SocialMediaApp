@@ -30,6 +30,7 @@ public class Authchannelinterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        log.info("inside the auth channel interceptor");
         StompHeaderAccessor accessor= MessageHeaderAccessor.getAccessor(message,StompHeaderAccessor.class);
         if(accessor==null){
             throw new BadRequestException();
@@ -43,7 +44,7 @@ public class Authchannelinterceptor implements ChannelInterceptor {
                 }
                 String token=header.substring(7);
                 Jwt jwt= jwtDecoder.decode(token);
-               String userId = jwt.getClaims().get("userId").toString();
+               String userId = jwt.getSubject();
                 accessor.setUser(()-> userId);
                 log.info(userId);
             }catch (Exception e){

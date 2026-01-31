@@ -1,6 +1,7 @@
 package com.example.whatsappclone.SocialGraph.application;
 
 import com.example.whatsappclone.Notification.domain.events.FollowNotification;
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheUpdater;
 import com.example.whatsappclone.User.application.AuthenticatedUserService;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Shared.CheckUserExistence;
@@ -9,7 +10,9 @@ import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.domain.events.followAdded;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
+import org.eclipse.microprofile.openapi.models.security.SecurityScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +28,7 @@ public class FollowRequestService {
     private final AuthenticatedUserService authenticatedUserService;
     private final Logger logger= LoggerFactory.getLogger(FollowRequestService.class);
     private final ApplicationEventPublisher eventPublisher;
+    private final FollowCacheUpdater followCacheUpdater;
 
     @CheckUserExistence
     public void acceptFollow(String userId) {
@@ -43,6 +47,8 @@ public class FollowRequestService {
         eventPublisher.publishEvent(new FollowNotification(currentuser,targetUser,
                 FollowNotification.notificationType.FOLLOWING_ACCEPTED));
         eventPublisher.publishEvent(new followAdded(followRequest));
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentuser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,targetUser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
     }
 
     @CheckUserExistence
