@@ -45,6 +45,7 @@ public class FollowRelationShipResolver {
             }
             return;
         }
+
         // starting from the well know relation which in this case following if the method is used on followings list
         // or follow requested if its used to get following requests
         if(followStatus== Follow.Status.ACCEPTED){

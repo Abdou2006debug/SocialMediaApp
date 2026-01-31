@@ -3,24 +3,26 @@ package com.example.whatsappclone.User.application;
 
 import com.example.whatsappclone.User.api.dto.userregistration;
 import com.example.whatsappclone.Shared.Exceptions.UserProvisioningException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class KeycloakRegistrationService implements IdentityService {
+public class KeycloakService implements IdentityService {
 
     // injecting keycloak details from properties
     @Value("${keycloak.username}")
@@ -30,7 +32,6 @@ public class KeycloakRegistrationService implements IdentityService {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issuerUri;
 
-
     private RealmResource getRealmResource(){
         Keycloak keycloak= KeycloakBuilder.builder().
                 realm("master").username(username).password(password).
@@ -39,11 +40,15 @@ public class KeycloakRegistrationService implements IdentityService {
       return keycloak.realm(realmName);
 
     }
+
     public void UserRemoval(String userId){
         getRealmResource().users().get(userId).remove();
     }
+
     // method responsible for creating the user record inside the identity provider
-    public String UserProvision(userregistration userregistration){
+
+
+    public String  UserProvision(userregistration userregistration){
         org.keycloak.representations.idm.UserRepresentation userRepresentation= new org.keycloak.representations.idm.UserRepresentation();
         userRepresentation.setEmail(userregistration.getEmail());
         userRepresentation.setUsername(userregistration.getUsername());
@@ -60,9 +65,23 @@ public class KeycloakRegistrationService implements IdentityService {
         Response response= getRealmResource().users().create(userRepresentation);
             if(response.getStatus()!=201){
                 response.close();
-                throw new UserProvisioningException();
+                log.error("failed to provision user in auth server "+response.readEntity(String.class));
+                throw new UserProvisioningException("registration failed!!");
             }
        return  CreatedResponseUtil.getCreatedId(response);
     }
 
+    public void changeUsername(String userId,String username){
+        try{
+            UserResource userResource= getRealmResource().users().get(userId);
+            UserRepresentation userRepresentation=userResource.toRepresentation();
+            userRepresentation.setUsername(username);
+            userResource.update(userRepresentation);
+            if(!username.equals(userResource.toRepresentation().getUsername())){
+                throw new RuntimeException("failed to change username!!");
+            }
+        }catch (ClientErrorException e){
+           throw new RuntimeException("username already exists!!");
+        }
+    }
 }

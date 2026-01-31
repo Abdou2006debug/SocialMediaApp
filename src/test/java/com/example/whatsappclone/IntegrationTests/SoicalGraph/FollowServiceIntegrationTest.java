@@ -80,7 +80,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(ProfileType.class)
         public void follow_profileTypes(ProfileType profileType){
-            User currentuser=authenticatedUserService.getcurrentuser(false);
+            User currentuser=authenticatedUserService.getcurrentuser();
             User targetuser =followTestHelper.followUser(profileType);
             followService.Follow(targetuser.getUuid());
             if(profileType== ProfileType.PUBLIC){
@@ -96,18 +96,18 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
       @EnumSource(Follow.Status.class)
         public void unfollow(Follow.Status followStatus){
-            User currentUser = authenticatedUserService.getcurrentuser(false);
+            User currentUser = authenticatedUserService.getcurrentuser();
             User targetuser =followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWINGS);
             followService.UnFollow(targetuser.getUuid());
             assertFalse(followRepo.existsByFollowerAndFollowing(currentUser, targetuser));
-       //     assertFalse(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":following:" + user.getKeycloakId()));
+       // assertFalse(redisTemplate.hasKey("user:" + currentUser.getKeycloakId() + ":following:" + user.getKeycloakId()));
          //   assertFalse(redisTemplate.hasKey("user:" + user.getKeycloakId() + ":follower:" + currentUser.getKeycloakId()));
 }
 
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void removeFollower(Follow.Status followStatus){
-            User currentUser = authenticatedUserService.getcurrentuser(false);
+            User currentUser = authenticatedUserService.getcurrentuser();
             User targetuser=followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWERS);
             followService.removefollower(targetuser.getUuid());
             assertFalse(followRepo.existsByFollowerAndFollowing(targetuser, currentUser));
@@ -121,7 +121,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void acceptFollower(Follow.Status followStatus){
-            User currentUser = authenticatedUserService.getcurrentuser(false);
+            User currentUser = authenticatedUserService.getcurrentuser();
             User targetuser= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWERS);
             if(followStatus== Follow.Status.ACCEPTED){
                 assertthrows(BadFollowRequestException.class, () ->followRequestService.acceptFollow(targetuser.getUuid()),
@@ -137,7 +137,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void rejectFollower(Follow.Status followStatus){
-            User currentUser = authenticatedUserService.getcurrentuser(false);
+            User currentUser = authenticatedUserService.getcurrentuser();
             User targetuser= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWERS);
             if(followStatus== Follow.Status.ACCEPTED){
                 assertthrows(BadFollowRequestException.class, () ->followRequestService.rejectFollow(targetuser.getUuid()),
@@ -151,7 +151,7 @@ public class FollowServiceIntegrationTest extends TestContainerConfig {
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void unsendFollow(Follow.Status followStatus){
-            User currentUser=authenticatedUserService.getcurrentuser(false);
+            User currentUser=authenticatedUserService.getcurrentuser();
             User targetuser= followTestHelper.createFollowRecord(followStatus, FollowQueryHelper.Position.FOLLOWINGS);
 
             if(followStatus== Follow.Status.ACCEPTED){

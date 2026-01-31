@@ -33,7 +33,7 @@ public abstract class TestContainerConfig {
 @Autowired
 private JdbcTemplate jdbcTemplate;
 @Autowired
-private RedisTemplate<String,Object> redisTemplate;
+private RedisTemplate<String,String> redisTemplate;
 
     @Container
     static PostgreSQLContainer<?> postgres =

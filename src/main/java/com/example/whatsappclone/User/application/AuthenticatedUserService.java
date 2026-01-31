@@ -2,25 +2,40 @@ package com.example.whatsappclone.User.application;
 
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
-import com.example.whatsappclone.Shared.Exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Optional;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticatedUserService {
 
-    private final UserRepo userRepo;
+    private final ClientPropeties clientPropeties;
+    private final WebClient webClient;
+    private final RedisTemplate<String,String> redisTemplate;
+    private final JwtDecoder jwtDecoder;
 
-    public User getcurrentuser(boolean fetchfullinfo){
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private String issUri;
+
+    public User getcurrentuser(){
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
             throw new AuthenticationCredentialsNotFoundException("User not authenticated");
@@ -29,16 +44,49 @@ public class AuthenticatedUserService {
         if(userId==null){
             throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
         }
-        if(fetchfullinfo){
-           // Optional<User> cacheduser=cacheQueryService.getUser(userId);
-          //  if(cacheduser.isPresent()){
-          //      return cacheduser.get();
-          //  }
-            User user=  userRepo.findById(userId).
-                    orElseThrow(()->new UserNotFoundException("user not found"));
-            //cacheWriterService.cacheUser(user);
-            return user;
-        }
         return new User(userId);
     }
+
+    public String callBack(String state,String authCode){
+         String redirectUri= ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/users/auth/callback")
+                .toUriString();
+
+        if(redisTemplate.hasKey(state)){
+            log.info("inside callback");
+            redisTemplate.delete(state);
+            String accesstoken=webClient.post().uri(issUri+"/protocol/openid-connect/token").
+                    contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData("grant_type", "authorization_code")
+                            .with("client_id", clientPropeties.getId())
+                            .with("client_secret", clientPropeties.getPassword())
+                            .with("code", authCode)
+                            .with("redirect_uri", redirectUri)
+                    )
+                    .retrieve()
+                    .bodyToMono(Map.class).map(map -> (String) map.get("access_token")).block();
+
+           return "/swagger-custom.html#?token=" + accesstoken;
+        }
+        throw  new RuntimeException("state not found");
+    }
+
+    public String redirect(){
+       String redirectUri= ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/users/auth/callback")
+                .toUriString();
+
+        String state= UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(state,state);
+        redisTemplate.expire(state,5, TimeUnit.MINUTES);
+        return UriComponentsBuilder
+                .fromHttpUrl(issUri+"/protocol/openid-connect/auth")
+                .queryParam("client_id", clientPropeties.getId())
+                .queryParam("response_type", "code")
+                .queryParam("scope", "openid")
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("state", state)
+                .toUriString();
+    }
+
 }

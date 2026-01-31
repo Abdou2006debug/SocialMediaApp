@@ -28,7 +28,7 @@ public class FollowRequestService {
 
     @CheckUserExistence
     public void acceptFollow(String userId) {
-        User currentuser =authenticatedUserService.getcurrentuser(false);
+        User currentuser =authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
         Follow followRequest = followRepo.
                 findByFollowerAndFollowing(targetUser,currentuser).
@@ -48,7 +48,7 @@ public class FollowRequestService {
     @CheckUserExistence
     public void rejectFollow(String userId) {
 
-        User currentUser = authenticatedUserService.getcurrentuser(false);
+        User currentUser = authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
                 orElseThrow(()->new NoRelationShipException("No relation with user found"));
@@ -63,7 +63,7 @@ public class FollowRequestService {
 
     @CheckUserExistence
     public void unsendFollowingRequest(String userId){
-        User currentUser=authenticatedUserService.getcurrentuser(false);
+        User currentUser=authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
     Follow followingRequest = followRepo.findByFollowerAndFollowing(currentUser,targetUser).
             orElseThrow(()->new NoRelationShipException("No relation with user found"));

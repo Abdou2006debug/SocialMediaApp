@@ -1,5 +1,6 @@
 package com.example.whatsappclone.User.application;
 
+import com.example.whatsappclone.Shared.Exceptions.UserRegistrationException;
 import com.example.whatsappclone.User.api.dto.userregistration;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.User.persistence.UserRepo;
@@ -33,18 +34,16 @@ public class RegistrationService {
         user.setUuid(userId);
         try{
             userRepo.saveAndFlush(user);
+            Profile profile=new Profile(null,userregistration.getUsername());
+            profile.setUser(user);
+            NotificationsSettings notificationsSettings=NotificationsSettings.builder().
+                    user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
+            notificationSettingsRepo.save(notificationsSettings);
+            profileRepo.save(profile);
         }catch (Exception e){
             identityService.UserRemoval(userId);
           log.error("failed to save user in database removing it from auth server");
-            return;
+          throw new UserRegistrationException("registration failed!!");
         }
-
-        Profile profile=new Profile(null,userregistration.getUsername());
-        profile.setUser(user);
-        NotificationsSettings notificationsSettings=NotificationsSettings.builder().
-                user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
-        notificationSettingsRepo.save(notificationsSettings);
-        profileRepo.save(profile);
     }
-
 }

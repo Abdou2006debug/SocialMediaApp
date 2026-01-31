@@ -42,7 +42,7 @@ public class FollowTestHelper {
 
     public User createFollowRecord(Follow.Status status, FollowQueryHelper.Position position){
         User user=createTestUser();
-        User currentuser=authenticatedUserService.getcurrentuser(false);
+        User currentuser=authenticatedUserService.getcurrentuser();
         Follow follow=position== FollowQueryHelper.Position.FOLLOWERS?
                 new Follow(user,currentuser,status):new Follow(currentuser,user,status);
         followRepo.saveAndFlush(follow);
@@ -51,7 +51,7 @@ public class FollowTestHelper {
 
     public User createBlockRecord(boolean isCurrentBlocked){
         User user=createTestUser();
-        User currentuser=authenticatedUserService.getcurrentuser(false);
+        User currentuser=authenticatedUserService.getcurrentuser();
         Blocks blocks=new Blocks();
         if(isCurrentBlocked){
             blocks.setBlocked(currentuser);

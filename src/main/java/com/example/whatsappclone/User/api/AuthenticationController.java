@@ -1,0 +1,47 @@
+package com.example.whatsappclone.User.api;
+
+import com.example.whatsappclone.User.api.dto.userregistration;
+import com.example.whatsappclone.User.application.AuthenticatedUserService;
+import com.example.whatsappclone.User.application.RegistrationService;
+import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+
+import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+@RestController
+@RequestMapping("/api/v1/users/auth")
+@RequiredArgsConstructor
+public class AuthenticationController {
+
+
+    private final RegistrationService registrationService;
+    private final AuthenticatedUserService authenticatedUserService;
+
+    @PostMapping("/register")
+    public void register(@RequestBody @Valid userregistration user) {
+        registrationService.registerUser(user);
+    }
+
+    @Hidden
+    @GetMapping("/login")
+    public void login(HttpServletResponse response) throws IOException {
+        response.sendRedirect(authenticatedUserService.redirect());
+    }
+
+    @Hidden
+    @GetMapping("/callback")
+    public void callback(HttpServletResponse response,
+                         @RequestParam String code,
+                         @RequestParam String state ) throws IOException{
+        response.sendRedirect(authenticatedUserService.callBack(state,code));
+    }
+
+}

@@ -35,7 +35,7 @@ public class ProfileQueryService {
     private final FollowCacheWriter followCacheWriter;
     @CheckUserExistence
     public profileDetails getUserProfile(String userId){
-       User currentUser=authenticatedUserService.getcurrentuser(false);
+       User currentUser=authenticatedUserService.getcurrentuser();
        User targetUser=new User(userId);
        ProfileInfo profileInfo= getUserProfileInfo(userId);
         profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
@@ -72,7 +72,7 @@ public class ProfileQueryService {
     }
 
     public profilesettings getMyProfileSettings(){
-        User currentuser=authenticatedUserService.getcurrentuser(false);
+        User currentuser=authenticatedUserService.getcurrentuser();
         Profile profile=getUserProfile(currentuser.getUuid(),true);
         return profilemapper.toprofilesettings(profile);
     }

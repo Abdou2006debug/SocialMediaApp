@@ -39,7 +39,7 @@ public class FollowService {
 
     @CheckUserExistence
     public profileDetails Follow(String userId) {
-        User currentuser = authenticatedUserService.getcurrentuser(false);
+        User currentuser = authenticatedUserService.getcurrentuser();
         if (currentuser.getUuid().equals(userId)) {
             throw new BadFollowRequestException("you cant follow yourself");
         }
@@ -85,7 +85,7 @@ public class FollowService {
     // this method works for both pending and accepted followings
     @CheckUserExistence
     public void UnFollow(String userId) {
-        User currentUser = authenticatedUserService.getcurrentuser(false);
+        User currentUser = authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing( currentUser,targetUser).
                 orElseThrow(()->new NoRelationShipException("No relation with user found"));
@@ -100,7 +100,7 @@ public class FollowService {
     // this method works for both pending and accepted followers
     @CheckUserExistence
     public void removefollower(String userId) {
-        User currentUser= authenticatedUserService.getcurrentuser(false);
+        User currentUser= authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
         Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
                 orElseThrow(()->new NoRelationShipException("No relationship with user found"));

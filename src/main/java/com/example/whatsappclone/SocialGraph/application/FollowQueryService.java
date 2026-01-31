@@ -15,53 +15,53 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowQueryService {
 
-    private final FollowQueryHelper followViewResolver;
+    private final FollowQueryHelper followQueryHelper;
     private final AuthenticatedUserService authenticatedUserService;
     private final VisibilityPolicy visibilityPolicy;
 
     public List<profileSummary> listCurrentUserFollowers(int page) {
-        User currentuser =authenticatedUserService.getcurrentuser(false);
-        return  followViewResolver.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
+        User currentuser =authenticatedUserService.getcurrentuser();
+        return  followQueryHelper.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowings(int page) {
-        User currentuser = authenticatedUserService.getcurrentuser(false);
-        return  followViewResolver.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
+        User currentuser = authenticatedUserService.getcurrentuser();
+        return  followQueryHelper.listCurrentUserFollows(currentuser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowRequests(int page) {
-        User currentUser= authenticatedUserService.getcurrentuser(false);
-        return followViewResolver.
+        User currentUser= authenticatedUserService.getcurrentuser();
+        return followQueryHelper.
                 listCurrentUserPendingFollows(currentUser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     public List<profileSummary> listCurrentUserFollowingRequests(int page) {
-        User currentUser= authenticatedUserService.getcurrentuser(false);
-        return followViewResolver.
+        User currentUser= authenticatedUserService.getcurrentuser();
+        return followQueryHelper.
                 listCurrentUserPendingFollows(currentUser.getUuid(), FollowQueryHelper.Position.FOLLOWINGS,page);
 
     }
 
     @CheckUserExistence
     public List<profileSummary> listUserFollowers(String userId, int page){
-        User currentUser= authenticatedUserService.getcurrentuser(false);
+        User currentUser= authenticatedUserService.getcurrentuser();
         User targetUser =new User(userId);
        boolean isAllowed= visibilityPolicy.isAllowed(currentUser, targetUser);
        if(!isAllowed){
            throw new FollowListNotVisibleException("followers list for user is not visible.");
        }
-        return followViewResolver.listUserFollows(currentUser.getUuid(), targetUser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
+        return followQueryHelper.listUserFollows(currentUser.getUuid(), targetUser.getUuid(), FollowQueryHelper.Position.FOLLOWERS,page);
     }
 
     @CheckUserExistence
     public List<profileSummary> listUserFollowing(String userId,int page){
-        User currentUser= authenticatedUserService.getcurrentuser(false);
+        User currentUser= authenticatedUserService.getcurrentuser();
         User targetUser=new User(userId);
         boolean isAllowed= visibilityPolicy.isAllowed(currentUser,targetUser);
         if(!isAllowed){
             throw new FollowListNotVisibleException("followings list for user is not visible.");
         }
-        return followViewResolver.listUserFollows(currentUser.getUuid(),userId, FollowQueryHelper.Position.FOLLOWINGS,page);
+        return followQueryHelper.listUserFollows(currentUser.getUuid(),userId, FollowQueryHelper.Position.FOLLOWINGS,page);
 
     }
 

@@ -28,26 +28,26 @@ public class UserProfileController {
     }
 
     @GetMapping("/{userid}")
-    public profileDetails getaccount(@PathVariable String userid) {
+    public profileDetails getProfile(@PathVariable String userid) {
         return profileQueryService.getUserProfile(userid);
     }
 
-    @PutMapping
+    @PutMapping("/me")
     public void updateProfile(@RequestBody @Valid profile profile) {
         profileUpdatingService.UpdateProfile(profile);
     }
 
-    @PutMapping("/picture")
+    @PutMapping("/me/picture")
     public void updateProfilePicture(@RequestParam MultipartFile file) throws IOException {
         profileUpdatingService.changeProfileAvatar(file);
     }
 
-    @GetMapping("/settings")
+    @GetMapping("/me/settings")
     public profilesettings getProfileSettings() {
         return profileQueryService.getMyProfileSettings();
     }
 
-    @PutMapping("/settings")
+    @PutMapping("/me/settings")
     public void updateProfileSettings(@RequestBody profilesettings settings) {
         profileUpdatingService.UpdateProfileSettings(settings);
     }

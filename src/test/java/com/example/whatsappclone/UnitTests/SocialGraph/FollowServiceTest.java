@@ -5,8 +5,10 @@ import com.example.whatsappclone.Profile.api.dto.profileDetails;
 import com.example.whatsappclone.Profile.persistence.ProfileRepo;
 import com.example.whatsappclone.Shared.Exceptions.BadFollowRequestException;
 import com.example.whatsappclone.Shared.Exceptions.NoRelationShipException;
+import com.example.whatsappclone.SocialGraph.application.FollowQueryHelper;
 import com.example.whatsappclone.SocialGraph.application.FollowRequestService;
 import com.example.whatsappclone.SocialGraph.application.FollowService;
+import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheUpdater;
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
 import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.domain.RelationshipStatus;
@@ -50,6 +52,8 @@ public class FollowServiceTest {
     private AuthenticatedUserService authenticatedUserService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private FollowCacheUpdater followCacheUpdater;
     @InjectMocks
     private FollowRequestService followRequestService;
     @InjectMocks
@@ -60,7 +64,7 @@ public class FollowServiceTest {
 
     @BeforeEach
     public  void setCurrentUser() {
-       when(authenticatedUserService.getcurrentuser(any(boolean.class))).thenReturn(currentuser);
+       when(authenticatedUserService.getcurrentuser()).thenReturn(currentuser);
     }
 
     // FOLLOW CREATION TESTS
@@ -111,9 +115,9 @@ public class FollowServiceTest {
             when(profileRepo.existsByUserAndIsprivateFalse(requesteduser)).thenReturn(Public);
             profileDetails profileDetails=followService.Follow(requesteduser.getUuid());
             assertEquals(requesteduser.getUuid(),profileDetails.getUserId());
-            ArgumentCaptor<Follow> captor=ArgumentCaptor.forClass(Follow.class);
-            verify(followRepo).save(captor.capture());
-            Follow follow=captor.getValue();
+            ArgumentCaptor<Follow> captor1=ArgumentCaptor.forClass(Follow.class);
+            verify(followRepo).save(captor1.capture());
+            Follow follow=captor1.getValue();
             assertEquals(follow.getFollower().getUuid(),currentuser.getUuid());
             assertEquals(follow.getFollowing().getUuid(),requesteduser.getUuid());
             ArgumentCaptor<FollowNotification> captor2=ArgumentCaptor.forClass(FollowNotification.class);
@@ -126,6 +130,11 @@ public class FollowServiceTest {
                assertEquals(FollowNotification.notificationType.FOLLOW,followNotification.getType());
                assertEquals(RelationshipStatus.FOLLOWING, profileDetails.getStatus());
                verify(eventPublisher).publishEvent(any(followAdded.class));
+               ArgumentCaptor<FollowQueryHelper.Position> captor3=ArgumentCaptor.forClass(FollowQueryHelper.Position.class);
+                ArgumentCaptor<FollowCacheUpdater.UpdateType> captor4=ArgumentCaptor.forClass(FollowCacheUpdater.UpdateType.class);
+                ArgumentCaptor<String> captor5=ArgumentCaptor.forClass(String.class);
+                verify(followCacheUpdater).UpdateCount(captor3.capture(),captor5.capture(),captor4.capture());
+                //assertEquals();
 
             }else{
                 assertEquals(Follow.Status.PENDING,follow.getStatus());

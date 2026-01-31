@@ -11,10 +11,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class Securityconfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http.
-                csrf(AbstractHttpConfigurer::disable).
+        http
+        .csrf(AbstractHttpConfigurer::disable).
                 oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer -> httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults())).
-                authorizeHttpRequests(authorization -> authorization.requestMatchers("api/v1/users/accounts/register","/v3/api-docs/**","/swagger-ui/**", "/swagger-ui.html").permitAll().requestMatchers("/ws").authenticated().anyRequest().permitAll());
+                authorizeHttpRequests(authorization -> authorization.requestMatchers("api/v1/users/auth/**",
+                        "/swagger-custom.html",
+                        "/swagger-token.js",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**").permitAll().anyRequest().authenticated());
         return http.build();
     }
 
