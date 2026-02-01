@@ -20,7 +20,6 @@ public class FollowCacheUpdater {
     private final RedisTemplate<String,String> redisTemplate;
     public enum UpdateType{INCREMENT,DECREMENT}
 
-
     @EventListener
     public void addfollow(followAdded followAdded) {
         Follow follow=followAdded.getFollow();

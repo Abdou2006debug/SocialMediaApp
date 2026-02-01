@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
@@ -20,24 +21,16 @@ import java.time.Instant;
         @Index(name="following",columnList = "following_id,status"),
 } )
 public class Follow {
+
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
-    private String uuid;
+    @GeneratedValue
+    private UUID id;
 
     @CreatedDate
     private Instant createddate;
 
     @Column(name ="accepteddate")
     private Instant followDate;
-
-    @ManyToOne(fetch =FetchType.LAZY)
-    @JoinColumn(name="follower_id")
-    private User follower;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="following_id")
-    private User following;
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -47,6 +40,14 @@ public class Follow {
 
     @Column(name = "follower_id",insertable = false,updatable = false)
     private String following_id;
+
+    @ManyToOne(fetch =FetchType.LAZY)
+    @JoinColumn(name="follower_id")
+    private User follower;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="following_id")
+    private User following;
 
     public Follow(User follower, User following){
        this.follower=follower;

@@ -40,7 +40,7 @@ public class BlockService {
                 followService.UnFollow(userId);
                 return;
             }
-            followRequestService.unsendFollowingRequest(follow.getUuid());
+            followRequestService.unsendFollowingRequest(userId);
         });
         // removing the follow from the target side to the current user side
         followRepo.

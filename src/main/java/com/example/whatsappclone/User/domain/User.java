@@ -18,8 +18,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Data
 public class User {
+
     @Id
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String uuid;
+
     @CreatedDate
     private Instant createddate;
     @LastModifiedDate

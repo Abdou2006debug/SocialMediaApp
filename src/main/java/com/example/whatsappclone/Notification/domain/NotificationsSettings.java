@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.util.UUID;
+
 @Entity
 @NoArgsConstructor
 @Data
@@ -16,9 +18,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(indexes = {@Index(name="userNotifications",columnList = "user_id")})
 public class NotificationsSettings {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
-    private String uuid;
+    @GeneratedValue
+    private UUID id;
    // @Column(name="likes")
     //private Boolean Onlikes;
     //@Column(name = "comments")

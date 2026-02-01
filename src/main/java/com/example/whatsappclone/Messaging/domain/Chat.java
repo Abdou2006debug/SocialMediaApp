@@ -11,21 +11,24 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Data
 @NoArgsConstructor
 public class Chat {
+
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String uuid;
+
     @CreatedDate
     private Instant createddate;
-    private boolean isgroup;
-    public Chat(User creator, boolean isgroup){
-        this.isgroup=isgroup;
-    }
+
+    @OneToMany(mappedBy = "chat",fetch = FetchType.LAZY)
+    private List<ChatMember> members;
 }

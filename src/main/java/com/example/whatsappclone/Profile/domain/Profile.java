@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.UUID;
+
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Data
@@ -19,10 +21,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
         @Index(name="user_profile",columnList = "user_id")
         })
 public class Profile {
+
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
-    private String uuid;
+    @GeneratedValue
+    private UUID id;
+
     private String bio;
     private String username;
     private String privateavatarurl;
@@ -36,6 +39,7 @@ public class Profile {
 
     @Column(name ="user_id",insertable = false,updatable = false)
     private String userId;
+
 public Profile(String bio , String username){
     this.bio=bio;
     this.username=username;
@@ -43,6 +47,5 @@ public Profile(String bio , String username){
 public Profile(boolean isprivate){
     this.isprivate=isprivate;
 }
-
 
 }
