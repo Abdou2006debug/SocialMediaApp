@@ -11,6 +11,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -18,14 +20,32 @@ public class FollowCacheUpdater {
     private final RedisTemplate<String,String> redisTemplate;
     public enum UpdateType{INCREMENT,DECREMENT}
 
+
     @EventListener
     public void addfollow(followAdded followAdded) {
         Follow follow=followAdded.getFollow();
         String followerId=follow.getFollower().getUuid();
         String followingId =follow.getFollowing().getUuid();
+        boolean followersPage0Cached = redisTemplate.hasKey("user:" + followingId + ":followers:page0_cached");
+        boolean followingsPage0Cached = redisTemplate.hasKey("user:" + followerId + ":followings:page0_cached");
 
-        redisTemplate.opsForZSet().add("user:"+followingId+":followers",followerId,follow.getAccepteddate().getEpochSecond());
-        redisTemplate.opsForZSet().add("user:"+followerId+":followings",followingId,follow.getAccepteddate().getEpochSecond());
+        if (followersPage0Cached) {
+            redisTemplate.opsForZSet().add(
+                    "user:" + followingId + ":followers:",
+                    followerId,
+                    follow.getFollowDate().getEpochSecond()
+            );
+        }
+
+        if (followingsPage0Cached) {
+            redisTemplate.opsForZSet().add(
+                    "user:" + followerId + ":followings:",
+                    followingId,
+                    follow.getFollowDate().getEpochSecond()
+            );
+        }
+
+
     }
 
     @EventListener
@@ -33,9 +53,8 @@ public class FollowCacheUpdater {
         Follow follow=followRemoved.getFollow();
         String followerId=follow.getFollower().getUuid();
         String followingId =follow.getFollowing().getUuid();
-
-        redisTemplate.opsForZSet().remove("user:"+followingId+":followers",followerId);
-        redisTemplate.opsForZSet().remove("user:"+followerId+":followings",followingId);
+        redisTemplate.opsForZSet().remove("user:"+followingId+":followers:",followerId);
+        redisTemplate.opsForZSet().remove("user:"+followerId+":followings:",followingId);
         }
 
     public void UpdateCount(FollowQueryHelper.Position position,String userId,UpdateType updateType){
@@ -43,7 +62,8 @@ public class FollowCacheUpdater {
         // updating the follower and following count
         String key= FollowQueryHelper.Position.FOLLOWERS==position?"user:followers:":"user:followings:";
         if(redisTemplate.hasKey(key+userId)){
-            redisTemplate.opsForValue().increment(key+userId,updateValue);
+           Long count= redisTemplate.opsForValue().increment(key+userId,updateValue);
+           log.info("new "+position.name()+" count "+count);
         }
 
     }

@@ -41,7 +41,7 @@ public class FollowRequestService {
             throw new BadFollowRequestException("couldn't perform accept follow action on this user");
         }
         followRequest.setStatus(Follow.Status.ACCEPTED);
-        followRequest.setAccepteddate(Instant.now());
+        followRequest.setFollowDate(Instant.now());
         followRepo.save(followRequest);
         logger.info("publishing following accepted event to "+targetUser.getUsername());
         eventPublisher.publishEvent(new FollowNotification(currentuser,targetUser,

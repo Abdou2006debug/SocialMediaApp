@@ -28,7 +28,8 @@ public class Follow {
     @CreatedDate
     private Instant createddate;
 
-    private Instant accepteddate;
+    @Column(name ="accepteddate")
+    private Instant followDate;
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="follower_id")
