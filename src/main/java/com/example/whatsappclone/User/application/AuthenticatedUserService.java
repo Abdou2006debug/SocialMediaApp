@@ -30,7 +30,6 @@ public class AuthenticatedUserService {
     private final ClientPropeties clientPropeties;
     private final WebClient webClient;
     private final RedisTemplate<String,String> redisTemplate;
-    private final JwtDecoder jwtDecoder;
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issUri;

@@ -19,6 +19,7 @@ public class profileDetails {
     private RelationshipStatus status;
     private String followers;
     private String followings;
+    private String posts;
     public profileDetails(String userId,RelationshipStatus status){
         this.userId=userId;
         this.status=status;

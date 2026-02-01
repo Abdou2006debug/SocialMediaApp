@@ -1,6 +1,6 @@
 package com.example.whatsappclone.SocialGraph.application;
 
-import com.example.whatsappclone.Profile.application.ProfileSummaryService;
+import com.example.whatsappclone.Profile.application.ProfileSummaryBuilder;
 import com.example.whatsappclone.User.domain.User;
 import com.example.whatsappclone.Profile.api.dto.profileSummary;
 import com.example.whatsappclone.SocialGraph.application.cache.FollowCacheWriter;
@@ -8,7 +8,6 @@ import com.example.whatsappclone.SocialGraph.domain.Follow;
 import com.example.whatsappclone.SocialGraph.persistence.FollowRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.property.access.internal.PropertyAccessMapImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +24,10 @@ public class FollowQueryHelper {
     private final FollowCacheWriter followCacheWriter;
     private final FollowRepo followRepo;
     private final FollowRelationShipResolver followRelationShipResolver;
-    private final ProfileSummaryService profileSummaryService;
+    private final ProfileSummaryBuilder profileSummaryService;
     public enum Position {FOLLOWERS, FOLLOWINGS}
 
-    // no cache is supposed to be here since its not frequently viewed  so fetching directly from db
+    // no cache is supposed to be here since its  viewed  by the owing user only so fetching directly from db
     public List<profileSummary> listCurrentUserPendingFollows(String userId, Position position, int page){
         Pageable pageable= PageRequest.of(page,10);
         Page<Follow> pendingFollowsPage=position==Position.FOLLOWERS?

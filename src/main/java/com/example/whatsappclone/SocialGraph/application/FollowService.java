@@ -62,7 +62,7 @@ public class FollowService {
         RelationshipStatus status;
         if (profileRepo.existsByUserAndIsprivateFalse(tagretUser)) {
             follow.setStatus(Follow.Status.ACCEPTED);
-            follow.setAccepteddate(Instant.now());
+            follow.setFollowDate(Instant.now());
             log.info("publishing follow event for "+tagretUser.getUsername());
             eventPublisher.publishEvent(notification);
             eventPublisher.publishEvent(new followAdded(follow));
