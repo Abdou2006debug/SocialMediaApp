@@ -19,7 +19,8 @@ public class Message {
     private String senderId;
     private MessageType messageType=MessageType.TEXT;
     private String content;
-    private String sentAt= Instant.now().toString();
+    private Instant sentAt= Instant.now();
+    private Instant readAt= Instant.now();
     private boolean edited=false;
     private boolean read=false;
 }
