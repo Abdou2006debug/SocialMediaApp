@@ -9,8 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface FollowRepo extends JpaRepository<Follow,String> {
+public interface FollowRepo extends JpaRepository<Follow,UUID> {
    Optional<Follow> findByFollowerAndFollowing(User follower, User following);
    Page<Follow> findByFollowerAndStatus(User follower,Follow.Status status,Pageable pageable);
     Page<Follow> findByFollowingAndStatus(User following,Follow.Status status,Pageable pageable);

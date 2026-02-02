@@ -35,4 +35,5 @@ public class ChatMember {
         this.chat=chat;
         this.user=user;
         }
+        private String chatView;
 }

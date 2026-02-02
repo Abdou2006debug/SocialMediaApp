@@ -26,6 +26,7 @@ public class NotificationsSettings {
     //private Boolean Oncomments;
     //@Column(name="commentreplies")
     //private Boolean Oncommentreplies;
+
     @Column(name="follow")
     private Boolean Onfollow;
 

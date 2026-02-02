@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface BlocksRepo extends JpaRepository<Blocks,String> {
+public interface BlocksRepo extends JpaRepository<Blocks, UUID> {
     Optional<Blocks> findByBlockedAndBlocker(User Blocked, User Blocker);
     boolean existsByBlockerAndBlocked(User Blocker, User Blocked);
 }

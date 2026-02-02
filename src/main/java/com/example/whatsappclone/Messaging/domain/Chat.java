@@ -31,4 +31,7 @@ public class Chat {
 
     @OneToMany(mappedBy = "chat",fetch = FetchType.LAZY)
     private List<ChatMember> members;
+
+    private String lastMessageId;
+    private Instant lastMessageAt;
 }
