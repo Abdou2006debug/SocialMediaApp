@@ -31,6 +31,8 @@ public class ChatMember {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private int unreadCount;
+
     public ChatMember(Chat chat,User user){
         this.chat=chat;
         this.user=user;

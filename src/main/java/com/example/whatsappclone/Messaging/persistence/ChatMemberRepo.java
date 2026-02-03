@@ -11,9 +11,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ChatMemberRepo extends JpaRepository<ChatMember,UUID> {
     @Query(value = "SELECT user_id, chat_id FROM chatMember WHERE chat_id IN (:chatIds) AND user_id != :userId", nativeQuery = true)
     List<chatMemberDTO> findOtherChatMembers(@Param("chatIds") List<String> chatIds, @Param("userId") String userId);
+    List<ChatMember> findByUserAndChatIdIn(User user,List<String> chatIds);
 }

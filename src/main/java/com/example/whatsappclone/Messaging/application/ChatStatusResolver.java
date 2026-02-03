@@ -1,11 +1,12 @@
 package com.example.whatsappclone.Messaging.application;
 
 import com.example.whatsappclone.Messaging.api.dto.chatDTO;
-import com.example.whatsappclone.Messaging.api.dto.chatMemberDTO;
 import com.example.whatsappclone.Messaging.domain.Chat;
+import com.example.whatsappclone.Messaging.domain.ChatMember;
 import com.example.whatsappclone.Messaging.domain.Message;
-import com.example.whatsappclone.Messaging.domain.MessageType;
+import com.example.whatsappclone.Messaging.persistence.ChatMemberRepo;
 import com.example.whatsappclone.Messaging.persistence.MessageRepo;
+import com.example.whatsappclone.User.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,54 +21,49 @@ import java.util.stream.Collectors;
 public class ChatStatusResolver {
 
     private final MessageRepo messageRepo;
+    private final ChatMemberRepo chatMemberRepo;
 
-    public void computeStatus(List<Chat> chats, List<chatDTO> chatDTOS,String senderId){
-        Map<String,chatDTO> map= chatDTOS.stream()
+
+    public void computeStatus(List<Chat> chats, List<chatDTO> chatDTOS,String currentId){
+
+        Map<String,chatDTO> dtomap= chatDTOS.stream()
                 .collect(Collectors.toMap(chatDTO::getChatId, Function.identity()));
-        // this gets the last message sent in each of the chats passed
-        List<String> lastmessageIds=chats.stream().map(Chat::getLastMessageId).toList();
 
-       List<Message> lastmessages= messageRepo.findByIdIn(lastmessageIds);
+        List<String> lastmessageIds=chats.stream().map(Chat::getLastMessageId).collect(Collectors.toList());
 
-       List<Message> messagesNotByUser=new ArrayList<>();
+        List<Message> lastmessages= messageRepo.findByIdIn(lastmessageIds);
 
-       // handling the case where the last message is sent by the user so it can be seen or not (sent)
-       lastmessages.forEach(message -> {
-           if(message.getSenderId().equals(senderId)){
-               chatDTO chatDTO=map.get(message.getChatId());
-               if(message.isRead()){
-                   chatDTO.setChatView("seen:"+message.getReadAt());
-               }else{
-                   chatDTO.setChatView("sent:"+message.getSentAt());
-               }
-               map.remove(message.getChatId());
-           }else{
-               // if the message is not sent by the same user add it to this list to handle it
-               messagesNotByUser.add(message);
-           }
-                });
-              //  compute(messagesNotByUser,);
+        List<String> unProcessedChats=new ArrayList<>();
 
-    }
+        for(Message message:lastmessages){
+            chatDTO chatDTO=dtomap.get(message.getChatId());
 
-        public void compute(List<Message> messages,Map<String,chatDTO> chatDTOS){
-        List<Message> unreadMessages=new ArrayList<>();
-        messages.forEach(message -> {
-            if(message.isRead()){
-                chatDTOS.get(message.getChatId()).setChatView(message.getContent()+" "+message.getSentAt());
-            }else{
-                unreadMessages.add(message);
+            if(chatDTO==null) continue;
+
+            if(message.getSenderId().equals(currentId)){
+                if(message.isRead()){
+                    chatDTO.setChatView("seen:"+message.getReadAt());
+                }else{
+                    chatDTO.setChatView("sent:"+message.getSentAt());
+                }
+            }else if(message.isRead()){
+                chatDTO.setChatView(message.getContent()+":"+message.getSentAt());
+            }else {
+                unProcessedChats.add(message.getChatId());
             }
-        });
-
-     //   messageRepo.findByChatId(unreadMessages.stream().map(Message::getChatId).toList());
-        boolean end=false;
-        int counter=4;
-        while(!end&&counter>0){
-           // messageRepo.
-
-            //counter--;
         }
-    }
 
+        if(unProcessedChats.isEmpty()) return;
+
+        List<ChatMember> chatMembers= chatMemberRepo.findByUserAndChatIdIn(new User(currentId),unProcessedChats);
+
+        for(ChatMember chatMember:chatMembers){
+            String chatId=chatMember.getChatId();
+            chatDTO chatDTO= dtomap.get(chatId);
+            if(chatDTO==null) continue;
+            chatDTO.setChatView("+"+chatMember.getUnreadCount()+" New Messages");
+        }
+
+    }
 }
+
