@@ -24,7 +24,7 @@ public class Chat {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
-    private String uuid;
+    private String id;
 
     @CreatedDate
     private Instant createddate;

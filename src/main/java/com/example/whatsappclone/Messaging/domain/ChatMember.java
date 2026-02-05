@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -27,11 +28,16 @@ public class ChatMember {
     @JoinColumn(name = "chat_id")
     private Chat chat;
 
+    @Column(name="user_id",updatable = false,insertable = false)
+    private String userId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     private int unreadCount;
+
+    private String lastreadMessageId;
 
     public ChatMember(Chat chat,User user){
         this.chat=chat;

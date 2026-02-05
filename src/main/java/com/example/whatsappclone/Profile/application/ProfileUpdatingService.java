@@ -39,7 +39,7 @@ public class ProfileUpdatingService {
 
     public void UpdateProfileSettings(profilesettings profilesettings){
         User currentuser= authenticatedUserService.getcurrentuser();
-        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
         boolean preStatus=currentprofile.isIsprivate();
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
@@ -53,7 +53,7 @@ public class ProfileUpdatingService {
 
     public void changeProfileAvatar(MultipartFile file) throws IOException {
         User currentuser= authenticatedUserService.getcurrentuser();
-        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
 
         String oldAvatarUri=currentprofile.getPrivateavatarurl();
 
@@ -67,15 +67,15 @@ public class ProfileUpdatingService {
     }
     @Transactional
     public void UpdateProfile(profile p){
-        User  currentuser= userRepo.findById(authenticatedUserService.getcurrentuser().getUuid()).get();
-        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getUuid(),false);
+        User  currentuser= userRepo.findById(authenticatedUserService.getcurrentuser().getId()).get();
+        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
         currentprofile.setUsername(p.getUsername());
         currentprofile.setBio(p.getBio());
         currentuser.setUsername(p.getUsername());
         currentprofile.setUsername(p.getUsername());
         userRepo.save(currentuser);
         profileRepo.save(currentprofile);
-        identityService.changeUsername(currentuser.getUuid(),p.getUsername());
+        identityService.changeUsername(currentuser.getId(),p.getUsername());
         profileCacheManager.cacheUserProfile(currentprofile);
         profileCacheManager.cacheProfileInfo(currentprofile);
     }

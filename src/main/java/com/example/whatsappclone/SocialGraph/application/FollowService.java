@@ -39,7 +39,7 @@ public class FollowService {
     @CheckUserExistence
     public profileDetails Follow(String userId) {
         User currentUser = authenticatedUserService.getcurrentuser();
-        if (currentUser.getUuid().equals(userId)) {
+        if (currentUser.getId().equals(userId)) {
             throw new BadFollowRequestException("you cant follow yourself");
         }
         User tagretUser=new User(userId);
@@ -67,7 +67,7 @@ public class FollowService {
             eventPublisher.publishEvent(notification);
             eventPublisher.publishEvent(new followAdded(follow));
             status=RelationshipStatus.FOLLOWING;
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, currentUser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, currentUser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
             followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.INCREMENT);
         } else {
             follow.setStatus(Follow.Status.PENDING);
@@ -92,7 +92,7 @@ public class FollowService {
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
             followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentUser.getUuid(), FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentUser.getId(), FollowCacheUpdater.UpdateType.DECREMENT);
         }
     }
 
@@ -106,7 +106,7 @@ public class FollowService {
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUser.getUuid(), FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUser.getId(), FollowCacheUpdater.UpdateType.DECREMENT);
             followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
         }else{
             eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser, FollowNotification.notificationType.FOLLOWING_REJECTED));

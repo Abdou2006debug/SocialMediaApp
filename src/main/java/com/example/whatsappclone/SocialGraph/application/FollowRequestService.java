@@ -47,8 +47,8 @@ public class FollowRequestService {
         eventPublisher.publishEvent(new FollowNotification(currentuser,targetUser,
                 FollowNotification.notificationType.FOLLOWING_ACCEPTED));
         eventPublisher.publishEvent(new followAdded(followRequest));
-        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentuser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
-        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,targetUser.getUuid(), FollowCacheUpdater.UpdateType.INCREMENT);
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentuser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,targetUser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
     }
 
     @CheckUserExistence

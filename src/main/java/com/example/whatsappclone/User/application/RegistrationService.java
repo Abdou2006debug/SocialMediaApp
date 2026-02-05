@@ -31,7 +31,7 @@ public class RegistrationService {
     public void registerUser(userregistration userregistration){
         String userId=identityService.UserProvision(userregistration);
         User user=usermapper.toUserentity(userregistration);
-        user.setUuid(userId);
+        user.setId(userId);
         try{
             userRepo.saveAndFlush(user);
             Profile profile=new Profile(null,userregistration.getUsername());

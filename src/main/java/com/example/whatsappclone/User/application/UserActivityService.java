@@ -21,12 +21,12 @@ public class UserActivityService {
         redisTemplate.expire("user: "+userId,30, TimeUnit.SECONDS);
     }
 
-    public void setUserLastSeen(String username){
-        redisTemplate.opsForValue().set("user lastSeen:"+username, Instant.now().toString());
+    public void setUserLastSeen(String userId){
+        redisTemplate.opsForValue().set("user lastSeen:"+userId, Instant.now().toString());
     }
 
-    public String getUserLastSeen(String username){
-        return (String) redisTemplate.opsForValue().get("user lastSeen:"+username);
+    public String getUserLastSeen(String userId){
+        return (String) redisTemplate.opsForValue().get("user lastSeen:"+userId);
     }
 
     public boolean getUserStatus(String userId){

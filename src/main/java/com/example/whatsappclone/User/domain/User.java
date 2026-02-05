@@ -22,12 +22,13 @@ public class User {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
-    private String uuid;
+    private String id;
 
     @CreatedDate
     private Instant createddate;
     @LastModifiedDate
     private Instant lastmodifieddate;
+
     private String firstname;
     private String lastname;
     @Column(unique = true)
@@ -43,11 +44,11 @@ public class User {
         this.username=username;
     }
     public User(String uuid){
-     this.uuid=uuid;
+     this.id=uuid;
     }
     public User(String username, String uuid){
         this.username=username;
-        this.uuid=uuid;
+        this.id=uuid;
     }
 
 }

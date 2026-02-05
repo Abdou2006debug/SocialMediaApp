@@ -43,7 +43,7 @@ public class ProfileQueryService {
         profileDetails.setFollowers(followCacheWriter.UserFollowerCount(userId));
         profileDetails.setFollowings(followCacheWriter.UserFollowingCount(userId));
         // no relation should be set
-        if(userId.equals(currentUser.getUuid())){
+        if(userId.equals(currentUser.getId())){
             return profileDetails;
         }
 
@@ -73,7 +73,7 @@ public class ProfileQueryService {
 
     public profilesettings getMyProfileSettings(){
         User currentuser=authenticatedUserService.getcurrentuser();
-        Profile profile=getUserProfile(currentuser.getUuid(),true);
+        Profile profile=getUserProfile(currentuser.getId(),true);
         return profilemapper.toprofilesettings(profile);
     }
 

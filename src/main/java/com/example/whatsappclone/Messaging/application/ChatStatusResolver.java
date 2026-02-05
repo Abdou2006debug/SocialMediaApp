@@ -1,9 +1,10 @@
 package com.example.whatsappclone.Messaging.application;
 
-import com.example.whatsappclone.Messaging.api.dto.chatDTO;
+import com.example.whatsappclone.Messaging.api.dto.chatSummary;
 import com.example.whatsappclone.Messaging.domain.Chat;
 import com.example.whatsappclone.Messaging.domain.ChatMember;
 import com.example.whatsappclone.Messaging.domain.Message;
+import com.example.whatsappclone.Messaging.domain.MessageType;
 import com.example.whatsappclone.Messaging.persistence.ChatMemberRepo;
 import com.example.whatsappclone.Messaging.persistence.MessageRepo;
 import com.example.whatsappclone.User.domain.User;
@@ -24,30 +25,35 @@ public class ChatStatusResolver {
     private final ChatMemberRepo chatMemberRepo;
 
 
-    public void computeStatus(List<Chat> chats, List<chatDTO> chatDTOS,String currentId){
+    public void computeStatus(List<Chat> chats, List<chatSummary> chatDTOS, String currentId){
 
-        Map<String,chatDTO> dtomap= chatDTOS.stream()
-                .collect(Collectors.toMap(chatDTO::getChatId, Function.identity()));
+        Map<String, chatSummary> dtomap= chatDTOS.stream()
+                .collect(Collectors.toMap(chatSummary::getChatId, Function.identity()));
 
         List<String> lastmessageIds=chats.stream().map(Chat::getLastMessageId).collect(Collectors.toList());
 
         List<Message> lastmessages= messageRepo.findByIdIn(lastmessageIds);
 
         List<String> unProcessedChats=new ArrayList<>();
+        // Process the last message of each chat:
+// - If the message was sent by the current user, show whether it was seen or just sent.
+// - If the message was sent by someone else and has been read by the current user, display the message content.
+// - Otherwise, add the chat to `unProcessedChats` for further processing.
 
         for(Message message:lastmessages){
-            chatDTO chatDTO=dtomap.get(message.getChatId());
+            chatSummary chatDTO=dtomap.get(message.getChatId());
 
             if(chatDTO==null) continue;
-
             if(message.getSenderId().equals(currentId)){
                 if(message.isRead()){
-                    chatDTO.setChatView("seen:"+message.getReadAt());
+                    chatDTO.setChatPreview("seen:"+message.getReadAt());
                 }else{
-                    chatDTO.setChatView("sent:"+message.getSentAt());
+                    chatDTO.setChatPreview("sent:"+message.getSentAt());
                 }
             }else if(message.isRead()){
-                chatDTO.setChatView(message.getContent()+":"+message.getSentAt());
+                if(message.getMessageType()== MessageType.TEXT){
+                    chatDTO.setChatPreview(message.getContent()+":"+message.getSentAt());
+                }
             }else {
                 unProcessedChats.add(message.getChatId());
             }
@@ -57,11 +63,16 @@ public class ChatStatusResolver {
 
         List<ChatMember> chatMembers= chatMemberRepo.findByUserAndChatIdIn(new User(currentId),unProcessedChats);
 
+        // Process chats with unread messages
+         // Update each chatDTO to show the current user how many new messages are in the chat.
+
         for(ChatMember chatMember:chatMembers){
             String chatId=chatMember.getChatId();
-            chatDTO chatDTO= dtomap.get(chatId);
+            chatSummary chatDTO= dtomap.get(chatId);
+
             if(chatDTO==null) continue;
-            chatDTO.setChatView("+"+chatMember.getUnreadCount()+" New Messages");
+
+            chatDTO.setChatPreview("+"+chatMember.getUnreadCount()+" New Messages");
         }
 
     }

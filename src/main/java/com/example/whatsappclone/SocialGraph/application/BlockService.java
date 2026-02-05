@@ -26,7 +26,7 @@ public class BlockService {
     public void block(String userId) {
         User currentuser = authenticatedUserService.getcurrentuser();
         User requesteduser=new User(userId);
-        if(currentuser.getUuid().equals(userId)){throw new BadFollowRequestException("you cant block yourself");}
+        if(currentuser.getId().equals(userId)){throw new BadFollowRequestException("you cant block yourself");}
         boolean isalreadyblocked= blocksRepo.
                 existsByBlockerAndBlocked(currentuser,requesteduser);
         if(isalreadyblocked){

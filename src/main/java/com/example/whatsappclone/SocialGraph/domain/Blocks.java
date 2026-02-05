@@ -14,6 +14,7 @@ import java.util.UUID;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
+@Data
 @Table(indexes = {
         @Index(name="block",columnList = "blocked_id,blocker_id")
 })

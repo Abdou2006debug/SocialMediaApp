@@ -7,6 +7,7 @@ import com.example.whatsappclone.User.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,4 +19,10 @@ public interface ChatMemberRepo extends JpaRepository<ChatMember,UUID> {
     @Query(value = "SELECT user_id, chat_id FROM chatMember WHERE chat_id IN (:chatIds) AND user_id != :userId", nativeQuery = true)
     List<chatMemberDTO> findOtherChatMembers(@Param("chatIds") List<String> chatIds, @Param("userId") String userId);
     List<ChatMember> findByUserAndChatIdIn(User user,List<String> chatIds);
+    boolean existsByUserAndChatId(User user,String chatId);
+    Optional<ChatMember> findByChatIdAndUserIdNot(String chat_uuid,String user_id);
+    ChatMember findByChatIdAndUserId(String chat_uuid,String user_id);
+    @Modifying
+    @Query("update ChatMember cm set cm.unreadCount=0,cm.lastreadMessageId=:lastmessageId where cm.userId=:userId and cm.chatId=:chatId")
+    void updateUserChat(@Param("lastmessageId") String lastmessageIdn,@Param("userId") String userId,@Param("chatId") String chatId);
 }
