@@ -1,0 +1,26 @@
+package com.example.SocialMediaApp.Profile.api.dto;
+
+import com.example.SocialMediaApp.SocialGraph.domain.RelationshipStatus;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@NoArgsConstructor
+@AllArgsConstructor
+public class profileDetails {
+    private String userId;
+    private String username;
+    private String avatarurl;
+    private String bio;
+    private RelationshipStatus status;
+    private String followers;
+    private String followings;
+    private String posts;
+    public profileDetails(String userId,RelationshipStatus status){
+        this.userId=userId;
+        this.status=status;
+    }
+}

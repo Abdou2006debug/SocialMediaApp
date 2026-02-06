@@ -1,0 +1,41 @@
+package com.example.SocialMediaApp.Shared;
+
+import com.example.SocialMediaApp.Messaging.api.dto.sendMessageToChatDTO;
+import com.example.SocialMediaApp.Messaging.api.dto.sendMessageToUserDTO;
+import com.example.SocialMediaApp.User.persistence.UserRepo;
+import com.example.SocialMediaApp.Shared.Exceptions.UserNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class UserExistence {
+
+    private final UserRepo userRepo;
+
+
+    @Before("@annotation(CheckUserExistence)")
+    public void checkUserExistence(JoinPoint joinPoint){
+        Object[] args = joinPoint.getArgs();
+        String userId=getUserId(args[0]);
+                log.info("checking user existence for "+userId);
+                if (!userRepo.existsById(userId)) {
+                    throw new UserNotFoundException("User not found");
+                }
+    }
+
+    private String getUserId(Object object){
+        return switch (object.getClass().getSimpleName()){
+            case "String" -> (String) object;
+            case "sendMessageToUserDTO" -> ((sendMessageToUserDTO) object).getUserId();
+            case "sendMessageToChatDTO" -> ((sendMessageToChatDTO) object).getChatId();
+            default -> throw new IllegalStateException("Unexpected value: " + object.getClass().getSimpleName());
+        };
+    }
+}
