@@ -14,7 +14,7 @@ import com.example.SocialMediaApp.Profile.domain.Profile;
 import com.example.SocialMediaApp.Shared.Exceptions.ChatMessagingException;
 import com.example.SocialMediaApp.Shared.Mappers.Chatmapper;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
-import com.example.SocialMediaApp.User.application.UserActivityService;
+import com.example.SocialMediaApp.User.application.UserActivityTracker;
 import com.example.SocialMediaApp.User.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class ChatOverviewService {
     private final Chatmapper chatmapper;
     private final ChatStatusResolver chatStatusResolver;
     private final MessageRepo messageRepo;
-    private final UserActivityService userActivityService;
+    private final UserActivityTracker userActivityService;
     private final ProfileCacheManager profileCacheManager;
 
     public List<chatSummary> getUserChats(int page){

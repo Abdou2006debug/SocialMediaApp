@@ -18,9 +18,10 @@ public interface ChatMemberRepo extends JpaRepository<ChatMember,UUID> {
     List<ChatMember> findByUserAndChatIdIn(User user,List<String> chatIds);
     boolean existsByUserAndChatId(User user,String chatId);
     Optional<ChatMember> findByChatIdAndUserIdNot(String chat_uuid,String user_id);
-    ChatMember findByChatIdAndUserId(String chat_uuid,String user_id);
+    Optional<ChatMember>  findByChatIdAndUserId(String chat_uuid,String user_id);
     @Modifying
     @Query("update ChatMember cm set cm.unreadCount=0,cm.lastreadMessageId=:lastmessageId where cm.userId=:userId and cm.chatId=:chatId")
     void updateUserChat(@Param("lastmessageId") String lastmessageIdn,@Param("userId") String userId,@Param("chatId") String chatId);
+
 
 }
