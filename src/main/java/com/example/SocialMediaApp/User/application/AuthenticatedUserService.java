@@ -32,7 +32,7 @@ public class AuthenticatedUserService {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private String issUri;
 
-    public User getcurrentuser(){
+    public String getcurrentuser(){
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null||!(authentication.getPrincipal() instanceof Jwt)){
             throw new AuthenticationCredentialsNotFoundException("User not authenticated");
@@ -41,7 +41,7 @@ public class AuthenticatedUserService {
         if(userId==null){
             throw new AuthenticationCredentialsNotFoundException("something went wrong trying to authenticate you please try later");
         }
-        return new User(userId);
+        return userId;
     }
 
     public String callBack(String state,String authCode){

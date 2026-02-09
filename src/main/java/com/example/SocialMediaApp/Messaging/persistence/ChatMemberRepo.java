@@ -16,7 +16,7 @@ public interface ChatMemberRepo extends JpaRepository<ChatMember,UUID> {
     @Query(value = "SELECT user_id, chat_id FROM chatMember WHERE chat_id IN (:chatIds) AND user_id != :userId", nativeQuery = true)
     List<chatMemberDTO> findOtherChatMembers(@Param("chatIds") List<String> chatIds, @Param("userId") String userId);
     List<ChatMember> findByUserAndChatIdIn(User user,List<String> chatIds);
-    boolean existsByUserAndChatId(User user,String chatId);
+    boolean existsByUserIdAndChatId(String userId,String chatId);
     Optional<ChatMember> findByChatIdAndUserIdNot(String chat_uuid,String user_id);
     Optional<ChatMember>  findByChatIdAndUserId(String chat_uuid,String user_id);
     @Modifying

@@ -29,11 +29,10 @@ public class FollowRequestService {
     private final FollowCacheUpdater followCacheUpdater;
 
     @CheckUserExistence
-    public void acceptFollow(String userId) {
-        User currentuser =authenticatedUserService.getcurrentuser();
-        User targetUser=new User(userId);
+    public void acceptFollow(String targetUserId) {
+        String  currentUserId =authenticatedUserService.getcurrentuser();
         Follow followRequest = followRepo.
-                findByFollowerAndFollowing(targetUser,currentuser).
+                findByFollowerIdAndFollowingId(targetUserId,currentUserId).
                 orElseThrow(()->new NoRelationShipException("No relation with user found"));
         if(followRequest.getStatus()== Follow.Status.ACCEPTED){
             throw new BadFollowRequestException("couldn't perform accept follow action on this user");
@@ -41,35 +40,33 @@ public class FollowRequestService {
         followRequest.setStatus(Follow.Status.ACCEPTED);
         followRequest.setFollowDate(Instant.now());
         followRepo.save(followRequest);
-        logger.info("publishing following accepted event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new FollowNotification(currentuser,targetUser,
+        logger.info("publishing following accepted event to "+targetUserId);
+        eventPublisher.publishEvent(new FollowNotification(currentUserId,targetUserId,
                 FollowNotification.notificationType.FOLLOWING_ACCEPTED));
         eventPublisher.publishEvent(new followAdded(followRequest));
-        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentuser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
-        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,targetUser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUserId, FollowCacheUpdater.UpdateType.INCREMENT);
+        followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,targetUserId, FollowCacheUpdater.UpdateType.INCREMENT);
     }
 
     @CheckUserExistence
-    public void rejectFollow(String userId) {
+    public void rejectFollow(String targetUserId) {
 
-        User currentUser = authenticatedUserService.getcurrentuser();
-        User targetUser=new User(userId);
-        Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
+        String currentUserId = authenticatedUserService.getcurrentuser();
+        Follow follow = followRepo.findByFollowerIdAndFollowingId(targetUserId, currentUserId).
                 orElseThrow(()->new NoRelationShipException("No relation with user found"));
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             throw new BadFollowRequestException("couldn't perform reject follow action on this user");
         }
         followRepo.delete(follow);
-        logger.info("publishing following rejected event to "+targetUser.getUsername());
-        eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser,
+        logger.info("publishing following rejected event to "+targetUserId);
+        eventPublisher.publishEvent(new FollowNotification(currentUserId,targetUserId,
                 FollowNotification.notificationType.FOLLOWING_REJECTED));
     }
 
     @CheckUserExistence
-    public void unsendFollowingRequest(String userId){
-        User currentUser=authenticatedUserService.getcurrentuser();
-        User targetUser=new User(userId);
-    Follow followingRequest = followRepo.findByFollowerAndFollowing(currentUser,targetUser).
+    public void unsendFollowingRequest(String targetUserId){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        Follow followingRequest = followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId).
             orElseThrow(()->new NoRelationShipException("No relation with user found"));
         if (followingRequest.getStatus() == Follow.Status.ACCEPTED) {
         throw new BadFollowRequestException("couldn't perform unsend follow request on this user");

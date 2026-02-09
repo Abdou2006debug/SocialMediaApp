@@ -32,7 +32,7 @@ public class FollowRelationShipResolver {
             }else{
                 profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUEST_RECEIVED));
             }
-            List<Follow> followers =followRepo.findByFollower_UuidAndFollowing_UuidIn(viewerId,targetUserIds);
+            List<Follow> followers =followRepo.findByFollowerIdAndFollowingIdIn(viewerId,targetUserIds);
             for(Follow follow: followers){
                 profileSummary profileSummary= summaryMap.get(follow.getFollowing_id());
                 if(profileSummary!=null){
@@ -53,7 +53,7 @@ public class FollowRelationShipResolver {
         }else{
             profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.FOLLOW_REQUESTED));
         }
-        List<Follow> followings=followRepo.findByFollowing_UuidAndFollower_UuidIn(viewerId,targetUserIds);
+        List<Follow> followings=followRepo.findByFollowingIdAndFollowerIdIn(viewerId,targetUserIds);
         for(Follow follow: followings){
             profileSummary profileSummary= summaryMap.get(follow.getFollower_id());
             if(profileSummary!=null){
@@ -76,7 +76,7 @@ public class FollowRelationShipResolver {
         // here there is no relation know in advanced so starting from not following
         // and then tring to resolve the relation starting from the viewer side
         profileSummaries.forEach(profileSummary -> profileSummary.setStatus(RelationshipStatus.NOT_FOLLOWING));
-        List<Follow> outgoing = followRepo.findByFollower_UuidAndFollowing_UuidIn(viewerId, targetUserIds);
+        List<Follow> outgoing = followRepo.findByFollowerIdAndFollowingIdIn(viewerId, targetUserIds);
         for (Follow follow : outgoing) {
             profileSummary summary = summaryMap.get(follow.getFollowing_id());
             if (summary != null) {
@@ -88,7 +88,7 @@ public class FollowRelationShipResolver {
         }
 
 
-        List<Follow> incoming = followRepo.findByFollowing_UuidAndFollower_UuidIn(viewerId,targetUserIds);
+        List<Follow> incoming = followRepo.findByFollowingIdAndFollowerIdIn(viewerId,targetUserIds);
         for (Follow follow : incoming) {
             profileSummary profileSummary = summaryMap.get(follow.getFollower_id());
             if (profileSummary != null && profileSummary.getStatus() == RelationshipStatus.NOT_FOLLOWING) {

@@ -9,8 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProfileRepo extends JpaRepository<Profile, UUID> {
-    Optional<Profile> findByUser(User user);
-    boolean existsByUserUsername(String username);
-    boolean existsByUserAndIsprivateFalse(User user);
+    Profile findByUserId(String userId);
+    boolean existsByUserId(String userId);
    List<Profile> findByUserIdIn(List<String> usersIds);
+
+    boolean existsByUserIdAndIsprivateFalse(String userId);
 }

@@ -1,5 +1,7 @@
 package com.example.SocialMediaApp.User.domain;
 
+import com.example.SocialMediaApp.Notification.domain.NotificationsSettings;
+import com.example.SocialMediaApp.Profile.domain.Profile;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
@@ -26,26 +28,40 @@ public class User {
 
     @CreatedDate
     private Instant createddate;
+
     @LastModifiedDate
     private Instant lastmodifieddate;
 
     private String firstname;
+
     private String lastname;
+
     @Column(unique = true)
     private String username;
+
     @Email
     @Column(unique = true)
     private String email;
+
     private LocalDate birthday;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Profile profile;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private NotificationsSettings notificationsSettings;
+
     public User(String username, String firstname, String lastname, String email){
         this.firstname=firstname;
         this.lastname=lastname;
         this.email=email;
         this.username=username;
     }
+
     public User(String uuid){
      this.id=uuid;
     }
+
     public User(String username, String uuid){
         this.username=username;
         this.id=uuid;

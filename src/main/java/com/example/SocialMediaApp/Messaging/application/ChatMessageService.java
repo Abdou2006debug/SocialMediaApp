@@ -48,29 +48,29 @@ public class ChatMessageService {
     // this is meant for first time chatting it first check whether a chat exists between users or not
     @CheckUserExistence
     public void sendMessageToUser(sendMessageToUserDTO sendMessageToUserDTO){
-        User currentUser=authenticatedUserService.getcurrentuser();
-        User targetUser=new User(sendMessageToUserDTO.getUserId());
-        if(blocksRepo.existsByBlockerAndBlocked(currentUser,targetUser)||blocksRepo.existsByBlockerAndBlocked(targetUser,currentUser)){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        String targetUserId=sendMessageToUserDTO.getUserId();
+        if(blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,targetUserId)||blocksRepo.existsByBlockerIdAndBlockedId(targetUserId,currentUserId)){
             throw new ChatMessagingException("cannot send message to user");
         }
 
-        Optional<Chat> optionalChat =chatRepo.findChatBetween(currentUser.getId(),targetUser.getId());
+        Optional<Chat> optionalChat =chatRepo.findChatBetween(currentUserId,targetUserId);
 
         // if there is a chat between users delegate to sendMessageToChat method
         if(optionalChat.isPresent()){
             Chat chat=optionalChat.get();
-            canSendtoUser(currentUser,targetUser);
+            canSendtoUser(currentUserId,targetUserId);
             return ;
         }
 
 
         try{
         Chat newChat =chatRepo.save(new Chat());
-        ChatMember chatMember1=new ChatMember(newChat,currentUser);
-        ChatMember chatMember2=new ChatMember(newChat,targetUser);
+        ChatMember chatMember1=new ChatMember(newChat,currentUserId);
+        ChatMember chatMember2=new ChatMember(newChat,targetUserId);
         chatMember2.incrementUnreadCount();
         chatMemberRepo.saveAll(List.of(chatMember1,chatMember2));
-        Message message=messageRepo.save(new Message(newChat.getId(),currentUser.getId(), sendMessageToUserDTO.getContent()));
+        Message message=messageRepo.save(new Message(newChat.getId(),currentUserId, sendMessageToUserDTO.getContent()));
         newChat.setLastMessageId(message.getId());
         newChat.setLastMessageAt(message.getSentAt());
         chatRepo.save(newChat);
@@ -105,10 +105,10 @@ public class ChatMessageService {
     }
 
 
-    private void canSendtoUser(User currentUser,User targetUser){
-        Profile profile=profileCacheManager.getProfile(targetUser.getId()).get();
+    private void canSendtoUser(String currentUserId,String targetUserId){
+        Profile profile=profileCacheManager.getProfile(targetUserId).get();
         if(profile.isIsprivate()){
-            boolean followed=followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetUser,Follow.Status.ACCEPTED);
+            boolean followed=followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId,targetUserId,Follow.Status.ACCEPTED);
             if(!followed){
                 throw new ChatMessagingException("cannot send message to user");
             }

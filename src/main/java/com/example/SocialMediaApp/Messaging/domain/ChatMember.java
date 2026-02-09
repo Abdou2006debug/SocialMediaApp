@@ -38,9 +38,9 @@ public class ChatMember {
 
     private String lastreadMessageId;
 
-    public ChatMember(Chat chat,User user){
+    public ChatMember(Chat chat,String userId){
         this.chat=chat;
-        this.user=user;
+        this.user=new User(userId);
         }
 
         public void incrementUnreadCount(){

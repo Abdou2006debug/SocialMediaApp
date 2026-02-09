@@ -15,12 +15,12 @@ public class profileDetails {
     private String username;
     private String avatarurl;
     private String bio;
-    private RelationshipStatus status;
+    private RelationshipStatus relationship;
     private String followers;
     private String followings;
     private String posts;
-    public profileDetails(String userId,RelationshipStatus status){
+    public profileDetails(String userId,RelationshipStatus relationship){
         this.userId=userId;
-        this.status=status;
+        this.relationship=relationship;
     }
 }

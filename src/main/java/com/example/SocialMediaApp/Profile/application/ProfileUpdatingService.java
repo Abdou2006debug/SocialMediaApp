@@ -35,8 +35,8 @@ public class ProfileUpdatingService {
     private final IdentityService identityService;
 
     public void UpdateProfileSettings(profilesettings profilesettings){
-        User currentuser= authenticatedUserService.getcurrentuser();
-        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
+        String currentUserId= authenticatedUserService.getcurrentuser();
+        Profile currentprofile= profileQueryService.getUserProfile(currentUserId,false);
         boolean preStatus=currentprofile.isIsprivate();
         currentprofile.setIsprivate(profilesettings.isIsprivate());
         currentprofile.setShowifonline(profilesettings.isShowifonline());
@@ -44,13 +44,13 @@ public class ProfileUpdatingService {
         profileCacheManager.cacheUserProfile(currentprofile);
         // if profile was set from private to public all follow request to this user must be deleted
         if(preStatus&&!profilesettings.isIsprivate()){
-            followRepo.deleteByFollowingAndStatus(currentuser, Follow.Status.PENDING);
+            followRepo.deleteByFollowingIdAndStatus(currentUserId, Follow.Status.PENDING);
         }
     }
 
     public void changeProfileAvatar(MultipartFile file) throws IOException {
-        User currentuser= authenticatedUserService.getcurrentuser();
-        Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
+        String currentUserId= authenticatedUserService.getcurrentuser();
+        Profile currentprofile= profileQueryService.getUserProfile(currentUserId,false);
 
         String oldAvatarUri=currentprofile.getPrivateavatarurl();
 
@@ -62,17 +62,21 @@ public class ProfileUpdatingService {
         profileCacheManager.cacheUserProfile(currentprofile);
         profileCacheManager.cacheProfileInfo(currentprofile);
     }
+
     @Transactional
-    public void UpdateProfile(profile p){
-        User  currentuser= userRepo.findById(authenticatedUserService.getcurrentuser().getId()).get();
+    public void UpdateProfile(profile profile){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        User  currentuser= userRepo.findById(currentUserId).get();
         Profile currentprofile= profileQueryService.getUserProfile(currentuser.getId(),false);
-        currentprofile.setUsername(p.getUsername());
-        currentprofile.setBio(p.getBio());
-        currentuser.setUsername(p.getUsername());
-        currentprofile.setUsername(p.getUsername());
+        currentprofile.setUsername(profile.getUsername());
+        currentprofile.setBio(profile.getBio());
+        currentuser.setUsername(profile.getUsername());
+        currentprofile.setUsername(profile.getUsername());
+        currentuser.setProfile(currentprofile);
         userRepo.save(currentuser);
-        profileRepo.save(currentprofile);
-        identityService.changeUsername(currentuser.getId(),p.getUsername());
+        if(!currentprofile.getUsername().equals(profile.getUsername())){
+            identityService.changeUsername(currentUserId, profile.getUsername());
+        }
         profileCacheManager.cacheUserProfile(currentprofile);
         profileCacheManager.cacheProfileInfo(currentprofile);
     }

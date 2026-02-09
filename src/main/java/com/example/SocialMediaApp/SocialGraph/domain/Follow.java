@@ -37,7 +37,7 @@ public class Follow {
     @Column(name = "follower_id",insertable = false,updatable = false)
     private String follower_id;
 
-    @Column(name = "follower_id",insertable = false,updatable = false)
+    @Column(name = "following_id",insertable = false,updatable = false)
     private String following_id;
 
     @ManyToOne(fetch =FetchType.LAZY)
@@ -48,13 +48,15 @@ public class Follow {
     @JoinColumn(name="following_id")
     private User following;
 
-    public Follow(User follower, User following){
-       this.follower=follower;
-       this.following=following;
+    public Follow(String followerId, String followingId){
+       this.follower=new User(followerId);
+       this.following=new User(followingId);
     }
-    public Follow(User follower, User following, Status status){
+
+    public Follow(String follower, String following, Status status){
         this(follower,following);
         this.status=status;
     }
+
     public enum Status{PENDING,ACCEPTED}
 }

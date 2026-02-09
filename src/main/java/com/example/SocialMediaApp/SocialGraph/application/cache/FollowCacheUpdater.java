@@ -20,8 +20,8 @@ public class FollowCacheUpdater {
     @EventListener
     public void addfollow(followAdded followAdded) {
         Follow follow=followAdded.getFollow();
-        String followerId=follow.getFollower().getUuid();
-        String followingId =follow.getFollowing().getUuid();
+        String followerId=follow.getFollower_id();
+        String followingId =follow.getFollowing_id();
         boolean followersPage0Cached = redisTemplate.hasKey("user:" + followingId + ":followers:page0_cached");
         boolean followingsPage0Cached = redisTemplate.hasKey("user:" + followerId + ":followings:page0_cached");
 
@@ -47,8 +47,8 @@ public class FollowCacheUpdater {
     @EventListener
     public void removefollow(followRemoved followRemoved) {
         Follow follow=followRemoved.getFollow();
-        String followerId=follow.getFollower().getUuid();
-        String followingId =follow.getFollowing().getUuid();
+        String followerId=follow.getFollower_id();
+        String followingId =follow.getFollowing_id();
         redisTemplate.opsForZSet().remove("user:"+followingId+":followers:",followerId);
         redisTemplate.opsForZSet().remove("user:"+followerId+":followings:",followingId);
         }

@@ -17,7 +17,7 @@ import java.util.UUID;
 @Table(indexes = {
         @Index(name="block",columnList = "blocked_id,blocker_id")
 })
-public class Blocks {
+public class Block {
 
     @Id
     @GeneratedValue
@@ -34,8 +34,8 @@ public class Blocks {
     @JoinColumn(name="blocked_id")
     private User blocked;
 
-    public Blocks(User blocker, User blocked){
-        this.blocked=blocked;
-        this.blocker=blocker;
+    public Block(String blockerId, String blockedId){
+        this.blocked=new User(blockedId);
+        this.blocker=new User(blockerId);
     }
 }

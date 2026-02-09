@@ -17,7 +17,7 @@ public interface ChatRepo extends JpaRepository<Chat,String> {
     WHERE cm.user.id = :userId
     ORDER BY c.lastMessageAt DESC
 """)
-    Page<Chat> findByUser(String userId, Pageable pageable);
+    Page<Chat> findByUserId(String userId, Pageable pageable);
 
     @Query("""
           SELECT c FROM Chat c

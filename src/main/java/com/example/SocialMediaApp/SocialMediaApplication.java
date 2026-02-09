@@ -8,8 +8,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-@EnableJpaAuditing
-@EnableConfigurationProperties({StorageProperties.class, ClientPropeties.class})
 public class SocialMediaApplication {
     public static void main(String[] args) {
         SpringApplication.run(SocialMediaApplication.class, args);

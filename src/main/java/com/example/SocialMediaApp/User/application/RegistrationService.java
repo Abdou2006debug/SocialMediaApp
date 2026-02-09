@@ -28,22 +28,25 @@ public class RegistrationService {
 
 
     @Transactional
-    public void registerUser(userregistration userregistration){
+    public String registerUser(userregistration userregistration){
         String userId=identityService.UserProvision(userregistration);
+        log.info("user id "+userId);
         User user=usermapper.toUserentity(userregistration);
         user.setId(userId);
+
+        Profile profile=new Profile(userregistration.getUsername());
+        profile.setUser(user);
+        NotificationsSettings notificationsSettings=new NotificationsSettings();
+        notificationsSettings.setUser(user);
+        user.setProfile(profile);
+        user.setNotificationsSettings(notificationsSettings);
         try{
-            userRepo.saveAndFlush(user);
-            Profile profile=new Profile(null,userregistration.getUsername());
-            profile.setUser(user);
-            NotificationsSettings notificationsSettings=NotificationsSettings.builder().
-                    user(user).Onfollow(true).onfollowingrequestRejected(true).onfollowingrequestAccepted(true).build();
-            notificationSettingsRepo.save(notificationsSettings);
-            profileRepo.save(profile);
+        userRepo.save(user);
         }catch (Exception e){
             identityService.UserRemoval(userId);
           log.error("failed to save user in database removing it from auth server");
           throw new UserRegistrationException("registration failed!!");
         }
+        return userId;
     }
 }

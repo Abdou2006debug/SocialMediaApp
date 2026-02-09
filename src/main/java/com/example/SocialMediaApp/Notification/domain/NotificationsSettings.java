@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Entity
-@NoArgsConstructor
 @Data
-@AllArgsConstructor
-@Builder
 @Table(indexes = {@Index(name="userNotifications",columnList = "user_id")})
 public class NotificationsSettings {
     @Id
@@ -27,13 +24,13 @@ public class NotificationsSettings {
     //private Boolean Oncommentreplies;
 
     @Column(name="follow")
-    private Boolean Onfollow;
+    private Boolean Onfollow=true;
 
     @Column(name="followingrequests")
-    private Boolean onfollowingrequestAccepted;
+    private Boolean onfollowingrequestAccepted=true;
 
     @Column(name="followingrequests_rejected")
-    private Boolean onfollowingrequestRejected;
+    private Boolean onfollowingrequestRejected=true;
 
     @OneToOne
     @JoinColumn(name="user_id")

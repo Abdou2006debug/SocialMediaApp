@@ -19,8 +19,8 @@ public class NotificationSettingsService {
     private final AuthenticatedUserService authenticatedUserService;
     private final Profilemapper profilemapper;
     public void updateNotificationSettings(notificationsettings notification){
-        User currentuser=authenticatedUserService.getcurrentuser();
-        NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUser(currentuser);
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUserId(currentUserId);
         notificationsSettings.setOnfollow(notification.getOnfollow());
         notificationsSettings.setOnfollowingrequestRejected(notification.getOnfollowingrequestRejected());
         notificationsSettings.setOnfollowingrequestAccepted(notification.getOnfollowingrequestAccepted());
@@ -28,8 +28,8 @@ public class NotificationSettingsService {
     }
 
     public notificationsettings getnotificationsettings(){
-        User currentuser=authenticatedUserService.getcurrentuser();
-        NotificationsSettings notificationsSettings= notificationSettingsRepo.findByUser(currentuser);
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        NotificationsSettings notificationsSettings= notificationSettingsRepo.findByUserId(currentUserId);
         return profilemapper.tonotificationsettings(notificationsSettings);
     }
 

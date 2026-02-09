@@ -42,6 +42,9 @@ public Profile(String bio , String username){
     this.bio=bio;
     this.username=username;
 }
+public Profile(String username){
+    this(null,username);
+}
 public Profile(boolean isprivate){
     this.isprivate=isprivate;
 }

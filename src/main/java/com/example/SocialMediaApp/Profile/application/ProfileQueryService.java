@@ -33,52 +33,57 @@ public class ProfileQueryService {
     private final FollowRepo followRepo;
     private final BlocksRepo blocksRepo;
     private final FollowCacheWriter followCacheWriter;
+
     @CheckUserExistence
-    public profileDetails getUserProfile(String userId){
-       User currentUser=authenticatedUserService.getcurrentuser();
-       User targetUser=new User(userId);
-       ProfileInfo profileInfo= getUserProfileInfo(userId);
+    public profileDetails getUserProfile(String targetUserId){
+       String currentUserId=authenticatedUserService.getcurrentuser();
+       ProfileInfo profileInfo= getUserProfileInfo(targetUserId);
         profileDetails profileDetails=profilemapper.toprofileDetails(profileInfo);
 
-        profileDetails.setFollowers(followCacheWriter.UserFollowerCount(userId));
-        profileDetails.setFollowings(followCacheWriter.UserFollowingCount(userId));
+        profileDetails.setFollowers(followCacheWriter.UserFollowerCount(targetUserId));
+        profileDetails.setFollowings(followCacheWriter.UserFollowingCount(targetUserId));
         // no relation should be set
-        if(userId.equals(currentUser.getId())){
+        if(currentUserId.equals(targetUserId)){
             return profileDetails;
         }
 
 
-     if(blocksRepo.existsByBlockerAndBlocked(currentUser,targetUser)||blocksRepo.existsByBlockerAndBlocked(targetUser,currentUser)){
+     if(blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,targetUserId)||blocksRepo.existsByBlockerIdAndBlockedId(targetUserId,currentUserId)){
          profileDetails.setBio(null);
          profileDetails.setAvatarurl(null);
          profileDetails.setUsername("Instagram User");
          return profileDetails;
      }
 
+     RelationshipStatus relationship=resolveRelation(currentUserId,targetUserId);
 
-     RelationshipStatus status=RelationshipStatus.NOT_FOLLOWING;
-
-        if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetUser, Follow.Status.ACCEPTED)){
-            status= RelationshipStatus.FOLLOWING;
-        }else if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,targetUser, Follow.Status.PENDING)){
-            status=RelationshipStatus.FOLLOW_REQUESTED;
-        }else if(followRepo.existsByFollowerAndFollowingAndStatus(targetUser,currentUser, Follow.Status.ACCEPTED)){
-            status=RelationshipStatus.FOLLOWED;
-        }else if(followRepo.existsByFollowerAndFollowingAndStatus(targetUser,currentUser, Follow.Status.PENDING)){
-            status=RelationshipStatus.FOLLOW_REQUEST_RECEIVED;
-        }
-      profileDetails.setStatus(status);
+      profileDetails.setRelationship(relationship);
         return profileDetails;
     }
 
+    private RelationshipStatus resolveRelation(String currentUserId,String targetUserId){
+        RelationshipStatus status=RelationshipStatus.NOT_FOLLOWING;
+
+        if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId,targetUserId, Follow.Status.ACCEPTED)){
+            status= RelationshipStatus.FOLLOWING;
+        }else if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId,targetUserId, Follow.Status.PENDING)){
+            status=RelationshipStatus.FOLLOW_REQUESTED;
+        }else if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(targetUserId,currentUserId, Follow.Status.ACCEPTED)){
+            status=RelationshipStatus.FOLLOWED;
+        }else if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(targetUserId,currentUserId, Follow.Status.PENDING)){
+            status=RelationshipStatus.FOLLOW_REQUEST_RECEIVED;
+        }
+        return status;
+    }
+
     public profilesettings getMyProfileSettings(){
-        User currentuser=authenticatedUserService.getcurrentuser();
-        Profile profile=getUserProfile(currentuser.getId(),true);
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        Profile profile=getUserProfile(currentUserId,true);
         return profilemapper.toprofilesettings(profile);
     }
 
     public Profile getUserProfile(String userId, Boolean cacheProfile){
-        Profile profile = profileCacheManager.getProfile(userId).orElseGet(() -> profileRepo.findByUser(new User(userId)).orElseThrow());
+        Profile profile = profileCacheManager.getProfile(userId).orElseGet(() -> profileRepo.findByUserId(userId));
         if(cacheProfile){
             profileCacheManager.cacheUserProfile(profile);
         }

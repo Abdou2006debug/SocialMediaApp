@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FollowNotification {
-    private User trigger;
-    private User recipient;
+    private String triggerId;
+    private String recipientId;
     private notificationType type;
 
     public enum notificationType{FOLLOW,FOLLOW_REQUESTED,FOLLOWING_ACCEPTED,FOLLOWING_REJECTED}

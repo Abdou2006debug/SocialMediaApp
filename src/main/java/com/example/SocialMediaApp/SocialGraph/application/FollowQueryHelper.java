@@ -28,17 +28,17 @@ public class FollowQueryHelper {
     public enum Position {FOLLOWERS, FOLLOWINGS}
 
     // no cache is supposed to be here since its  viewed  by the owing user only so fetching directly from db
-    public List<profileSummary> listCurrentUserPendingFollows(String userId, Position position, int page){
+    public List<profileSummary> listCurrentUserPendingFollows(String currentUserId, Position position, int page){
         Pageable pageable= PageRequest.of(page,10);
         Page<Follow> pendingFollowsPage=position==Position.FOLLOWERS?
-                followRepo.findByFollowingAndStatus(new User(userId), Follow.Status.PENDING,pageable):
-                followRepo.findByFollowerAndStatus(new User(userId), Follow.Status.PENDING,pageable);
+                followRepo.findByFollowingIdAndStatus(currentUserId, Follow.Status.PENDING,pageable):
+                followRepo.findByFollowerIdAndStatus(currentUserId, Follow.Status.PENDING,pageable);
         List<Follow> pendingFollows=pendingFollowsPage.getContent();
         List<String> followsIds=pendingFollows.stream().
                 map(follow -> position==Position.FOLLOWERS?follow.getFollower_id():follow.getFollowing_id()).toList();
        List<profileSummary> profileSummaries= profileSummaryService.buildProfileSummaries(followsIds);
         followRelationShipResolver.
-                resolveCurrentUserFollowRelationShip(profileSummaries,userId,position, Follow.Status.PENDING);
+                resolveCurrentUserFollowRelationShip(profileSummaries, currentUserId,position, Follow.Status.PENDING);
         return profileSummaries;
     }
 

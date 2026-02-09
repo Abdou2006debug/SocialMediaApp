@@ -46,11 +46,11 @@ public class ChatOverviewService {
     private final ProfileCacheManager profileCacheManager;
 
     public List<chatSummary> getUserChats(int page){
-        User currentUser=authenticatedUserService.getcurrentuser();
+        String currentUserId=authenticatedUserService.getcurrentuser();
         Pageable pageable= PageRequest.of(page,10);
-        Page<Chat> Page = chatRepo.findByUser(currentUser.getId(),pageable);
+        Page<Chat> Page = chatRepo.findByUserId(currentUserId,pageable);
         List<Chat> chats = Page.getContent();
-        List<chatMemberDTO> otherChatMembers=chatMemberRepo.findOtherChatMembers(chats.stream().map(Chat::getId).toList(),currentUser.getId());
+        List<chatMemberDTO> otherChatMembers=chatMemberRepo.findOtherChatMembers(chats.stream().map(Chat::getId).toList(),currentUserId);
         List<profileSummary> profileSummaries= profileSummaryBuilder.buildProfileSummaries(otherChatMembers.stream().map(chatMemberDTO::getUser_Id).toList());
         Map<String,chatMemberDTO> map=otherChatMembers.stream()
                 .collect(Collectors.toMap(chatMemberDTO::getUser_Id, Function.identity()));
@@ -60,18 +60,18 @@ public class ChatOverviewService {
             chatDTO.setChatId(chatMemberDTO.getChat_Id());
             return chatDTO;
         }).toList();
-        chatStatusResolver.computeStatus(chats,chatSummaries,currentUser.getId());
+        chatStatusResolver.computeStatus(chats,chatSummaries,currentUserId);
         return chatSummaries;
     }
 
     public chatDetails getUserChat(String chatId, int page){
-        User currentUser=authenticatedUserService.getcurrentuser();
+        String currentUserId=authenticatedUserService.getcurrentuser();
 
-        if(!chatRepo.existsById(chatId)||!chatMemberRepo.existsByUserAndChatId(currentUser,chatId)){
+        if(!chatRepo.existsById(chatId)||!chatMemberRepo.existsByUserIdAndChatId(currentUserId,chatId)){
             throw new ChatMessagingException("Chat not found");
         }
 
-        ChatMember otherchatMember=chatMemberRepo.findByChatIdAndUserIdNot(chatId,currentUser.getId()).orElseThrow();
+        ChatMember otherchatMember=chatMemberRepo.findByChatIdAndUserIdNot(chatId,currentUserId).orElseThrow();
         chatUser chatUser=buildChatUser(otherchatMember);
         Pageable pageable=PageRequest.of(page,10, Sort.by(Sort.Direction.DESC,"lastMessageAt"));
         Page<Message> Page= messageRepo.findByChatId(chatId,pageable);
@@ -81,7 +81,7 @@ public class ChatOverviewService {
           for (Message message:messages){
               messageDTO messageDTO=chatmapper.tomessageDTO(message);
 
-              messageDTO.setSentByme(message.getSenderId().equals(currentUser.getId()));
+              messageDTO.setSentByme(message.getSenderId().equals(currentUserId));
 
               if(message.getId().equals(otherchatMember.getLastreadMessageId())){
                   messageDTO.setLastView(true);
@@ -91,7 +91,7 @@ public class ChatOverviewService {
           }
 
           if(page==0&&!messages.isEmpty()){
-             chatMemberRepo.updateUserChat(messages.get(0).getId(),currentUser.getId(),chatId);
+             chatMemberRepo.updateUserChat(messages.get(0).getId(),currentUserId,chatId);
           }
 
           return new chatDetails(chatId,chatUser,messageDTOS);

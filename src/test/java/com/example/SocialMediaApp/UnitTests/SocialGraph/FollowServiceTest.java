@@ -61,12 +61,12 @@ public class FollowServiceTest {
     @InjectMocks
     private FollowService followService;
 
-    private final User currentuser=new User(UUID.randomUUID().toString());
-    private final User requesteduser = new User(UUID.randomUUID().toString());
+    private final String currentUserId=UUID.randomUUID().toString();
+    private final String targetUserId = UUID.randomUUID().toString();
 
     @BeforeEach
     public  void setCurrentUser() {
-       when(authenticatedUserService.getcurrentuser()).thenReturn(currentuser);
+       when(authenticatedUserService.getcurrentuser()).thenReturn(currentUserId);
     }
 
     // FOLLOW CREATION TESTS
@@ -77,60 +77,60 @@ public class FollowServiceTest {
         @Test
         public void Follow_yourself_throwsBadFollowException(){
             Exception exception=assertThrows(BadFollowRequestException.class,
-                    ()->followService.Follow(currentuser.getId()));
+                    ()->followService.Follow(currentUserId));
             assertEquals("you cant follow yourself", exception.getMessage());
         }
 
         @Test
         public void follow_alreadyFollowedUser_throwsBadFollowException() {
-            when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, requesteduser, Follow.Status.ACCEPTED))
+            when(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId, targetUserId, Follow.Status.ACCEPTED))
                     .thenReturn(true);
             assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(requesteduser.getId()), "Already followed");
+                    () -> followService.Follow(targetUserId), "Already followed");
         }
 
         @Test
         public void follow_pendingFollowRequest_throwsBadFollowRequestException() {
-          lenient().when(followRepo.existsByFollowerAndFollowingAndStatus(currentuser, requesteduser, Follow.Status.PENDING))
+          lenient().when(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId, targetUserId, Follow.Status.PENDING))
                     .thenReturn(true);
             assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(requesteduser.getId()), "request already sent");
+                    () -> followService.Follow(targetUserId), "request already sent");
         }
 
         @Test
         public void follow_userBlockedByCurrentUser_throwsBadFollowRequestException() {
-            lenient().when(blocksRepo.existsByBlockerAndBlocked(currentuser,requesteduser)).thenReturn(true);
+            lenient().when(blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,targetUserId)).thenReturn(true);
             assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(requesteduser.getId()), "You cant follow this User");
+                    () -> followService.Follow(targetUserId), "You cant follow this User");
         }
 
         @Test
         public void follow_userHasBlockedCurrentUser_throwsBadFollowRequestException() {
-            when(blocksRepo.existsByBlockerAndBlocked(requesteduser,currentuser)).thenReturn(true);
+            when(blocksRepo.existsByBlockerIdAndBlockedId(targetUserId,currentUserId)).thenReturn(true);
             assertthrows(BadFollowRequestException.class,
-                    () -> followService.Follow(requesteduser.getId()), "You cant follow this User");
+                    () -> followService.Follow(targetUserId), "You cant follow this User");
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {true,false})
         public void follow_public_privateProfiles(boolean Public){
-            when(profileRepo.existsByUserAndIsprivateFalse(requesteduser)).thenReturn(Public);
-            profileDetails profileDetails=followService.Follow(requesteduser.getId());
-            assertEquals(requesteduser.getId(),profileDetails.getUserId());
+            when(profileRepo.existsByUserIdAndIsprivateFalse(targetUserId)).thenReturn(Public);
+            profileDetails profileDetails=followService.Follow(targetUserId);
+            assertEquals(targetUserId,profileDetails.getUserId());
             ArgumentCaptor<Follow> captor1=ArgumentCaptor.forClass(Follow.class);
             verify(followRepo).save(captor1.capture());
             Follow follow=captor1.getValue();
-            assertEquals(follow.getFollower().getId(),currentuser.getId());
-            assertEquals(follow.getFollowing().getId(),requesteduser.getId());
+            assertEquals(follow.getFollower().getId(),currentUserId);
+            assertEquals(follow.getFollowing().getId(),targetUserId);
             ArgumentCaptor<FollowNotification> captor2=ArgumentCaptor.forClass(FollowNotification.class);
             verify(eventPublisher).publishEvent(captor2.capture());
             FollowNotification followNotification=captor2.getValue();
-            assertEquals(followNotification.getTrigger().getId(),currentuser.getId());
-            assertEquals(followNotification.getRecipient().getId(),requesteduser.getId());
+            assertEquals(followNotification.getTriggerId(),currentUserId);
+            assertEquals(followNotification.getRecipientId(),targetUserId);
             if(Public){
                 assertEquals(Follow.Status.ACCEPTED, follow.getStatus());
                assertEquals(FollowNotification.notificationType.FOLLOW,followNotification.getType());
-               assertEquals(RelationshipStatus.FOLLOWING, profileDetails.getStatus());
+               assertEquals(RelationshipStatus.FOLLOWING, profileDetails.getRelationship());
                verify(eventPublisher).publishEvent(any(followAdded.class));
                ArgumentCaptor<FollowQueryHelper.Position> captor3=ArgumentCaptor.forClass(FollowQueryHelper.Position.class);
                 ArgumentCaptor<FollowCacheUpdater.UpdateType> captor4=ArgumentCaptor.forClass(FollowCacheUpdater.UpdateType.class);
@@ -141,7 +141,7 @@ public class FollowServiceTest {
             }else{
                 assertEquals(Follow.Status.PENDING,follow.getStatus());
                 assertEquals(FollowNotification.notificationType.FOLLOW_REQUESTED,followNotification.getType());
-                assertEquals(RelationshipStatus.FOLLOW_REQUESTED,profileDetails.getStatus());
+                assertEquals(RelationshipStatus.FOLLOW_REQUESTED,profileDetails.getRelationship());
             }
         }
 
@@ -153,17 +153,17 @@ public class FollowServiceTest {
     class FollowRemovalTests {
         @Test
         public void unfollow_notfollowing_throwsNoRelationShipException(){
-            when(followRepo.findByFollowerAndFollowing(currentuser,requesteduser)).thenReturn(Optional.empty());
-            assertThrows(NoRelationShipException.class,()->followService.UnFollow(requesteduser.getId()),"No relation with user found");
+            when(followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId)).thenReturn(Optional.empty());
+            assertThrows(NoRelationShipException.class,()->followService.UnFollow(targetUserId),"No relation with user found");
         }
 
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void unfollow_pending_accepted_followings(Follow.Status status){
-            Follow follow =new Follow(currentuser,requesteduser);
+            Follow follow =new Follow(currentUserId,targetUserId);
             follow.setStatus(status);
-            when(followRepo.findByFollowerAndFollowing(currentuser,requesteduser)).thenReturn(Optional.of(follow));
-            followService.UnFollow(requesteduser.getId());
+            when(followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId)).thenReturn(Optional.of(follow));
+            followService.UnFollow(targetUserId);
             verify(followRepo).delete(follow);
             if(status== Follow.Status.ACCEPTED){
                 verify(eventPublisher).publishEvent(any(followRemoved.class));
@@ -173,17 +173,17 @@ public class FollowServiceTest {
 
         @Test
         public void removefollower_notfollower_throwsNoRelationShipException(){
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.empty());
-            assertThrows(NoRelationShipException.class,()->followService.removefollower(requesteduser.getId()),"No relation with user found");
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).thenReturn(Optional.empty());
+            assertThrows(NoRelationShipException.class,()->followService.removefollower(targetUserId),"No relation with user found");
         }
 
         @ParameterizedTest
         @EnumSource(Follow.Status.class)
         public void removefollower_pending_accepted_followers(Follow.Status status){
-            Follow follow=new Follow(requesteduser,currentuser);
+            Follow follow=new Follow(targetUserId,currentUserId);
             follow.setStatus(status);
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.of(follow));
-            followService.removefollower(requesteduser.getId());
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).thenReturn(Optional.of(follow));
+            followService.removefollower(targetUserId);
             verify(followRepo).delete(follow);
             if(status== Follow.Status.ACCEPTED){
                 ArgumentCaptor<followRemoved> captor=ArgumentCaptor.forClass(followRemoved.class);
@@ -196,8 +196,8 @@ public class FollowServiceTest {
                 verify(eventPublisher).publishEvent(captor.capture());
                 FollowNotification followNotification=captor.getValue();
                 assertEquals(FollowNotification.notificationType.FOLLOWING_REJECTED,followNotification.getType());
-                assertEquals(requesteduser.getId(),followNotification.getRecipient().getId());
-                assertEquals(currentuser.getId(),followNotification.getTrigger().getId());
+                assertEquals(targetUserId,followNotification.getRecipientId());
+                assertEquals(currentUserId,followNotification.getTriggerId());
             }
         }
 
@@ -210,38 +210,38 @@ public class FollowServiceTest {
        // ACCEPT FOLLOW METHOD TESTS
        @Test
        public void accept_not_requested_throwsBadFollowRequestException(){
-           when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.empty());
-           assertthrows(NoRelationShipException.class,()->followRequestService.acceptFollow(requesteduser.getId()),"No relation with user found");
+           when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).thenReturn(Optional.empty());
+           assertthrows(NoRelationShipException.class,()->followRequestService.acceptFollow(targetUserId),"No relation with user found");
        }
 
         @Test
         public void acceptAlreadyFollower_throwsBadFollowRequestException(){
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).
-                    thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED)));
-            assertthrows(BadFollowRequestException.class,()->followRequestService.acceptFollow(requesteduser.getId()),"couldn't perform accept follow action on this user");
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).
+                    thenReturn(Optional.of(new Follow(targetUserId,currentUserId, Follow.Status.ACCEPTED)));
+            assertthrows(BadFollowRequestException.class,()->followRequestService.acceptFollow(targetUserId),"couldn't perform accept follow action on this user");
         }
 
         @Test
         public void accept_Follow_save_update_cache(){
 
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).
-                    thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.PENDING)));
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).
+                    thenReturn(Optional.of(new Follow(targetUserId,currentUserId, Follow.Status.PENDING)));
 
-            assertDoesNotThrow(()->followRequestService.acceptFollow(requesteduser.getId()));
+            assertDoesNotThrow(()->followRequestService.acceptFollow(targetUserId));
             ArgumentCaptor<Follow> captor=ArgumentCaptor.forClass(Follow.class);
             verify(followRepo).save(captor.capture());
             Follow follow=captor.getValue();
             assertEquals(Follow.Status.ACCEPTED, follow.getStatus());
-            assertEquals(follow.getFollower().getId(),requesteduser.getId());
-            assertEquals(follow.getFollowing().getId(),currentuser.getId());
+            assertEquals(follow.getFollower().getId(),targetUserId);
+            assertEquals(follow.getFollowing().getId(),currentUserId);
 
             ArgumentCaptor<Object> captor1=ArgumentCaptor.forClass(Object.class);
             verify(eventPublisher,times(2)).publishEvent(captor1.capture());
           captor1.getAllValues().forEach(o->{
               if(o instanceof FollowNotification followNotification){
                   assertEquals(FollowNotification.notificationType.FOLLOWING_ACCEPTED,followNotification.getType());
-                  assertEquals(requesteduser.getId(),followNotification.getRecipient().getId());
-                  assertEquals(currentuser.getId(),followNotification.getTrigger().getId());
+                  assertEquals(targetUserId,followNotification.getRecipientId());
+                  assertEquals(currentUserId,followNotification.getTriggerId());
               } else if (o instanceof followAdded followAdded){
                   assertThat(follow).usingRecursiveComparison().isEqualTo(followAdded.getFollow());
               }
@@ -254,51 +254,51 @@ public class FollowServiceTest {
 
         @Test
         public void reject_not_requested_throwsBadFollowRequestException(){
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.empty());
-            assertthrows(NoRelationShipException.class,()->followRequestService.rejectFollow(requesteduser.getId()),"No relation with user found");
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).thenReturn(Optional.empty());
+            assertthrows(NoRelationShipException.class,()->followRequestService.rejectFollow(targetUserId),"No relation with user found");
         }
 
         @Test
         public void rejectAlreadyFollower_throwsBadFollowRequestException(){
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.ACCEPTED)));
-            assertthrows(BadFollowRequestException.class,()->followRequestService.rejectFollow(requesteduser.getId()),"couldn't perform reject follow action on this user");
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).thenReturn(Optional.of(new Follow(targetUserId,currentUserId, Follow.Status.ACCEPTED)));
+            assertthrows(BadFollowRequestException.class,()->followRequestService.rejectFollow(targetUserId),"couldn't perform reject follow action on this user");
         }
 
         @Test
         public void reject_Follow_save_update_cache(){
 
-            when(followRepo.findByFollowerAndFollowing(requesteduser,currentuser)).
-                    thenReturn(Optional.of(new Follow(requesteduser,currentuser, Follow.Status.PENDING)));
-            assertDoesNotThrow(()->followRequestService.rejectFollow(requesteduser.getId()));
+            when(followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId)).
+                    thenReturn(Optional.of(new Follow(targetUserId,currentUserId, Follow.Status.PENDING)));
+            assertDoesNotThrow(()->followRequestService.rejectFollow(targetUserId));
             verify(followRepo).delete(any(Follow.class));
             ArgumentCaptor<FollowNotification> captor=ArgumentCaptor.forClass(FollowNotification.class);
             verify(eventPublisher).publishEvent(captor.capture());
             FollowNotification notification=captor.getValue();
             assertEquals(FollowNotification.notificationType.FOLLOWING_REJECTED, notification.getType());
-            assertEquals(notification.getTrigger(),currentuser);
-            assertEquals(notification.getRecipient(),requesteduser);
+            assertEquals(notification.getTriggerId(),currentUserId);
+            assertEquals(notification.getRecipientId(),targetUserId);
         }
 
         // UNSEND FOLLOWING REQUESTS
 
         @Test
         public void unsend_not_requested_throwsBadFollowRequestException(){
-            when(followRepo.findByFollowerAndFollowing(currentuser,requesteduser)).thenReturn(Optional.empty());
-            assertthrows(NoRelationShipException.class,()->followRequestService.unsendFollowingRequest(requesteduser.getId()),"No relation with user found");
+            when(followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId)).thenReturn(Optional.empty());
+            assertthrows(NoRelationShipException.class,()->followRequestService.unsendFollowingRequest(targetUserId),"No relation with user found");
         }
 
         @Test
         public void unsendAlreadyFollowing(){
-            when(followRepo.findByFollowerAndFollowing(currentuser,requesteduser)).thenReturn(Optional.of(new Follow(currentuser,requesteduser, Follow.Status.ACCEPTED)));
-            assertthrows(BadFollowRequestException.class,()->followRequestService.unsendFollowingRequest(requesteduser.getId()),"couldn't perform unsend follow request on this user");
+            when(followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId)).thenReturn(Optional.of(new Follow(currentUserId,targetUserId, Follow.Status.ACCEPTED)));
+            assertthrows(BadFollowRequestException.class,()->followRequestService.unsendFollowingRequest(targetUserId),"couldn't perform unsend follow request on this user");
         }
 
         @Test
         public void UnsendFollowSuccess_removeFollow(){
-           Follow follow=new Follow(currentuser,requesteduser, Follow.Status.PENDING);
-            when(followRepo.findByFollowerAndFollowing(currentuser,requesteduser)).
+           Follow follow=new Follow(currentUserId,targetUserId, Follow.Status.PENDING);
+            when(followRepo.findByFollowerIdAndFollowingId(currentUserId,targetUserId)).
                     thenReturn(Optional.of(follow));
-            assertDoesNotThrow(()->followRequestService.unsendFollowingRequest(requesteduser.getId()));
+            assertDoesNotThrow(()->followRequestService.unsendFollowingRequest(targetUserId));
             verify(followRepo).delete(follow);
         }
 

@@ -57,11 +57,11 @@ static {
     }
 
 
-    @BeforeEach
+   // @BeforeEach
     public void cleanup(){
    jdbcTemplate.execute("TRUNCATE TABLE USERS CASCADE");
    jdbcTemplate.execute("TRUNCATE TABLE FOLLOW CASCADE");
-   jdbcTemplate.execute("TRUNCATE TABLE BLOCKS CASCADE");
+   jdbcTemplate.execute("TRUNCATE TABLE BLOCK CASCADE");
 redisTemplate.getConnectionFactory().getConnection().flushAll();
 }
 }

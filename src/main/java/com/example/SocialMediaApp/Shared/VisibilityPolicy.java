@@ -18,21 +18,21 @@ public class VisibilityPolicy {
     private final BlocksRepo blocksRepo;
     private final ProfileRepo profileRepo;
     private final FollowRepo followRepo;
-    private final AuthenticatedUserService authenticatedUserService;
 
 
-    public boolean isAllowed(User currentUser,User requestedUser){
-            boolean isblocked=blocksRepo.existsByBlockerAndBlocked(requestedUser,currentUser);
+
+    public boolean isAllowed(String currentUserId,String requestedUserId){
+            boolean isblocked=blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,requestedUserId);
             if(isblocked){
              return false;
             }
-            boolean hasblocked= blocksRepo.existsByBlockerAndBlocked(currentUser,requestedUser);
+            boolean hasblocked= blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,requestedUserId);
             if (hasblocked) {
               return false;
             }
 
-            if(!profileRepo.existsByUserAndIsprivateFalse(requestedUser)){
-                if(!followRepo.existsByFollowerAndFollowingAndStatus(currentUser,requestedUser, Follow.Status.ACCEPTED)){
+            if(!profileRepo.existsByUserIdAndIsprivateFalse(requestedUserId)){
+                if(!followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId,requestedUserId, Follow.Status.ACCEPTED)){
                   return false;
                 }
             }

@@ -3,7 +3,7 @@ package com.example.SocialMediaApp.IntegrationTests.SocialGraph;
 import com.example.SocialMediaApp.Profile.domain.Profile;
 import com.example.SocialMediaApp.Profile.persistence.ProfileRepo;
 import com.example.SocialMediaApp.SocialGraph.application.FollowQueryHelper;
-import com.example.SocialMediaApp.SocialGraph.domain.Blocks;
+import com.example.SocialMediaApp.SocialGraph.domain.Block;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.BlocksRepo;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
@@ -30,41 +30,33 @@ public class FollowTestHelper {
     private final AuthenticatedUserService authenticatedUserService;
 
 
-    public User followUser(FollowServiceIntegrationTest.ProfileType profiletype){
-        User user=createTestUser();
+    public String createUserProfile(FollowServiceIntegrationTest.ProfileType profiletype){
+        String userId=UUID.randomUUID().toString();
         Profile profile=profiletype== FollowServiceIntegrationTest.ProfileType.PRIVATE?new Profile(true):new Profile(false);
-        profile.setUser(user);
+        profile.setUser(new User(userId));
         profileRepo.save(profile);
-        return user;
+        return userId;
     }
 
-    public User createFollowRecord(Follow.Status status, FollowQueryHelper.Position position){
-        User user=createTestUser();
-        User currentuser=authenticatedUserService.getcurrentuser();
+    public String createFollowRecord(Follow.Status status, FollowQueryHelper.Position position){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        String targetUserId=UUID.randomUUID().toString();
         Follow follow=position== FollowQueryHelper.Position.FOLLOWERS?
-                new Follow(user,currentuser,status):new Follow(currentuser,user,status);
+                new Follow(targetUserId,currentUserId,status):new Follow(currentUserId,targetUserId,status);
         followRepo.saveAndFlush(follow);
-        return user;
+        return targetUserId;
     }
 
-    public User createBlockRecord(boolean isCurrentBlocked){
-        User user=createTestUser();
-        User currentuser=authenticatedUserService.getcurrentuser();
-        Blocks blocks=new Blocks();
+    public String createBlockRecord(boolean isCurrentBlocked){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        String targetUserId=UUID.randomUUID().toString();
+        Block block=null;
         if(isCurrentBlocked){
-            blocks.setBlocked(currentuser);
-            blocks.setBlocker(user);
+             block=new Block(targetUserId,currentUserId);
         }else{
-            blocks.setBlocked(user);
-            blocks.setBlocker(currentuser);
+             block=new Block(currentUserId,targetUserId);
         }
-        blocksRepo.saveAndFlush(blocks);
-        return user;
-    }
-
-
-    public User createTestUser(){
-        User user=new User(UUID.randomUUID().toString());
-        return userRepo.saveAndFlush(user);
+        blocksRepo.saveAndFlush(block);
+        return targetUserId;
     }
 }

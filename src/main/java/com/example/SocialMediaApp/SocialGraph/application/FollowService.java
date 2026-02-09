@@ -37,76 +37,75 @@ public class FollowService {
     private final FollowCacheUpdater followCacheUpdater;
 
     @CheckUserExistence
-    public profileDetails Follow(String userId) {
-        User currentUser = authenticatedUserService.getcurrentuser();
-        if (currentUser.getId().equals(userId)) {
+    public profileDetails Follow(String targetUserId) {
+        String currentUserId = authenticatedUserService.getcurrentuser();
+        if (currentUserId.equals(targetUserId)) {
             throw new BadFollowRequestException("you cant follow yourself");
         }
-        User tagretUser=new User(userId);
-        if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser, tagretUser, Follow.Status.ACCEPTED)){
+        if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId, targetUserId, Follow.Status.ACCEPTED)){
             throw new BadFollowRequestException("Already followed");
         }
-        if(blocksRepo.existsByBlockerAndBlocked(tagretUser, currentUser)||blocksRepo.existsByBlockerAndBlocked(currentUser,tagretUser)){
+        if(blocksRepo.existsByBlockerIdAndBlockedId(targetUserId, currentUserId)||blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,targetUserId)){
             throw new BadFollowRequestException("You cant follow this User");
         }
-       if(followRepo.existsByFollowerAndFollowingAndStatus(currentUser,tagretUser, Follow.Status.PENDING)){
+       if(followRepo.existsByFollowerIdAndFollowingIdAndStatus(currentUserId,targetUserId, Follow.Status.PENDING)){
            throw new BadFollowRequestException("request already sent");
        }
-        Follow follow = new Follow(currentUser,tagretUser);
+        Follow follow = new Follow(currentUserId,targetUserId);
 
-        FollowNotification notification= new FollowNotification(currentUser,tagretUser,
+        FollowNotification notification= new FollowNotification(currentUserId,targetUserId,
                 FollowNotification.notificationType.FOLLOW);
         RelationshipStatus status;
-        if (profileRepo.existsByUserAndIsprivateFalse(tagretUser)) {
+        if (profileRepo.existsByUserIdAndIsprivateFalse(targetUserId)) {
             follow.setStatus(Follow.Status.ACCEPTED);
             follow.setFollowDate(Instant.now());
-            log.info("publishing follow event for "+tagretUser.getUsername());
+            log.info("publishing follow event for "+targetUserId);
             eventPublisher.publishEvent(notification);
             eventPublisher.publishEvent(new followAdded(follow));
             status=RelationshipStatus.FOLLOWING;
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, currentUser.getId(), FollowCacheUpdater.UpdateType.INCREMENT);
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.INCREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, currentUserId, FollowCacheUpdater.UpdateType.INCREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS, targetUserId, FollowCacheUpdater.UpdateType.INCREMENT);
         } else {
             follow.setStatus(Follow.Status.PENDING);
-            log.info("publishing follow request event for "+tagretUser.getUsername());
+            log.info("publishing follow request event for "+targetUserId);
             notification.setType(FollowNotification.notificationType.FOLLOW_REQUESTED);
             eventPublisher.publishEvent(notification);
             status=RelationshipStatus.FOLLOW_REQUESTED;
         }
 
         followRepo.save(follow);
-        return new profileDetails(userId,status);
+        return new profileDetails(targetUserId,status);
     }
 
     // this method works for both pending and accepted followings
     @CheckUserExistence
-    public void UnFollow(String userId) {
-        User currentUser = authenticatedUserService.getcurrentuser();
-        User targetUser=new User(userId);
-        Follow follow = followRepo.findByFollowerAndFollowing( currentUser,targetUser).
+    public void UnFollow(String targetUserId) {
+        String currentUserId = authenticatedUserService.getcurrentuser();
+        Follow follow = followRepo.findByFollowerIdAndFollowingId( currentUserId,targetUserId).
                 orElseThrow(()->new NoRelationShipException("No relation with user found"));
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentUser.getId(), FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,currentUserId, FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS, targetUserId, FollowCacheUpdater.UpdateType.DECREMENT);
         }
     }
 
     // this method works for both pending and accepted followers
     @CheckUserExistence
-    public void removefollower(String userId) {
-        User currentUser= authenticatedUserService.getcurrentuser();
-        User targetUser=new User(userId);
-        Follow follow = followRepo.findByFollowerAndFollowing(targetUser,currentUser).
+    public void removefollower(String targetUserId) {
+        String  currentUserId= authenticatedUserService.getcurrentuser();
+        Follow follow = followRepo.findByFollowerIdAndFollowingId(targetUserId,currentUserId).
                 orElseThrow(()->new NoRelationShipException("No relationship with user found"));
         followRepo.delete(follow);
         if(follow.getStatus()== Follow.Status.ACCEPTED){
             eventPublisher.publishEvent(new followRemoved(follow));
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUser.getId(), FollowCacheUpdater.UpdateType.DECREMENT);
-            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS,userId, FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWERS,currentUserId, FollowCacheUpdater.UpdateType.DECREMENT);
+            followCacheUpdater.UpdateCount(FollowQueryHelper.Position.FOLLOWINGS, targetUserId, FollowCacheUpdater.UpdateType.DECREMENT);
         }else{
-            eventPublisher.publishEvent(new FollowNotification(currentUser,targetUser, FollowNotification.notificationType.FOLLOWING_REJECTED));
+            FollowNotification notification=new FollowNotification(currentUserId,targetUserId,
+                    FollowNotification.notificationType.FOLLOWING_REJECTED);
+            eventPublisher.publishEvent(notification);
         }
     }
 }

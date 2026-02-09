@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface NotificationSettingsRepo extends JpaRepository<NotificationsSettings,UUID> {
-   NotificationsSettings findByUser(User user);
+   NotificationsSettings findByUserId(String userId);
    Optional<NotificationsSettings> findByUserUsername(String username);
 }

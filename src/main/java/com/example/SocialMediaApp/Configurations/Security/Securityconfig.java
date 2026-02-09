@@ -1,13 +1,19 @@
 package com.example.SocialMediaApp.Configurations.Security;
 
+import com.example.SocialMediaApp.Storage.StorageProperties;
+import com.example.SocialMediaApp.User.application.ClientPropeties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableJpaAuditing
+@EnableConfigurationProperties({StorageProperties.class, ClientPropeties.class})
 public class Securityconfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{

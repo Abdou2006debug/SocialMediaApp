@@ -28,14 +28,14 @@ public class FollowNotificationService {
     @EventListener
     public void FollowNotificationProcessing(FollowNotification notificationEvent) {
 
-        User recipient= notificationEvent.getRecipient();
-        boolean Send= canSendNotification(recipient.getId(),notificationEvent.getType());
+        String recipientId= notificationEvent.getRecipientId();
+        boolean Send= canSendNotification(recipientId,notificationEvent.getType());
         if(!Send){
             return;
         }
 
-        User trigger=notificationEvent.getTrigger();
-        ProfileInfo profileInfo=profileQueryService.getUserProfileInfo(trigger.getId());
+        String triggerId=notificationEvent.getTriggerId();
+        ProfileInfo profileInfo=profileQueryService.getUserProfileInfo(triggerId);
         StringBuilder message=new StringBuilder(profileInfo.getUsername());
         switch(notificationEvent.getType()){
             case FOLLOW->message.append(" Started Following you");
@@ -43,9 +43,9 @@ public class FollowNotificationService {
             case FOLLOWING_ACCEPTED -> message.append(" Accepted Your follow");
             case FOLLOWING_REJECTED -> message.append(" Rejected Your follow");
         }
-        log.info("publishing "+message.toString() +" to "+recipient.getId());
+        log.info("publishing "+message.toString() +" to "+recipientId);
         notification notification=new notification(message.toString(),profileInfo.getAvatarurl(),profileInfo.getUserId());
-        MessagingTemplate.convertAndSendToUser(recipient.getId(),"/queue/notifications",notification);
+        MessagingTemplate.convertAndSendToUser(recipientId,"/queue/notifications",notification);
     }
 
     private boolean canSendNotification(String userId, FollowNotification.notificationType notificationType){
@@ -55,7 +55,7 @@ public class FollowNotificationService {
            return false;
        }
 
-       NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUser(new User(userId));
+       NotificationsSettings notificationsSettings=notificationSettingsRepo.findByUserId(userId);
        switch (notificationType){
            case FOLLOW,FOLLOW_REQUESTED-> {
                if(!notificationsSettings.getOnfollow()){
