@@ -3,6 +3,7 @@ package com.example.SocialMediaApp.Storage;
 import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,22 +20,21 @@ public class StorageService {
 
     private final WebClient webClient;
     private final StorageProperties storageEnv;
-    private final StorageBuckets storageBuckets;
+    private final StorageUtil storageUtil;
+
 
     // profile avatar uploading is done directly via the server
-    public String uploadFile(MultipartFile file, String oldAvatarUri,String userId) throws IOException {
+    public String uploadFile(MultipartFile file,String userId) throws IOException {
 
-        if(oldAvatarUri!=null){
-            webClient.delete().uri(oldAvatarUri).retrieve().toBodilessEntity().block();
-        }
+        String bucket=storageEnv.getMedia();
 
-        uploadRequest request=toUploadRequest(file);
+        uploadRequest request=storageUtil.toUploadRequest(file);
 
-        validateRequest(request);
+        storageUtil.validateRequest(request);
 
-        String fileName =generateFileName(request,userId);
+        String fileName =storageUtil.generateFilePath(request,userId);
 
-        ResponseEntity<String> response= webClient.put().uri("/storage/v1/object/{bucket}/{filename}", storageBuckets.getProfile_bucket(), fileName).
+        ResponseEntity<String> response= webClient.put().uri("/storage/v1/object/{bucket}/{filename}", bucket, fileName).
                 header(HttpHeaders.CONTENT_TYPE, file.getContentType()).
                 bodyValue(file.getBytes()).retrieve().toEntity(String.class).block();
 
@@ -45,32 +45,24 @@ public class StorageService {
         String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 
         return String.format("%s/storage/v1/object/public/%s/%s",
-                storageEnv.getUrl(), storageBuckets.getProfile_bucket(), encodedFileName);
+                storageEnv.getUrl(),bucket, encodedFileName);
     }
 
+    public void deleteFile(String filepath){
+        String bucket=storageEnv.getMedia();
+        webClient.delete().uri("/storage/v1/object/{bucket}/{filename}", bucket, filepath).retrieve().toBodilessEntity().block();
+    }
 
+    // used to generate a temporary signed url that the client can use to upload files
     public String generateSignedUrl(uploadRequest request,String userId) {
-        validateRequest(request);
-        String fileName=generateFileName(request,userId);
-
-        return "";
+        String bucket=storageEnv.getMedia();
+        storageUtil.validateRequest(request);
+        String filepath=storageUtil.generateFilePath(request,userId);
+        SignRequest signRequest=new SignRequest(60);
+        return storageEnv.getUrl()+webClient.post().uri("/storage/v1/object/upload/sign/{bucket}/{filename}",bucket,filepath)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(signRequest).retrieve().bodyToMono(signResponse.class).map(signResponse::getUrl).block();
     }
 
-    private String generateFileName(uploadRequest request,String userId ){
-        String uuid= UUID.randomUUID().toString();
-        return String.format("%s/%s/%s", request.getUploadType().toLowerCase(), userId, uuid);
-    }
 
-    private void validateRequest(uploadRequest request){
-
-    }
-
-    private uploadRequest toUploadRequest(MultipartFile file){
-        uploadRequest request = new uploadRequest();
-        request.setFileName(file.getName());
-        request.setFileType(file.getContentType());
-        request.setFileSize(file.getSize());
-        request.setUploadType("Profile");
-        return request;
-    }
 }

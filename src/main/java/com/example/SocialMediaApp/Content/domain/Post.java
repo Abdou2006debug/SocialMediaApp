@@ -38,7 +38,7 @@ public class Post {
     @LastModifiedDate
     private Instant modifiedAt;
     
-    private String content;
+    private String caption;
 
     private Boolean commentsDisabled=false;
 

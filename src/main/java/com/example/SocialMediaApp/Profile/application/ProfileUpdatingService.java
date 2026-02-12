@@ -50,11 +50,17 @@ public class ProfileUpdatingService {
 
     public void changeProfileAvatar(MultipartFile file) throws IOException {
         String currentUserId= authenticatedUserService.getcurrentuser();
+
         Profile currentprofile= profileQueryService.getUserProfile(currentUserId,false);
 
         String oldAvatarUri=currentprofile.getPrivateavatarurl();
 
-        String profileAvatarUri=storageService.uploadFile(file,oldAvatarUri);
+        String profileAvatarUri=storageService.uploadFile(file,currentUserId);
+
+        if(oldAvatarUri!=null){
+                storageService.deleteFile(oldAvatarUri);
+        }
+
         currentprofile.setPrivateavatarurl(profileAvatarUri.replace("/public",""));
         currentprofile.setPublicavatarurl(profileAvatarUri);
         profileRepo.save(currentprofile);
