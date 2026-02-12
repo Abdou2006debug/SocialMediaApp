@@ -1,19 +1,48 @@
 package com.example.SocialMediaApp.Content.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import com.example.SocialMediaApp.User.domain.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Like {
 
     @Id
     @GeneratedValue
     private UUID id;
 
+    private LikeType type;
 
+    @ManyToOne
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
 
+    @ManyToOne
+    @JoinColumn(name = "story_id")
+    private Story story;
 
+    @ManyToOne
+    @JoinColumn(name= "user_id")
+    private User user;
+
+    @PrePersist
+    public void prePersist(){
+        if(comment!=null&&story!=null){
+            throw new RuntimeException();
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate(){
+        if(type!=null){
+            throw new RuntimeException();
+        }
+    }
 }

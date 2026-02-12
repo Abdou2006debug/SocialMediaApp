@@ -2,6 +2,7 @@ package com.example.SocialMediaApp.Profile.application;
 
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
+import com.example.SocialMediaApp.Storage.StorageService;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.application.IdentityService;
 import com.example.SocialMediaApp.User.domain.User;
@@ -11,7 +12,6 @@ import com.example.SocialMediaApp.Profile.api.dto.profilesettings;
 import com.example.SocialMediaApp.Profile.application.cache.ProfileCacheManager;
 import com.example.SocialMediaApp.Profile.domain.Profile;
 import com.example.SocialMediaApp.Profile.persistence.ProfileRepo;
-import com.example.SocialMediaApp.Storage.StorageService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,7 @@ public class ProfileUpdatingService {
 
         String oldAvatarUri=currentprofile.getPrivateavatarurl();
 
-      String profileAvatarUri=storageService.uploadAvatartoStorage(file,oldAvatarUri);
+        String profileAvatarUri=storageService.uploadFile(file,oldAvatarUri);
         currentprofile.setPrivateavatarurl(profileAvatarUri.replace("/public",""));
         currentprofile.setPublicavatarurl(profileAvatarUri);
         profileRepo.save(currentprofile);

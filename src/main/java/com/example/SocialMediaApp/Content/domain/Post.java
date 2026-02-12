@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.Type;
@@ -34,9 +35,21 @@ public class Post {
     @CreatedDate
     private Instant createdAt;
 
+    @LastModifiedDate
+    private Instant modifiedAt;
+    
     private String content;
 
-    private Boolean allowComments=true;
+    private Boolean commentsDisabled=false;
+
+    private Boolean showLikes=true;
+
+    private Integer likes=0;
+
+    private Integer comments=0;
+
+    private PostStatus postStatus=PostStatus.DRAFT;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)
@@ -47,9 +60,7 @@ public class Post {
     @JoinColumn(name = "user_id")
     private User user;
 
-
-
-
-
-
+    public enum PostStatus{
+        PUBLISHED,DRAFT
+    }
 }

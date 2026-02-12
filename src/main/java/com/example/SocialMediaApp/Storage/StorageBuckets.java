@@ -4,9 +4,10 @@ import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix ="" )
+@ConfigurationProperties(prefix = "")
+@Component
 @Getter
-public class StorageProperties {
-    private String url;
-    private String apiKey;
+public class StorageBuckets {
+    private String profile_bucket;
+    private String content_bucket;
 }

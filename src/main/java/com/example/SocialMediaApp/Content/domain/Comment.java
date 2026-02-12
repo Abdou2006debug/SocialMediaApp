@@ -2,6 +2,7 @@ package com.example.SocialMediaApp.Content.domain;
 
 import com.example.SocialMediaApp.User.domain.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,6 @@ import java.util.UUID;
 @Entity
 @Data
 @NoArgsConstructor
-
 @Table(indexes ={
         @Index(name ="post_comment",columnList = "post_id")
 })
@@ -20,10 +20,8 @@ public class Comment {
     @GeneratedValue
     private UUID id;
 
-
-
-
-
+    @Max(100)
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn

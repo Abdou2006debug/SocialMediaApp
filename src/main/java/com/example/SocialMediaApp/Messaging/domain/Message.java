@@ -21,7 +21,6 @@ public class Message {
     private Instant readAt;
     private boolean edited=false;
     private boolean read=false;
-
     public Message(String chatId,String senderId,String content){
         this.senderId=senderId;
         this.content=content;
