@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Content.application;
 
+import com.example.SocialMediaApp.Content.api.dto.uploadAction;
 import com.example.SocialMediaApp.Content.api.dto.uploadConfirm;
 import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
 import com.example.SocialMediaApp.Storage.StorageService;
@@ -23,43 +24,43 @@ public class UploadGatewayService {
         upload upload=storageService.generateSignedUrl(uploadRequest,currentUserId);
         String filepath=upload.getFilepath();
         redisTemplate.opsForValue().set(filepath,"waiting",5, TimeUnit.MINUTES);
-        storageService.scheduleCleanSupabase(filepath,5);
         return upload.getSigneduri();
     }
 
-    public void confirmUpload(uploadConfirm uploadConfirm){
-        checkUserOwnership(uploadConfirm);
-        String filepath=uploadConfirm.getFilepath();
-        String status=redisTemplate.opsForValue().get(filepath);
-        if(status==null||!status.equals("waiting")){
-            throw new RuntimeException("Upload Session expired or Invalid");
+    public void confirmUpload(String filepath){
+        if(checkUserOwnership(filepath)){
+            String status=redisTemplate.opsForValue().get(filepath);
+            if(status==null||!status.equals("waiting")){
+                throw new RuntimeException("Upload Session expired or Invalid");
+            }
+            boolean fileExist=storageService.checkFileExist(filepath);
+            if(!fileExist){
+                throw new RuntimeException("Upload failed try again");
+            }
+            redisTemplate.opsForValue().set(filepath,"uploaded",10,TimeUnit.MINUTES);
+            storageService.scheduleCleanSupabase(filepath,10);
         }
-        boolean fileExist=storageService.checkFileExist(filepath);
-        if(!fileExist){
-            throw new RuntimeException("Upload failed try again");
-        }
-        redisTemplate.opsForValue().set(filepath,"uploaded",10,TimeUnit.MINUTES);
-        storageService.cancelScheduledClean();
-        storageService.scheduleCleanSupabase(filepath,10);
     }
 
-    public void deleteUploaded(uploadConfirm uploadConfirm){
-        checkUserOwnership(uploadConfirm);
-        String filepath=uploadConfirm.getFilepath();
-        redisTemplate.delete(uploadConfirm.getFilepath());
-        storageService.cancelScheduledClean();
-        storageService.deleteFile(filepath);
+    public void handleUpload(String filepath, uploadAction uploadAction){
+        if(checkUserOwnership(filepath)){
+            String status=redisTemplate.opsForValue().get(filepath);
+            if(status!=null&&status.equals("uploaded")){
+                redisTemplate.delete(filepath);
+                storageService.cancelScheduledClean();
+                if(uploadAction==com.example.SocialMediaApp.Content.api.dto.uploadAction.DELETE){
+                    storageService.deleteFile(filepath);
+                }
+            }
+        }
     }
 
-    private  void checkUserOwnership(uploadConfirm uploadConfirm){
+    private  boolean checkUserOwnership(String filepath){
         String currentUserId=authenticatedUserService.getcurrentuser();
-        String filepath=uploadConfirm.getFilepath();
         int first=filepath.indexOf("/");
         int last=filepath.lastIndexOf("/");
         String providedUserId=filepath.substring(first+1,last);
-        if(!providedUserId.equals(currentUserId)){
-            throw  new RuntimeException();
-        }
+        return providedUserId.equals(currentUserId);
     }
 
 }

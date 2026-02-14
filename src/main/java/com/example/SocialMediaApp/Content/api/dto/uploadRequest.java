@@ -9,7 +9,6 @@ public class uploadRequest {
     private String fileName;
     private String fileType;
     private Long fileSize;
-    @Null
     private uploadType uploadType;
     private Integer duration; // Optional
 }

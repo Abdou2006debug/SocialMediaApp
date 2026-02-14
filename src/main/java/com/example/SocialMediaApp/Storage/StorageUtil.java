@@ -11,22 +11,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.example.SocialMediaApp.Storage.uploadType.*;
+
 @Component
  class StorageUtil {
 
     static final Map<uploadType,List<String>> allowedTypes=Map.of(
-            uploadType.PROFILE, Arrays.asList(
+            PROFILE, Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/webp"),
-            uploadType.STORY, Arrays.asList(
+            STORY, Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/webp",
             "image/gif",
             "video/mp4",
             "video/quicktime" ),
-            uploadType.POST, Arrays.asList(
+            POST, Arrays.asList(
                     "image/jpeg",
                     "image/png",
                     "image/webp",
@@ -46,7 +48,7 @@ import java.util.UUID;
 
     public String generateFilePath(uploadRequest request,String userId){
         String uuid= UUID.randomUUID().toString();
-        return String.format("%s/%s/%s",request.getUploadType().toString(), userId, uuid);
+        return String.format("%s/%s/%s",request.getUploadType(), userId, uuid);
     }
 
     public void validateRequest(uploadRequest request){
@@ -89,7 +91,7 @@ import java.util.UUID;
         request.setFileName(file.getName());
         request.setFileType(file.getContentType());
         request.setFileSize(file.getSize());
-        request.setUploadType(uploadType.PROFILE);
+        request.setUploadType(PROFILE);
         return request;
     }
 

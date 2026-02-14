@@ -79,7 +79,7 @@ public class StorageService {
         String bucket=storageEnv.getMedia();
         storageUtil.validateRequest(request);
         String filepath=storageUtil.generateFilePath(request,userId);
-        SignRequest signRequest=new SignRequest(60);
+        SignRequest signRequest=new SignRequest(5);
         String signeduri= storageEnv.getUrl()+webClient.post().uri("/storage/v1/object/upload/sign/{bucket}/{filename}",bucket,filepath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(signRequest).retrieve().bodyToMono(signResponse.class).map(signResponse::getUrl).block();
