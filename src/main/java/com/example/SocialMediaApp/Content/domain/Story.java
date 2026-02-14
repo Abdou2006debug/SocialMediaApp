@@ -4,6 +4,7 @@ import com.example.SocialMediaApp.User.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,8 +23,9 @@ import java.util.UUID;
 public class Story {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -33,6 +35,7 @@ public class Story {
     private Instant createdAt;
 
     private Boolean expired=false;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "user_id")

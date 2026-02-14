@@ -5,6 +5,7 @@ import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
@@ -29,8 +30,9 @@ import java.util.UUID;
 public class Post {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
 
     @CreatedDate
     private Instant createdAt;
@@ -48,6 +50,7 @@ public class Post {
 
     private Integer comments=0;
 
+    @Enumerated(EnumType.STRING)
     private PostStatus postStatus=PostStatus.DRAFT;
 
 

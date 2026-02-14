@@ -14,19 +14,19 @@ import java.util.UUID;
 @Component
  class StorageUtil {
 
-    static final Map<String,List<String>> allowedTypes=Map.of(
-            "profile", Arrays.asList(
+    static final Map<uploadType,List<String>> allowedTypes=Map.of(
+            uploadType.PROFILE, Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/webp"),
-            "story", Arrays.asList(
+            uploadType.STORY, Arrays.asList(
             "image/jpeg",
             "image/png",
             "image/webp",
             "image/gif",
             "video/mp4",
             "video/quicktime" ),
-            "post", Arrays.asList(
+            uploadType.POST, Arrays.asList(
                     "image/jpeg",
                     "image/png",
                     "image/webp",
@@ -46,37 +46,41 @@ import java.util.UUID;
 
     public String generateFilePath(uploadRequest request,String userId){
         String uuid= UUID.randomUUID().toString();
-        return String.format("%s/%s/%s", request.getUploadType().toLowerCase(), userId, uuid);
+        return String.format("%s/%s/%s",request.getUploadType().toString(), userId, uuid);
     }
 
     public void validateRequest(uploadRequest request){
-     List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType().toLowerCase());
+     List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType());
      boolean compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType()));
      String filetype=request.getFileType();
 
      boolean isVideo = filetype!= null && filetype.startsWith("video/");
 
      if(compatible){
-         long limit=switch (request.getUploadType().toLowerCase()) {
 
-             case "profile" -> MAX_PROFILE_SIZE;
+         long limit=switch (request.getUploadType()) {
+
+             case PROFILE -> MAX_PROFILE_SIZE;
 
 
-             case "post" -> isVideo
+             case POST -> isVideo
                      ? MAX_VIDEO_SIZE
                      : MAX_POST_IMAGE_SIZE;
 
-             case "story" -> isVideo
+
+             case STORY -> isVideo
                      ? MAX_VIDEO_SIZE
                      : MAX_STORY_IMAGE_SIZE;
-
-             default -> throw new IllegalArgumentException("Unknown category: " + filetype);
          };
+
          if(limit<request.getFileSize()){
              throw new FileTooLargeException("file size is too large");
          }
+
          return;
+
      }
+
      throw new UnsupportedMediaTypeException("file type is unsupported");
     }
 
@@ -85,7 +89,7 @@ import java.util.UUID;
         request.setFileName(file.getName());
         request.setFileType(file.getContentType());
         request.setFileSize(file.getSize());
-        request.setUploadType("Profile");
+        request.setUploadType(uploadType.PROFILE);
         return request;
     }
 

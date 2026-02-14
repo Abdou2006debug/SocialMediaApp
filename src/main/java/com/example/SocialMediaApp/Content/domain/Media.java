@@ -14,4 +14,5 @@ public class Media {
     public enum MediaType {
         IMAGE,VIDEO
     }
+
 }

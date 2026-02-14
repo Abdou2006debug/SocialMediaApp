@@ -1,13 +1,15 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
+import com.example.SocialMediaApp.Storage.uploadType;
+import jakarta.validation.constraints.Null;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class uploadRequest {
     private String fileName;
     private String fileType;
     private Long fileSize;
-    private String uploadType;
+    @Null
+    private uploadType uploadType;
     private Integer duration; // Optional
 }

@@ -18,6 +18,7 @@ public class Like {
     @GeneratedValue
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     private LikeType type;
 
     @ManyToOne
@@ -32,6 +33,7 @@ public class Like {
     @JoinColumn(name= "user_id")
     private User user;
 
+    // like record can only belong to either comment or story
     @PrePersist
     public void prePersist(){
         if(comment!=null&&story!=null){
