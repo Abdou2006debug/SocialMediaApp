@@ -11,8 +11,8 @@ public class Media {
     private String filepath;
     private MediaType mediaType;
 
+
     public enum MediaType {
         IMAGE,VIDEO
     }
-
 }

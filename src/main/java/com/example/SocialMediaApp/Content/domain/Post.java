@@ -3,6 +3,8 @@ package com.example.SocialMediaApp.Content.domain;
 import com.example.SocialMediaApp.User.domain.User;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -18,11 +20,15 @@ import org.hibernate.annotations.Type;
 
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(indexes ={
         @Index(name ="user_post",columnList = "user_id")
@@ -39,31 +45,39 @@ public class Post {
 
     @LastModifiedDate
     private Instant modifiedAt;
-    
+
     private String caption;
 
-    private Boolean commentsDisabled=false;
+    @Builder.Default
+    private Long likes=0L;
 
-    private Boolean showLikes=true;
+    @Builder.Default
+    private Long comments=0L;
 
-    private Integer likes=0;
-
-    private Integer comments=0;
 
     @Enumerated(EnumType.STRING)
     private PostStatus postStatus=PostStatus.DRAFT;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    private PostSettings postSettings;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Basic(fetch = FetchType.LAZY)
-    @Column(columnDefinition = "jsonb")
-    private PostMetaData postMetaData;
+    private List<Media> mediaList=new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public enum PostStatus{
-        PUBLISHED,DRAFT
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Location location;
+
+    public void setUser(String userId){
+        this.user=new User(userId);
     }
+
+    public enum PostStatus{
+        PUBLISHED,DRAFT,DELETED
+    }
+
 }

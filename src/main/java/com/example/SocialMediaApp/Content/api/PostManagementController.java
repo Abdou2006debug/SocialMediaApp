@@ -12,7 +12,4 @@ public class PostManagementController {
 
     private final PostManagementService postManagementService;
 
-
-
-
 }

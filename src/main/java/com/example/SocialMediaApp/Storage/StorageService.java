@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 @Service
 @Slf4j
@@ -29,6 +31,7 @@ public class StorageService {
     private final StorageProperties storageEnv;
     private final StorageUtil storageUtil;
     private final TaskScheduler taskScheduler;
+    private final ConcurrentHashMap<String,ScheduledFuture<?>> scheduledFutures=new ConcurrentHashMap<>();
 
 
     // profile avatar uploading is done directly via the server
@@ -88,11 +91,19 @@ public class StorageService {
 
     public void scheduleCleanSupabase(String filepath,long duration){
         Instant limit=Instant.now().plus(duration, ChronoUnit.MINUTES);
-        taskScheduler.schedule(()->deleteFile(filepath), limit);
+        ScheduledFuture<?> scheduledFuture=taskScheduler.schedule(()->{
+            deleteFile(filepath);
+            scheduledFutures.remove(filepath);
+        }, limit);
+        scheduledFutures.put(filepath,scheduledFuture);
     }
 
-    public void cancelScheduledClean(){
-
+    public void cancelScheduledClean(String filepath){
+       ScheduledFuture<?> scheduledFuture=scheduledFutures.get(filepath);
+       if(scheduledFuture!=null) {
+           scheduledFuture.cancel(true);
+           scheduledFutures.remove(filepath);
+       }
     }
 
 

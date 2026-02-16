@@ -1,6 +1,7 @@
 package com.example.SocialMediaApp.Storage;
 
 import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
+import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import org.springframework.stereotype.Component;
@@ -48,18 +49,20 @@ import static com.example.SocialMediaApp.Storage.uploadType.*;
 
     public String generateFilePath(uploadRequest request,String userId){
         String uuid= UUID.randomUUID().toString();
-        return String.format("%s/%s/%s",request.getUploadType(), userId, uuid);
+        String filetype=request.getFileType();
+        int first=filetype.indexOf("/");
+        String type=request.getFileType().substring(0,first);
+        return String.format("%s/%s/%s/%s",request.getUploadType(), userId, uuid,type);
     }
 
     public void validateRequest(uploadRequest request){
      List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType());
-     boolean compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType()));
+     boolean compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType().toLowerCase()));
      String filetype=request.getFileType();
 
-     boolean isVideo = filetype!= null && filetype.startsWith("video/");
 
      if(compatible){
-
+         boolean isVideo =  filetype.startsWith("video/");
          long limit=switch (request.getUploadType()) {
 
              case PROFILE -> MAX_PROFILE_SIZE;

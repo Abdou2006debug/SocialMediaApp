@@ -1,9 +1,9 @@
 package com.example.SocialMediaApp.Content.api;
 
-import com.example.SocialMediaApp.Content.api.dto.uploadAction;
 import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
 import com.example.SocialMediaApp.Content.application.UploadGatewayService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,20 +13,19 @@ public class UploadGatewayController {
 
     private final UploadGatewayService uploadGatewayService;
 
-    @GetMapping
-    public String requestUpload(uploadRequest request){
-        return uploadGatewayService.requestUpload(request);
+    @GetMapping("/request")
+    public String requestUpload(@AuthenticationPrincipal String currentUserId,uploadRequest request){
+        return uploadGatewayService.requestUpload(currentUserId,request);
     }
 
-    @DeleteMapping
-    public void discardUpload(@RequestParam String filepath){
-        uploadGatewayService.handleUpload(filepath, uploadAction.DELETE);
+    @DeleteMapping("/discard")
+    public void discardUpload(@AuthenticationPrincipal String currentUserId,@RequestParam String filepath){
+        uploadGatewayService.deleteUpload(currentUserId,filepath);
     }
 
-    @PutMapping
-    public void confirmUpload(@RequestParam String filepath){
-        uploadGatewayService.confirmUpload(filepath);
+    @PutMapping("/confirm")
+    public void confirmUpload(@AuthenticationPrincipal String currentUserId,@RequestParam String filepath){
+        uploadGatewayService.confirmUpload(currentUserId,filepath);
     }
-
 
 }
