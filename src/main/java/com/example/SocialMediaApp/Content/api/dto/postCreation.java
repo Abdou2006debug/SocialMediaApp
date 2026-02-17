@@ -11,7 +11,7 @@ import java.util.List;
 public class postCreation {
     private String caption;
     @Size(min = 1, max = 10)
-    private List<String> filepaths;
+    private List<String> uploadRequestsIds;
     private List<String> tags;
     private boolean commentsDisabled;
     private boolean hideLikes;

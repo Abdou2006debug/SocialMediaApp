@@ -1,21 +1,18 @@
-package com.example.SocialMediaApp.Storage;
+package com.example.SocialMediaApp.Upload.application;
 
-import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
-import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
+import com.example.SocialMediaApp.Upload.api.dto.uploadRequest;
+import com.example.SocialMediaApp.Upload.domain.uploadType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static com.example.SocialMediaApp.Storage.uploadType.*;
+import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
+
 
 @Component
- class StorageUtil {
+ class UploadValidationService {
 
     static final Map<uploadType,List<String>> allowedTypes=Map.of(
             PROFILE, Arrays.asList(
@@ -47,19 +44,14 @@ import static com.example.SocialMediaApp.Storage.uploadType.*;
 
     public static final long MAX_VIDEO_SIZE = 30 * 1024 * 1024L;
 
-    public String generateFilePath(uploadRequest request,String userId){
-        String uuid= UUID.randomUUID().toString();
-        String filetype=request.getFileType();
-        int first=filetype.indexOf("/");
-        String type=request.getFileType().substring(0,first);
-        return String.format("%s/%s/%s/%s",request.getUploadType(), userId, uuid,type);
-    }
-
-    public void validateRequest(uploadRequest request){
+    public void validateFileUpload(uploadRequest request){
      List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType());
-     boolean compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType().toLowerCase()));
-     String filetype=request.getFileType();
+     boolean compatible=false;
+     if(allowedTypesForRequest!=null){
+        compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType().toLowerCase()));
+     }
 
+        String filetype=request.getFileType();
 
      if(compatible){
          boolean isVideo =  filetype.startsWith("video/");
@@ -89,13 +81,12 @@ import static com.example.SocialMediaApp.Storage.uploadType.*;
      throw new UnsupportedMediaTypeException("file type is unsupported");
     }
 
-    public uploadRequest toUploadRequest(MultipartFile file){
-        uploadRequest request = new uploadRequest();
-        request.setFileName(file.getName());
-        request.setFileType(file.getContentType());
-        request.setFileSize(file.getSize());
-        request.setUploadType(PROFILE);
-        return request;
+    // this method will confirm that the upload type the user wants to create match the filepath upload type
+    public boolean confirmType(String filepath, uploadType intendedType){
+        int first=filepath.indexOf("/");
+        String actualType=filepath.substring(0,first);
+        return actualType.equals(intendedType.toString());
     }
+
 
 }

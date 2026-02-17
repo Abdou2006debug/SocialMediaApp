@@ -3,6 +3,7 @@ package com.example.SocialMediaApp.Profile.application;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
 import com.example.SocialMediaApp.Storage.StorageService;
+import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.application.IdentityService;
 import com.example.SocialMediaApp.User.domain.User;
@@ -30,6 +31,7 @@ public class ProfileUpdatingService {
     private final ProfileCacheManager profileCacheManager;
     private final UserRepo userRepo;
     private final ProfileQueryService profileQueryService;
+    private final UploadGatewayService uploadGatewayService;
     private final StorageService storageService;
     private final FollowRepo followRepo;
     private final IdentityService identityService;
@@ -53,16 +55,16 @@ public class ProfileUpdatingService {
 
         Profile currentprofile= profileQueryService.getUserProfile(currentUserId,false);
 
-        String oldAvatarUri=currentprofile.getPrivateavatarurl();
+        String oldAvatarUri=currentprofile.getAvatarPath();
 
-        String profileAvatarUri=storageService.uploadFile(file,currentUserId);
+        String profileAvatarUri=uploadGatewayService.Upload(file,currentUserId);
 
         if(oldAvatarUri!=null){
                 storageService.deleteFile(oldAvatarUri);
         }
 
-        currentprofile.setPrivateavatarurl(profileAvatarUri.replace("/public",""));
-        currentprofile.setPublicavatarurl(profileAvatarUri);
+        currentprofile.setAvatarPath(profileAvatarUri);
+
         profileRepo.save(currentprofile);
         // in case of cache still valid to update it to avoid any inconsistencies
         profileCacheManager.cacheUserProfile(currentprofile);

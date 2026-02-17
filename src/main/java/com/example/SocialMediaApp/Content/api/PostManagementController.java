@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.Content.api;
 
-import com.example.SocialMediaApp.Content.application.PostManagementService;
+import com.example.SocialMediaApp.Content.application.PostCreationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/users/content/post")
 public class PostManagementController {
 
-    private final PostManagementService postManagementService;
+    private final PostCreationService postManagementService;
 
 }

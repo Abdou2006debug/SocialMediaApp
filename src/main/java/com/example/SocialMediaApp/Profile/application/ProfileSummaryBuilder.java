@@ -43,7 +43,7 @@ public class ProfileSummaryBuilder {
         for(Profile profile:profiles){
             profileSummary profileSummary=summaryMap.get(profile.getUserId());
             profileSummary.setUsername(profile.getUsername());
-            profileSummary.setAvatarurl(profile.getPublicavatarurl());
+            profileSummary.setAvatarurl(profile.getAvatarPath());
             profileCacheManager.cacheProfileInfo(profile);
         }
 

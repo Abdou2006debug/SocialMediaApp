@@ -1,7 +1,8 @@
 package com.example.SocialMediaApp.Content.application;
 
-import com.example.SocialMediaApp.Content.api.dto.uploadRequest;
+import com.example.SocialMediaApp.Content.api.dto.storyCreation;
 import com.example.SocialMediaApp.Content.persistence.StoryRepo;
+import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ public class StoryManagementService {
     private final AuthenticatedUserService authenticatedUserService;
     private final StoryRepo storyRepo;
 
-    public void createStory(uploadRequest uploadRequest){
+    public void createStory(storyCreation storyCreation){
 
     }
 

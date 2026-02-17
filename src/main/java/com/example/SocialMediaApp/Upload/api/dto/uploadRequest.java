@@ -1,7 +1,6 @@
-package com.example.SocialMediaApp.Content.api.dto;
+package com.example.SocialMediaApp.Upload.api.dto;
 
-import com.example.SocialMediaApp.Storage.uploadType;
-import jakarta.validation.constraints.Null;
+import com.example.SocialMediaApp.Upload.domain.uploadType;
 import lombok.Data;
 
 @Data

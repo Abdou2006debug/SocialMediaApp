@@ -5,18 +5,18 @@ import com.example.SocialMediaApp.Content.domain.Post;
 import com.example.SocialMediaApp.Content.domain.PostSettings;
 import com.example.SocialMediaApp.Content.persistence.PostRepo;
 import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
-import com.example.SocialMediaApp.Storage.uploadType;
+import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
+import com.example.SocialMediaApp.Upload.domain.uploadType;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
-public class PostManagementService {
+public class PostCreationService {
 
     private final UploadGatewayService uploadGateway;
     private final AuthenticatedUserService authenticatedUserService;
@@ -26,9 +26,8 @@ public class PostManagementService {
 
     public void createPost(postCreation postCreation){
         String currentUserId=authenticatedUserService.getcurrentuser();
-        List<String> filespaths=postCreation.getFilepaths();
-        uploadGateway.finalizeUploads(currentUserId,filespaths, uploadType.POST);
-        List<Media> mediaList=convertToMedia(filespaths);
+        List<String> uploadRequestsIds=postCreation.getUploadRequestsIds();
+        List<Media> mediaList=uploadGateway.finalizeUploads(currentUserId,uploadRequestsIds,uploadType.POST);
         PostSettings postSettings=contentmapper.toPostSettings(postCreation);
         Post post= Post.builder().
                 caption(postCreation.getCaption()).
@@ -38,14 +37,12 @@ public class PostManagementService {
         postRepo.save(post);
     }
 
-    public List<Media> convertToMedia(List<String> filepaths){
-       return filepaths.stream().map(filepath->{
-            int last=filepath.lastIndexOf("/");
-            String type=filepath.substring(last);
-            Media.MediaType mediaType= type.equalsIgnoreCase("video")?
-                    Media.MediaType.VIDEO: Media.MediaType.IMAGE;
-            return new Media(filepath,mediaType);
-        }).collect(Collectors.toList());
+    // from draft to published
+    public void confirmPost(String postId){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        boolean exists=postRepo.existsByUserIdAndPostIdAndPostStatus(currentUserId,postId, Post.PostStatus.DRAFT);
+        if(!exists) throw new RuntimeException();
+
     }
 
 

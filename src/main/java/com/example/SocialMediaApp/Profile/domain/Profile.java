@@ -26,8 +26,8 @@ public class Profile {
 
     private String bio;
     private String username;
-    private String privateavatarurl;
-    private String publicavatarurl;
+    private String avatarPath;
+
     private boolean showifonline=false;
     private boolean isprivate=false;
 
