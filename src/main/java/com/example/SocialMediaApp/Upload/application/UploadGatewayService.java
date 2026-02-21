@@ -2,6 +2,7 @@ package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.UploadFailedException;
+import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
 import com.example.SocialMediaApp.Storage.StorageService;
 
 import com.example.SocialMediaApp.Upload.api.dto.uploadRequest;
@@ -16,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -32,17 +32,28 @@ public class UploadGatewayService {
     private static final int UPLOAD_CONFIRM_DURATION_MINUTES = 10;
 
 
+    // used to upload files directly though the server
+    public String Upload(MultipartFile file, String userId) throws IOException {
+        uploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
+        uploadValidationService.validateFileUpload(uploadRequest);
+        Map<String,String> map= uploadUtil.generateUploadResponse(userId,uploadRequest);
+        String filepath=map.get("filepath");
+        storageService.uploadFile(file,filepath);
+        return filepath;
+    }
+
     public uploadResponse requestUpload(String userId, uploadRequest uploadRequest){
         uploadValidationService.validateFileUpload(uploadRequest);
          Map<String,String> uploadMap=uploadUtil.generateUploadResponse(userId,uploadRequest);
          String filepath=uploadMap.get("filepath");
-         String requestId=uploadMap.get("requestId");
+         String uploadRequestId=uploadMap.get("uploadRequestId");
          String signedUrl=storageService.generateSignedUrl(filepath);
 
-        redisTemplate.opsForValue().set(String.format("requested:%s",requestId),filepath,UPLOAD_WAIT_DURATION_MINUTES, TimeUnit.MINUTES);
-        return new uploadResponse(signedUrl,requestId);
+        redisTemplate.opsForValue().set(String.format("requested:%s",uploadRequestId),filepath,UPLOAD_WAIT_DURATION_MINUTES, TimeUnit.MINUTES);
+        return new uploadResponse(signedUrl,uploadRequestId);
     }
-    public void confirmUpload(String userId,String uploadRequestId){
+
+    public int confirmUpload(String userId,String uploadRequestId){
 
             String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, uploadPhase.REQUESTED);
 
@@ -52,8 +63,11 @@ public class UploadGatewayService {
 
             redisTemplate.opsForValue().set(String.format("confirmed:%s", uploadRequestId),filepath,UPLOAD_CONFIRM_DURATION_MINUTES,TimeUnit.MINUTES);
 
+            redisTemplate.delete(String.format("requested:%s",uploadRequestId));
+
             storageService.scheduleCleanSupabase(filepath,UPLOAD_CONFIRM_DURATION_MINUTES);
 
+            return UPLOAD_CONFIRM_DURATION_MINUTES;
     }
 
     public void deleteUpload(String userId,String uploadRequestId){
@@ -70,12 +84,13 @@ public class UploadGatewayService {
 
         for(String uploadRequestId : uploadRequestsIds){
             String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, uploadPhase.CONFIRMED);
+            uploadValidationService.confirmUploadType(filepath, com.example.SocialMediaApp.Upload.domain.uploadType.POST);
             filesPaths.add(filepath);
         }
 
         // if we get here that means all files are valid and we untrack them
         filesPaths.forEach(filepath->{
-            redisTemplate.delete(filepath);
+            redisTemplate.delete(String.format("confirmed:%s",filepath.split("/")[3]));
             storageService.cancelScheduledClean(filepath);
         });
 
@@ -83,15 +98,5 @@ public class UploadGatewayService {
         return uploadUtil.convertToMedia(filesPaths);
 
             }
-
-
-    public String Upload(MultipartFile file, String userId) throws IOException {
-        uploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
-        uploadValidationService.validateFileUpload(uploadRequest);
-        Map<String,String> map= uploadUtil.generateUploadResponse(userId,uploadRequest);
-        String filepath=map.get("filepath");
-        storageService.uploadFile(file,filepath);
-        return filepath;
-    }
 
 }

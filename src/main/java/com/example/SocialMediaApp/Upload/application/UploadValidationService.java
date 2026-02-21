@@ -2,6 +2,7 @@ package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
+import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
 import com.example.SocialMediaApp.Upload.api.dto.uploadRequest;
 import com.example.SocialMediaApp.Upload.domain.uploadType;
 import org.springframework.stereotype.Component;
@@ -82,10 +83,10 @@ import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
     }
 
     // this method will confirm that the upload type the user wants to create match the filepath upload type
-    public boolean confirmType(String filepath, uploadType intendedType){
-        int first=filepath.indexOf("/");
-        String actualType=filepath.substring(0,first);
-        return actualType.equals(intendedType.toString());
+    public void confirmUploadType(String filepath, uploadType intendedType){
+        boolean compatibleType = filepath.split("/")[0].
+                equals(intendedType.toString().toLowerCase());
+        if(!compatibleType) throw new UploadTypeMismatch("");
     }
 
 

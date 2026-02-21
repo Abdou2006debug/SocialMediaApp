@@ -5,6 +5,7 @@ import com.example.SocialMediaApp.Upload.api.dto.uploadResponse;
 import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +28,8 @@ public class UploadGatewayController {
     }
 
     @PutMapping("/confirm")
-    public void confirmUpload(@AuthenticationPrincipal String currentUserId,@RequestParam String filepath){
-        uploadGatewayService.confirmUpload(currentUserId,filepath);
+    public ResponseEntity<Integer> confirmUpload(@AuthenticationPrincipal String currentUserId, @RequestParam String filepath){
+        return ResponseEntity.accepted().body(uploadGatewayService.confirmUpload(currentUserId,filepath));
     }
 
 }

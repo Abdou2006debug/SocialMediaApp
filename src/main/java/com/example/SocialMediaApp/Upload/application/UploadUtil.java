@@ -18,24 +18,25 @@ import java.util.stream.Collectors;
  class UploadUtil {
 
     public Map<String,String> generateUploadResponse(String userId, uploadRequest request){
-        String requestId= UUID.randomUUID().toString();
+        String uploadRequestId = UUID.randomUUID().toString();
         String filetype=request.getFileType();
         int first=filetype.indexOf("/");
         String type=request.getFileType().substring(0,first);
         Map<String,String> uploadMap=new HashMap<>();
-        uploadMap.put("filepath",String.format("%s/%s/%s/%s",request.getUploadType(),userId,type,requestId));
-        uploadMap.put("requestId",requestId);
+        uploadMap.put("filepath",String.format("%s/%s/%s/%s",request.getUploadType().toString().toLowerCase(),userId,type,uploadRequestId));
+        uploadMap.put("uploadRequestId",uploadRequestId);
         return uploadMap;
     }
+
     public List<Media> convertToMedia(List<String> filepaths){
         return filepaths.stream().map(filepath->{
-            int last=filepath.lastIndexOf("/");
-            String type=filepath.substring(last);
+            String type=filepath.split("/")[2];
             Media.MediaType mediaType= type.equalsIgnoreCase("video")?
                     Media.MediaType.VIDEO: Media.MediaType.IMAGE;
             return new Media(filepath,mediaType);
         }).collect(Collectors.toList());
     }
+
     public uploadRequest toUploadRequest(MultipartFile file){
         uploadRequest request = new uploadRequest();
         request.setFileName(file.getName());

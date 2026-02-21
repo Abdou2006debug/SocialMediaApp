@@ -77,7 +77,7 @@ public class Post {
     }
 
     public enum PostStatus{
-        PUBLISHED,DRAFT,DELETED
+        PUBLISHED,UNPUBLISHED,DRAFT,DELETED
     }
 
 }

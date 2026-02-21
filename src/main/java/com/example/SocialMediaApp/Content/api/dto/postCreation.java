@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
+import com.example.SocialMediaApp.Content.domain.Location;
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
@@ -14,5 +15,5 @@ public class postCreation {
     private List<String> uploadRequestsIds;
     private List<String> tags;
     private boolean commentsDisabled;
-    private boolean hideLikes;
+    private boolean likesDisabled;
 }
