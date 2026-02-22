@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.Content.application;
 
-import com.example.SocialMediaApp.Content.api.dto.storyCreation;
+import com.example.SocialMediaApp.Content.api.dto.StoryCreation;
 import com.example.SocialMediaApp.Content.persistence.StoryRepo;
 import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
@@ -15,7 +15,7 @@ public class StoryManagementService {
     private final AuthenticatedUserService authenticatedUserService;
     private final StoryRepo storyRepo;
 
-    public void createStory(storyCreation storyCreation){
+    public void createStory(StoryCreation storyCreation){
 
     }
 

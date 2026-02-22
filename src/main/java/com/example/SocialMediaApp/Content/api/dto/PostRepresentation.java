@@ -11,14 +11,13 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class postRepresentation {
+public class PostRepresentation {
     @JsonProperty("AuthorProfile")
     private profileSummary profileSummary;
     private String id;

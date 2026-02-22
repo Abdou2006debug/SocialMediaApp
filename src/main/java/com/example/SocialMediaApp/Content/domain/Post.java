@@ -30,7 +30,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-@Table(indexes ={
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_id"}),indexes ={
         @Index(name ="user_post",columnList = "user_id")
 })
 public class Post {
@@ -45,6 +45,8 @@ public class Post {
 
     @LastModifiedDate
     private Instant modifiedAt;
+
+    private Instant publishedAt;
 
     private String caption;
 
@@ -69,6 +71,9 @@ public class Post {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name="user_id",insertable = false,updatable = false)
+    private String userId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     private Location location;
 
@@ -78,6 +83,10 @@ public class Post {
 
     public enum PostStatus{
         PUBLISHED,UNPUBLISHED,DRAFT,DELETED
+    }
+
+    public Post(String id){
+        this.id=id;
     }
 
 }

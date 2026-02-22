@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.Content.api;
 
-import com.example.SocialMediaApp.Content.api.dto.postCreation;
+import com.example.SocialMediaApp.Content.api.dto.PostCreation;
 import com.example.SocialMediaApp.Content.application.PostLifecycleService;
 import com.example.SocialMediaApp.Content.domain.Post;
 import jakarta.validation.Valid;
@@ -13,18 +13,20 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users/content/post")
 @Validated
-public class PostManagementController {
+public class PostLifeCycleController {
 
     private final PostLifecycleService postLifecycleService;
 
     @PostMapping
-    public void createPost(@RequestBody @Valid postCreation postCreation){
+    public ResponseEntity<Void> createPost(@RequestBody @Valid PostCreation postCreation){
         postLifecycleService.createPost(postCreation);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{postId}")
-    public void deletePost(@PathVariable  String postId){
+    public ResponseEntity<Void>  deletePost(@PathVariable  String postId){
         postLifecycleService.deletePost(postId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{postId}/publish")

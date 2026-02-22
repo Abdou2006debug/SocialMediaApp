@@ -1,15 +1,12 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
-import com.example.SocialMediaApp.Content.domain.Location;
-import com.example.SocialMediaApp.Content.domain.Media;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class postCreation {
+public class PostCreation {
     private String caption;
     @Size(min = 1, max = 10)
     private List<String> uploadRequestsIds;

@@ -22,6 +22,11 @@ public class VisibilityPolicy {
 
 
     public boolean isAllowed(String currentUserId,String requestedUserId){
+
+        if(currentUserId.equals(requestedUserId)){
+            return true;
+        }
+
             boolean isblocked=blocksRepo.existsByBlockerIdAndBlockedId(currentUserId,requestedUserId);
             if(isblocked){
              return false;

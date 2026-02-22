@@ -4,10 +4,14 @@ import com.example.SocialMediaApp.User.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @Table(indexes ={
@@ -19,6 +23,9 @@ public class PostLike {
     @GeneratedValue
     private UUID id;
 
+    @CreatedDate
+    private Instant likedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
@@ -27,4 +34,8 @@ public class PostLike {
     @JoinColumn(name= "user_id")
     private User user;
 
+    public PostLike(String userId,String postId){
+        this.user=new User(userId);
+        this.post=new Post(postId);
+    }
 }
