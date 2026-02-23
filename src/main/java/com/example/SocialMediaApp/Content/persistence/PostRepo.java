@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepo extends JpaRepository<Post,String> {
-    boolean existsByUserIdAndPostIdAndPostStatus(String userId, String postId, Post.PostStatus postStatus);
 
     @Modifying
     @Transactional
@@ -23,7 +22,18 @@ public interface PostRepo extends JpaRepository<Post,String> {
     Optional<Post> findByUserIdAndPostIdAndPostStatus(String userId,String postId,Post.PostStatus postStatus);
     @Modifying
     @Transactional
-    @Query(value = "UPDATE posts SET likes = likes + :delta WHERE id = :postId RETURNING likes",nativeQuery = true)
+    @Query(value = "UPDATE Post SET likes = likes + :delta WHERE id = :postId RETURNING likeCount",nativeQuery = true)
     long updatePostLikes(@Param("postId") String postId,@Param("delta") long delta);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE Post SET commentCount = commentCount + 1 WHERE id = :postId RETURNING commentCount",nativeQuery = true)
+    long incrementPostComments(@Param("postId") String postId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE Post SET commentCount = commentCount - 1 WHERE Post.id=(SELECT p.id FROM Post p JOIN Comment c ON p.id=c.post_id WHERE c.id=:commentId) RETURNING commentCount",nativeQuery = true)
+    long decrementPostComments(@Param("commentId") String commentId);
+
 
 }

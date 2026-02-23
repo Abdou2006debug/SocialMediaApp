@@ -27,6 +27,8 @@ public class Story {
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
 
+    private Long likeCount=0L;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Media media;
@@ -40,5 +42,9 @@ public class Story {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "user_id")
     private User user;
+
+    public Story(String id){
+        this.id=id;
+    }
 
 }

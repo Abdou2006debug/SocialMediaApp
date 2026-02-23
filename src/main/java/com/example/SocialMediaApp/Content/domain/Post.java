@@ -51,10 +51,10 @@ public class Post {
     private String caption;
 
     @Builder.Default
-    private Long likes=0L;
+    private Long likeCount=0L;
 
     @Builder.Default
-    private Long comments=0L;
+    private Long commentCount=0L;
 
 
     @Enumerated(EnumType.STRING)

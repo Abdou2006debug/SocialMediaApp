@@ -3,13 +3,8 @@ package com.example.SocialMediaApp.Content.application;
 import com.example.SocialMediaApp.Content.api.dto.CommentRequest;
 import com.example.SocialMediaApp.Content.api.dto.CommentResponse;
 import com.example.SocialMediaApp.Content.api.dto.LikeResponse;
-import com.example.SocialMediaApp.Content.domain.Comment;
-import com.example.SocialMediaApp.Content.domain.Post;
-import com.example.SocialMediaApp.Content.domain.PostLike;
-import com.example.SocialMediaApp.Content.persistence.CommentRepo;
-import com.example.SocialMediaApp.Content.persistence.PostLikeRepo;
-import com.example.SocialMediaApp.Content.persistence.PostRepo;
-import com.example.SocialMediaApp.Content.persistence.StoryRepo;
+import com.example.SocialMediaApp.Content.domain.*;
+import com.example.SocialMediaApp.Content.persistence.*;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 import com.example.SocialMediaApp.Shared.Exceptions.ContentNotFoundException;
 import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
@@ -28,45 +23,102 @@ public class PosttInteractionService {
     private final VisibilityPolicy visibilityPolicy;
     private final CommentRepo commentRepo;
     private final Contentmapper contentmapper;
+    private final LikeRepo likeRepo;
+    private final ReplyRepo replyRepo;
 
-
+    // toggle between Post liked and not liked
     public LikeResponse addPostLike(String postId){
         String currentUserId=authenticatedUserService.getcurrentuser();
+
         Post post=postRepo.findById(postId).orElseThrow(()-> new ContentNotFoundException("Post Not Found"));
+
         boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,post.getUserId());
-        if(!isAllowed){
-            throw new ActionNotAllowedException("Action could not be completed Ungranted Permission");
-        }
+
+        if(!isAllowed) throw new ActionNotAllowedException("Action could not be completed");
+
         boolean liked=postLikeRepo.existsByPostIdAndUserId(postId,currentUserId);
+
         long likeCount;
+
         if(liked){
             postLikeRepo.deleteByPostIdAndUserId(postId,currentUserId);
             likeCount=postRepo.updatePostLikes(postId,-1);
         }else{
-            PostLike postLike=postLikeRepo.save(new PostLike(currentUserId,postId));
+            postLikeRepo.save(new PostLike(currentUserId,postId));
             likeCount=postRepo.updatePostLikes(postId,1);
             // handling notifications later
         }
         return new LikeResponse(!liked,likeCount);
     }
 
+
     public CommentResponse addPostComment(String postId, CommentRequest commentRequest){
         String currentUserId=authenticatedUserService.getcurrentuser();
+
         Post post=postRepo.findById(postId).orElseThrow(()-> new ContentNotFoundException("Post Not Found"));
-        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,post.getUserId());
-        if(!isAllowed){
-            throw new ActionNotAllowedException("Action could not be completed Ungranted Permission");
-        }
-        Comment comment=commentRepo.save(new Comment(commentRequest.getContent(),currentUserId,postId));
+
+        String postOwnerId=post.getUserId();
+
+        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,postOwnerId);
+
+        if(!isAllowed) throw new ActionNotAllowedException("Action could not be completed");
+
+        Comment comment=commentRepo.save(new Comment(commentRequest.getContent(),currentUserId,postId,postOwnerId));
+
+        postRepo.incrementPostComments(postId);
         // handling notification later
         return contentmapper.toCommentResponse(comment);
     }
 
-    public void addCommentLike(String commentId){
-
+    public void removePostComment(String commentId){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        int updated=commentRepo.deleteByIdAndUserId(currentUserId,commentId);
+        if(updated==0){
+            throw new ActionNotAllowedException("Unable to remove comment");
+        }
+        postRepo.decrementPostComments(commentId);
     }
 
-    public void addCommentReply(String commendId){
+    // toggle between Comment liked and not liked
+    public LikeResponse addCommentLike(String commentId){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+
+        Comment comment=commentRepo.findById(commentId).orElseThrow(()-> new ContentNotFoundException("Comment Not Found"));
+
+        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,comment.getPostOwnerId());
+
+        if(!isAllowed){
+            throw new ActionNotAllowedException("Action could not be completed");
+        }
+
+        boolean liked=likeRepo.existsByUserIdAndTargetIdAndLikeType(currentUserId,commentId,LikeType.COMMENT);
+
+        long likeCount;
+
+        if(liked){
+            likeRepo.deleteByUserIdAndTargetIdAndLikeType(currentUserId,commentId,LikeType.COMMENT);
+            likeCount=commentRepo.updateCommentLikes(commentId,-1);
+        }else{
+            likeRepo.save(new Like(currentUserId,commentId, LikeType.COMMENT));
+            likeCount=commentRepo.updateCommentLikes(commentId,1);
+        }
+
+        return new LikeResponse(!liked,likeCount);
+    }
+
+    public void addCommentReply(String commentId,CommentRequest commentRequest){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+
+        Comment comment=commentRepo.findById(commentId).orElseThrow(()-> new ContentNotFoundException("Comment Not Found"));
+
+        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,comment.getPostOwnerId());
+
+        if(!isAllowed){
+            throw new ActionNotAllowedException("Action could not be completed");
+        }
+
+        replyRepo.save(new Reply(currentUserId,commentId));
+        commentRepo.updateCommentReplies(commentId,1);
 
     }
 

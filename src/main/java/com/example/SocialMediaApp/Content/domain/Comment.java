@@ -3,6 +3,7 @@ package com.example.SocialMediaApp.Content.domain;
 import com.example.SocialMediaApp.User.domain.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
@@ -29,22 +30,39 @@ public class Comment {
     @CreatedDate
     private Instant createdAt;
 
-    @Max(100)
+    private Long likeCount=0L;
+
+    private Long replyCount=0L;
+
+    @Column(updatable = false)
+    private String postOwnerId;
+
+    @Size(max = 100)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @JoinColumn(name = "post_id")
     private Post post;
 
+    @Column(name = "post_id",updatable = false,insertable = false)
+    private String postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "user_id")
     private User user;
 
-    public Comment(String content,String userId,String postId){
+    @Column(name = "user_id",updatable = false,insertable = false)
+    private String userId;
+
+    public Comment(String content,String userId,String postId,String postOwnerId){
         this.content=content;
         this.user=new User(userId);
         this.post=new Post(postId);
+        this.postOwnerId=postOwnerId;
+    }
+
+    public Comment(String id){
+        this.id=id;
     }
 
 }

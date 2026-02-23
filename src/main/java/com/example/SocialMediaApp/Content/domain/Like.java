@@ -21,30 +21,24 @@ public class Like {
     @Enumerated(EnumType.STRING)
     private LikeType type;
 
-    @ManyToOne
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
-
-    @ManyToOne
-    @JoinColumn(name = "story_id")
-    private Story story;
+    // this could be (story,comment,reply)
+    private String targetId;
 
     @ManyToOne
     @JoinColumn(name= "user_id")
     private User user;
 
-    // like record can only belong to either comment or story
-    @PrePersist
-    public void prePersist(){
-        if(comment!=null&&story!=null){
-            throw new RuntimeException();
-        }
+
+
+
+    public Like(String userId){
+        this.user=new User(userId);
     }
 
-    @PreUpdate
-    public void preUpdate(){
-        if(type!=null){
-            throw new RuntimeException();
-        }
+    public Like(String userId,String targetId,LikeType type){
+        this(userId);
+        this.type=type;
+        this.targetId=targetId;
     }
+
 }
