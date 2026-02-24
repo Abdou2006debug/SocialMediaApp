@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 
         if(filepath==null) throw new ActionNotAllowedException("Upload Session expired or Invalid");
 
-        if(!checkUserOwnership(userId,filepath)){
-            // logging later ..
+        if(userId!=null&&!checkUserOwnership(userId,filepath)){
+            // logging later
             throw new ActionNotAllowedException("Action could not be completed");
         }
 
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
     }
 
     private  boolean checkUserOwnership(String userId,String filepath){
-        String providedUserId=filepath.split("/")[1];
+        String providedUserId=filepath.split("/")[2];
         return providedUserId.equals(userId);
     }
 

@@ -3,7 +3,7 @@ package com.example.SocialMediaApp.Upload.application;
 import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
-import com.example.SocialMediaApp.Upload.api.dto.uploadRequest;
+import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.uploadType;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
 
     public static final long MAX_VIDEO_SIZE = 30 * 1024 * 1024L;
 
-    public void validateFileUpload(uploadRequest request){
+    public void validateFileUpload(UploadRequest request){
      List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType());
      boolean compatible=false;
      if(allowedTypesForRequest!=null){

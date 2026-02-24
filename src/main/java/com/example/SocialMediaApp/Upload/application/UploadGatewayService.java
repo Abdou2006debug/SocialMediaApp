@@ -1,12 +1,12 @@
 package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Content.domain.Media;
-import com.example.SocialMediaApp.Shared.Exceptions.UploadFailedException;
-import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
+import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 import com.example.SocialMediaApp.Storage.StorageService;
 
-import com.example.SocialMediaApp.Upload.api.dto.uploadRequest;
-import com.example.SocialMediaApp.Upload.api.dto.uploadResponse;
+import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
+import com.example.SocialMediaApp.Upload.api.dto.UploadResponse;
+import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
 import com.example.SocialMediaApp.Upload.domain.uploadPhase;
 import com.example.SocialMediaApp.Upload.domain.uploadType;
 import lombok.RequiredArgsConstructor;
@@ -28,46 +28,55 @@ public class UploadGatewayService {
     private final UploadStateService uploadStateService;
     private final UploadUtil uploadUtil;
     private final UploadValidationService uploadValidationService;
+    private final WebhookVerification webhookVerification;
     private static final int UPLOAD_WAIT_DURATION_MINUTES = 5;
     private static final int UPLOAD_CONFIRM_DURATION_MINUTES = 10;
 
 
     // used to upload files directly though the server
     public String Upload(MultipartFile file, String userId) throws IOException {
-        uploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
+        UploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
         uploadValidationService.validateFileUpload(uploadRequest);
         Map<String,String> map= uploadUtil.generateUploadResponse(userId,uploadRequest);
         String filepath=map.get("filepath");
+        // for this method since the uploading is done directly via the server dont need to make the file start with temporary to not get deleted later
+        filepath=filepath.replace("temporary/","");
         storageService.uploadFile(file,filepath);
         return filepath;
     }
 
-    public uploadResponse requestUpload(String userId, uploadRequest uploadRequest){
-        uploadValidationService.validateFileUpload(uploadRequest);
+    public UploadResponse requestUpload(String userId, UploadRequest uploadRequest){
+         uploadValidationService.validateFileUpload(uploadRequest);
          Map<String,String> uploadMap=uploadUtil.generateUploadResponse(userId,uploadRequest);
          String filepath=uploadMap.get("filepath");
          String uploadRequestId=uploadMap.get("uploadRequestId");
          String signedUrl=storageService.generateSignedUrl(filepath);
 
         redisTemplate.opsForValue().set(String.format("requested:%s",uploadRequestId),filepath,UPLOAD_WAIT_DURATION_MINUTES, TimeUnit.MINUTES);
-        return new uploadResponse(signedUrl,uploadRequestId);
+        return new UploadResponse(signedUrl,uploadRequestId);
     }
 
-    public int confirmUpload(String userId,String uploadRequestId){
+    public void confirmUpload(String signature, SupabaseWebhookPayload webhookPayload){
 
-            String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, uploadPhase.REQUESTED);
+        String filePath=null;
 
-            boolean fileExist=storageService.checkFileExist(filepath);
+        try{
 
-            if(!fileExist) throw new UploadFailedException("Upload failed try again");
+            webhookVerification.verify(signature);
 
-            redisTemplate.opsForValue().set(String.format("confirmed:%s", uploadRequestId),filepath,UPLOAD_CONFIRM_DURATION_MINUTES,TimeUnit.MINUTES);
+            String uploadRequestId=webhookPayload.getRecord().getPathTokens().get(4);
+
+            filePath=uploadStateService.validateUploadSession(null,uploadRequestId, uploadPhase.REQUESTED);
+
+            redisTemplate.opsForValue().set(String.format("confirmed:%s", uploadRequestId),filePath,UPLOAD_CONFIRM_DURATION_MINUTES,TimeUnit.MINUTES);
 
             redisTemplate.delete(String.format("requested:%s",uploadRequestId));
 
-            storageService.scheduleCleanSupabase(filepath,UPLOAD_CONFIRM_DURATION_MINUTES);
 
-            return UPLOAD_CONFIRM_DURATION_MINUTES;
+        }catch (ActionNotAllowedException e){
+            storageService.deleteFile(filePath);
+        }
+
     }
 
     public void deleteUpload(String userId,String uploadRequestId){
@@ -75,7 +84,7 @@ public class UploadGatewayService {
         String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId,uploadPhase.CONFIRMED);
 
         redisTemplate.delete(filepath);
-        storageService.cancelScheduledClean(filepath);
+
     }
 
     public List<Media> finalizeUploads(String userId, List<String> uploadRequestsIds, uploadType uploadType){
@@ -90,10 +99,10 @@ public class UploadGatewayService {
 
         // if we get here that means all files are valid and we untrack them
         filesPaths.forEach(filepath->{
-            redisTemplate.delete(String.format("confirmed:%s",filepath.split("/")[3]));
-            storageService.cancelScheduledClean(filepath);
+            redisTemplate.delete(String.format("confirmed:%s",filepath.split("/")[4]));
         });
 
+        storageService.moveFilesToPermanent(filesPaths);
 
         return uploadUtil.convertToMedia(filesPaths);
 
