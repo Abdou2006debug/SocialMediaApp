@@ -1,5 +1,5 @@
 package com.example.SocialMediaApp.Upload.domain;
 
-public enum uploadPhase {
+public enum UploadPhase {
     REQUESTED,CONFIRMED
 }

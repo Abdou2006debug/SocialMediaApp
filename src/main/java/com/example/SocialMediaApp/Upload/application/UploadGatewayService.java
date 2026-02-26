@@ -2,13 +2,15 @@ package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
+import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
+import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Storage.StorageService;
 
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.api.dto.UploadResponse;
 import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
-import com.example.SocialMediaApp.Upload.domain.uploadPhase;
-import com.example.SocialMediaApp.Upload.domain.uploadType;
+import com.example.SocialMediaApp.Upload.domain.UploadPhase;
+import com.example.SocialMediaApp.Upload.domain.UploadType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,7 @@ public class UploadGatewayService {
     // used to upload files directly though the server
     public String Upload(MultipartFile file, String userId) throws IOException {
         UploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
-        uploadValidationService.validateFileUpload(uploadRequest);
+        uploadValidationService.validateFile(uploadRequest);
         Map<String,String> map= uploadUtil.generateUploadResponse(userId,uploadRequest);
         String filepath=map.get("filepath");
         // for this method since the uploading is done directly via the server dont need to make the file start with temporary to not get deleted later
@@ -46,7 +48,7 @@ public class UploadGatewayService {
     }
 
     public UploadResponse requestUpload(String userId, UploadRequest uploadRequest){
-         uploadValidationService.validateFileUpload(uploadRequest);
+         uploadValidationService.validateFile(uploadRequest);
          Map<String,String> uploadMap=uploadUtil.generateUploadResponse(userId,uploadRequest);
          String filepath=uploadMap.get("filepath");
          String uploadRequestId=uploadMap.get("uploadRequestId");
@@ -62,18 +64,22 @@ public class UploadGatewayService {
 
         try{
 
-            webhookVerification.verify(signature);
+            webhookVerification.verifySignature(signature);
 
             String uploadRequestId=webhookPayload.getRecord().getPathTokens().get(4);
 
-            filePath=uploadStateService.validateUploadSession(null,uploadRequestId, uploadPhase.REQUESTED);
+            filePath=uploadStateService.validateUploadSession(null,uploadRequestId, UploadPhase.REQUESTED);
+
+            if(!filePath.equals(webhookPayload.getRecord().getName())) throw new ActionNotAllowedException("Action could not be completed");
+
+            webhookVerification.verifyFileUploaded(filePath,webhookPayload.getRecord());
 
             redisTemplate.opsForValue().set(String.format("confirmed:%s", uploadRequestId),filePath,UPLOAD_CONFIRM_DURATION_MINUTES,TimeUnit.MINUTES);
 
             redisTemplate.delete(String.format("requested:%s",uploadRequestId));
 
 
-        }catch (ActionNotAllowedException e){
+        }catch (ActionNotAllowedException | UnsupportedMediaTypeException | FileTooLargeException e){
             storageService.deleteFile(filePath);
         }
 
@@ -81,19 +87,19 @@ public class UploadGatewayService {
 
     public void deleteUpload(String userId,String uploadRequestId){
 
-        String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId,uploadPhase.CONFIRMED);
+        String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
 
         redisTemplate.delete(filepath);
 
     }
 
-    public List<Media> finalizeUploads(String userId, List<String> uploadRequestsIds, uploadType uploadType){
+    public List<Media> finalizeUploads(String userId, List<String> uploadRequestsIds, UploadType uploadType){
 
         List<String> filesPaths =new ArrayList<>();
 
         for(String uploadRequestId : uploadRequestsIds){
-            String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, uploadPhase.CONFIRMED);
-            uploadValidationService.confirmUploadType(filepath, com.example.SocialMediaApp.Upload.domain.uploadType.POST);
+            String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
+            uploadValidationService.confirmUploadType(filepath, UploadType.POST);
             filesPaths.add(filepath);
         }
 

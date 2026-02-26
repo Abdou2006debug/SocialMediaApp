@@ -4,18 +4,18 @@ import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
-import com.example.SocialMediaApp.Upload.domain.uploadType;
+import com.example.SocialMediaApp.Upload.domain.UploadType;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
+import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
 
 
 @Component
  class UploadValidationService {
 
-    static final Map<uploadType,List<String>> allowedTypes=Map.of(
+    static final Map<UploadType,List<String>> allowedTypes=Map.of(
             PROFILE, Arrays.asList(
             "image/jpeg",
             "image/png",
@@ -45,17 +45,17 @@ import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
 
     public static final long MAX_VIDEO_SIZE = 30 * 1024 * 1024L;
 
-    public void validateFileUpload(UploadRequest request){
+    public void validateFile(UploadRequest request){
      List<String> allowedTypesForRequest =allowedTypes.get(request.getUploadType());
      boolean compatible=false;
      if(allowedTypesForRequest!=null){
-        compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileType().toLowerCase()));
+        compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileMimeType().toLowerCase()));
      }
 
-        String filetype=request.getFileType();
+        String filetMimeType =request.getFileMimeType();
 
      if(compatible){
-         boolean isVideo =  filetype.startsWith("video/");
+         boolean isVideo =  filetMimeType.startsWith("video/");
          long limit=switch (request.getUploadType()) {
 
              case PROFILE -> MAX_PROFILE_SIZE;
@@ -83,8 +83,8 @@ import static com.example.SocialMediaApp.Upload.domain.uploadType.*;
     }
 
     // this method will confirm that the upload type the user wants to create match the filepath upload type
-    public void confirmUploadType(String filepath, uploadType intendedType){
-        boolean compatibleType = filepath.split("/")[0].
+    public void confirmUploadType(String filepath, UploadType intendedType){
+        boolean compatibleType = filepath.split("/")[1].
                 equals(intendedType.toString().toLowerCase());
         if(!compatibleType) throw new UploadTypeMismatch("");
     }

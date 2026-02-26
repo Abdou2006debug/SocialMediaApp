@@ -2,12 +2,11 @@ package com.example.SocialMediaApp.Content.application;
 import com.example.SocialMediaApp.Content.api.dto.PostCreation;
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Content.domain.Post;
-import com.example.SocialMediaApp.Content.domain.PostSettings;
 import com.example.SocialMediaApp.Content.persistence.PostRepo;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
 import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
-import com.example.SocialMediaApp.Upload.domain.uploadType;
+import com.example.SocialMediaApp.Upload.domain.UploadType;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,11 +28,10 @@ public class PostLifecycleService {
     public void createPost(PostCreation postCreation){
         String currentUserId=authenticatedUserService.getcurrentuser();
         List<String> uploadRequestsIds=postCreation.getUploadRequestsIds();
-        List<Media> mediaList=uploadGateway.finalizeUploads(currentUserId,uploadRequestsIds,uploadType.POST);
-        PostSettings postSettings=contentmapper.toPostSettings(postCreation);
+        List<Media> mediaList=uploadGateway.finalizeUploads(currentUserId,uploadRequestsIds, UploadType.POST);;
         Post post= Post.builder().
                 caption(postCreation.getCaption()).
-                mediaList(mediaList).postSettings(postSettings).build();
+                mediaList(mediaList).postSettings(postCreation.getPostSettings()).build();
 
         post.setUser(currentUserId);
         postRepo.save(post);

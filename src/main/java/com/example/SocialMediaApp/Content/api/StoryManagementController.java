@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.Content.api;
 
-import com.example.SocialMediaApp.Content.application.StoryManagementService;
+import com.example.SocialMediaApp.Content.application.StoryLifecycleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/users/content/story")
 public class StoryManagementController {
 
-    private final StoryManagementService storyManagementService;
+    private final StoryLifecycleService storyManagementService;
 
 
 

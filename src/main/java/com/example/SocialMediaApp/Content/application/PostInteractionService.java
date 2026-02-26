@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PosttInteractionService {
+public class PostInteractionService {
 
     private final PostRepo postRepo;
     private final PostLikeRepo postLikeRepo;
@@ -48,7 +48,13 @@ public class PosttInteractionService {
             likeCount=postRepo.updatePostLikes(postId,1);
             // handling notifications later
         }
-        return new LikeResponse(!liked,likeCount);
+
+        LikeResponse likeResponse=new LikeResponse(!liked);
+        PostSettings postSettings=post.getPostSettings();
+        if(!postSettings.getHideLikes()){
+            likeResponse.setLikeCount(likeCount);
+        }
+        return likeResponse;
     }
 
 
@@ -59,7 +65,9 @@ public class PosttInteractionService {
 
         String postOwnerId=post.getUserId();
 
-        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,postOwnerId);
+        PostSettings postSettings=post.getPostSettings();
+
+        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,postOwnerId)&&!postSettings.getCommentsDisabled();
 
         if(!isAllowed) throw new ActionNotAllowedException("Action could not be completed");
 
@@ -77,49 +85,6 @@ public class PosttInteractionService {
             throw new ActionNotAllowedException("Unable to remove comment");
         }
         postRepo.decrementPostComments(commentId);
-    }
-
-    // toggle between Comment liked and not liked
-    public LikeResponse addCommentLike(String commentId){
-        String currentUserId=authenticatedUserService.getcurrentuser();
-
-        Comment comment=commentRepo.findById(commentId).orElseThrow(()-> new ContentNotFoundException("Comment Not Found"));
-
-        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,comment.getPostOwnerId());
-
-        if(!isAllowed){
-            throw new ActionNotAllowedException("Action could not be completed");
-        }
-
-        boolean liked=likeRepo.existsByUserIdAndTargetIdAndLikeType(currentUserId,commentId,LikeType.COMMENT);
-
-        long likeCount;
-
-        if(liked){
-            likeRepo.deleteByUserIdAndTargetIdAndLikeType(currentUserId,commentId,LikeType.COMMENT);
-            likeCount=commentRepo.updateCommentLikes(commentId,-1);
-        }else{
-            likeRepo.save(new Like(currentUserId,commentId, LikeType.COMMENT));
-            likeCount=commentRepo.updateCommentLikes(commentId,1);
-        }
-
-        return new LikeResponse(!liked,likeCount);
-    }
-
-    public void addCommentReply(String commentId,CommentRequest commentRequest){
-        String currentUserId=authenticatedUserService.getcurrentuser();
-
-        Comment comment=commentRepo.findById(commentId).orElseThrow(()-> new ContentNotFoundException("Comment Not Found"));
-
-        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,comment.getPostOwnerId());
-
-        if(!isAllowed){
-            throw new ActionNotAllowedException("Action could not be completed");
-        }
-
-        replyRepo.save(new Reply(currentUserId,commentId));
-        commentRepo.updateCommentReplies(commentId,1);
-
     }
 
 }

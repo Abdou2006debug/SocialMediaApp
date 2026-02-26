@@ -27,16 +27,22 @@ public class Story {
     @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
 
+    @CreatedDate
+    private Instant createdAt;
+
     private Long likeCount=0L;
+
+    private Long viewCount=0L;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Media media;
 
-    @CreatedDate
-    private Instant createdAt;
-
     private Boolean expired=false;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private StorySettings storySettings;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

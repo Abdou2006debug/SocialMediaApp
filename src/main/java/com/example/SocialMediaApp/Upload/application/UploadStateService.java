@@ -2,7 +2,7 @@ package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 
-import com.example.SocialMediaApp.Upload.domain.uploadPhase;
+import com.example.SocialMediaApp.Upload.domain.UploadPhase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
     private final RedisTemplate<String,String> redisTemplate;
 
-    public String validateUploadSession(String userId, String uploadRequestId, uploadPhase uploadPhase) {
+    public String validateUploadSession(String userId, String uploadRequestId, UploadPhase uploadPhase) {
         String key=String.format("%s:%s",uploadPhase.toString().toLowerCase(),uploadRequestId);
 
         String filepath=redisTemplate.opsForValue().get(key);

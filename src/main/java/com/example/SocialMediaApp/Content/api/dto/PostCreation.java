@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
+import com.example.SocialMediaApp.Content.domain.PostSettings;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
@@ -11,6 +12,5 @@ public class PostCreation {
     @Size(min = 1, max = 10)
     private List<String> uploadRequestsIds;
     private List<String> tags;
-    private boolean commentsDisabled;
-    private boolean likesDisabled;
+    private PostSettings postSettings;
 }

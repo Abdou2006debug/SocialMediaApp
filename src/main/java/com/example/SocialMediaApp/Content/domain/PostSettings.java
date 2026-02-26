@@ -6,14 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Embeddable
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class PostSettings {
 
     private Boolean commentsDisabled=false;
-
     private Boolean hideLikes=false;
 
 }

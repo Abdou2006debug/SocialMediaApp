@@ -1,0 +1,19 @@
+package com.example.SocialMediaApp.Content.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class StorySettings {
+
+    private Boolean hideViewCount;
+    private StoryAudience audience;
+
+    public enum StoryAudience{
+        EVERYONE,CLOSE_FRIENDS,FOLLOWERS
+    }
+
+}

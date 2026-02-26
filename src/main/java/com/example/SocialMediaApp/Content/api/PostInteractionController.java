@@ -3,11 +3,9 @@ package com.example.SocialMediaApp.Content.api;
 import com.example.SocialMediaApp.Content.api.dto.CommentRequest;
 import com.example.SocialMediaApp.Content.api.dto.CommentResponse;
 import com.example.SocialMediaApp.Content.api.dto.LikeResponse;
-import com.example.SocialMediaApp.Content.application.PosttInteractionService;
-import com.example.SocialMediaApp.Content.domain.Like;
+import com.example.SocialMediaApp.Content.application.PostInteractionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users/content/post")
 public class PostInteractionController {
 
-    private final PosttInteractionService posttInteractionService;
+    private final PostInteractionService posttInteractionService;
 
     @PostMapping("/{postId}/likes")
     public ResponseEntity<LikeResponse> likePost(@PathVariable String postId){
@@ -27,4 +25,5 @@ public class PostInteractionController {
     public ResponseEntity<CommentResponse> commentPost(@PathVariable String postId, @RequestBody @Valid CommentRequest commentRequest){
         return ResponseEntity.ok(posttInteractionService.addPostComment(postId,commentRequest));
     }
+
 }

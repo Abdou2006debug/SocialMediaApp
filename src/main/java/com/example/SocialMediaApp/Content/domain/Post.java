@@ -61,10 +61,12 @@ public class Post {
     private PostStatus postStatus=PostStatus.DRAFT;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     private PostSettings postSettings;
 
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     private List<Media> mediaList=new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -75,6 +77,7 @@ public class Post {
     private String userId;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     private Location location;
 
     public void setUser(String userId){

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StoryManagementService {
+public class StoryLifecycleService {
 
     private final UploadGatewayService uploadGateway;
     private final AuthenticatedUserService authenticatedUserService;
