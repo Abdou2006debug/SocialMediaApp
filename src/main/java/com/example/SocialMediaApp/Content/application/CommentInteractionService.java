@@ -25,7 +25,6 @@ public class CommentInteractionService {
     private final AuthenticatedUserService authenticatedUserService;
     private final LikeRepo likeRepo;
     private final ReplyRepo replyRepo;
-
     // toggle between Comment liked and not liked
     public LikeResponse addCommentLike(String commentId){
         String currentUserId=authenticatedUserService.getcurrentuser();
@@ -68,4 +67,5 @@ public class CommentInteractionService {
         commentRepo.updateCommentReplies(commentId,1);
 
     }
+
 }

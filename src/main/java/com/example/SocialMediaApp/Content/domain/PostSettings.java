@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class PostSettings {
 
-    private Boolean commentsDisabled=false;
-    private Boolean hideLikes=false;
+    private boolean commentsDisabled;
+    private boolean hideLikes;
+    private boolean hideComments;
 
 }

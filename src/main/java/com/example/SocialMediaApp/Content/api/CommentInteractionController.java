@@ -5,12 +5,13 @@ import com.example.SocialMediaApp.Content.api.dto.LikeResponse;
 import com.example.SocialMediaApp.Content.application.CommentInteractionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users/content/comments")
+@RequestMapping("/api/v1/comments")
 public class CommentInteractionController {
 
     private final CommentInteractionService commentInteractionService;
@@ -26,5 +27,6 @@ public class CommentInteractionController {
         commentInteractionService.addCommentReply(commentId,commentRequest);
         return ResponseEntity.noContent().build();
     }
+
 
 }

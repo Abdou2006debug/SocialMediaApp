@@ -2,6 +2,8 @@ package com.example.SocialMediaApp.Content.persistence;
 
 import com.example.SocialMediaApp.Content.domain.Post;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,5 +37,6 @@ public interface PostRepo extends JpaRepository<Post,String> {
     @Query(value = "UPDATE Post SET commentCount = commentCount - 1 WHERE Post.id=(SELECT p.id FROM Post p JOIN Comment c ON p.id=c.post_id WHERE c.id=:commentId) RETURNING commentCount",nativeQuery = true)
     long decrementPostComments(@Param("commentId") String commentId);
 
+    Page<Post> findByUserIdAndPostStatus(String userId, Post.PostStatus postStatus, Pageable pageable);
 
 }

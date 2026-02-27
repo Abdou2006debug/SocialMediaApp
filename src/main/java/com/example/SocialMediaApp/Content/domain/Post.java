@@ -48,6 +48,10 @@ public class Post {
 
     private Instant publishedAt;
 
+    private Instant deletedAt;
+
+    private Instant unpublishedAt;
+
     private String caption;
 
     @Builder.Default

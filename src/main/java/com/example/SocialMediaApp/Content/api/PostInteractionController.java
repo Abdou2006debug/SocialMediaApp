@@ -11,19 +11,25 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users/content/post")
+@RequestMapping("/api/v1/content/post")
 public class PostInteractionController {
 
-    private final PostInteractionService posttInteractionService;
+    private final PostInteractionService postInteractionService;
 
     @PostMapping("/{postId}/likes")
     public ResponseEntity<LikeResponse> likePost(@PathVariable String postId){
-        return ResponseEntity.ok(posttInteractionService.addPostLike(postId));
+        return ResponseEntity.ok(postInteractionService.addPostLike(postId));
     }
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponse> commentPost(@PathVariable String postId, @RequestBody @Valid CommentRequest commentRequest){
-        return ResponseEntity.ok(posttInteractionService.addPostComment(postId,commentRequest));
+        return ResponseEntity.ok(postInteractionService.addPostComment(postId,commentRequest));
+    }
+
+    @DeleteMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable String postId,@PathVariable String commentId){
+        postInteractionService.removePostComment(commentId);
+        return ResponseEntity.noContent().build();
     }
 
 }

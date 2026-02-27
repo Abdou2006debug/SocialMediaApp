@@ -17,7 +17,6 @@ public class StoryLifecycleService {
 
     public void createStory(StoryCreation storyCreation){
 
-
     }
 
 

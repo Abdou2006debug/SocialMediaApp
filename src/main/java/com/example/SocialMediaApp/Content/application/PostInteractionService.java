@@ -51,7 +51,7 @@ public class PostInteractionService {
 
         LikeResponse likeResponse=new LikeResponse(!liked);
         PostSettings postSettings=post.getPostSettings();
-        if(!postSettings.getHideLikes()){
+        if(!postSettings.isHideLikes()){
             likeResponse.setLikeCount(likeCount);
         }
         return likeResponse;
@@ -67,7 +67,7 @@ public class PostInteractionService {
 
         PostSettings postSettings=post.getPostSettings();
 
-        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,postOwnerId)&&!postSettings.getCommentsDisabled();
+        boolean isAllowed=visibilityPolicy.isAllowed(currentUserId,postOwnerId)&&!postSettings.isCommentsDisabled();
 
         if(!isAllowed) throw new ActionNotAllowedException("Action could not be completed");
 

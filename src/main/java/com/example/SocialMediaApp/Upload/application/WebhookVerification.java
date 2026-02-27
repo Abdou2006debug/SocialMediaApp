@@ -1,6 +1,7 @@
 package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
+import com.example.SocialMediaApp.Shared.Exceptions.WebhookSignatureException;
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.http.WebSocketHandshakeException;
 import java.util.Map;
 
 @Service
@@ -21,7 +23,7 @@ public class WebhookVerification {
     public void verifySignature(String signature) {
         if (signature == null || !signature.equals(webhookSecret)) {
 
-            throw new ActionNotAllowedException("Invalid webhook signature");
+            throw new WebhookSignatureException("Invalid webhook signature");
         }
     }
 

@@ -84,9 +84,9 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
 
     // this method will confirm that the upload type the user wants to create match the filepath upload type
     public void confirmUploadType(String filepath, UploadType intendedType){
-        boolean compatibleType = filepath.split("/")[1].
+        boolean compatibleUploadType = filepath.split("/")[1].
                 equals(intendedType.toString().toLowerCase());
-        if(!compatibleType) throw new UploadTypeMismatch("");
+        if(!compatibleUploadType) throw new UploadTypeMismatch("");
     }
 
 

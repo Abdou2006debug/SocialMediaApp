@@ -1,0 +1,119 @@
+package com.example.SocialMediaApp.Content.application;
+
+import com.example.SocialMediaApp.Content.api.dto.PostRepresentation;
+import com.example.SocialMediaApp.Content.domain.Post;
+import com.example.SocialMediaApp.Content.domain.PostLike;
+import com.example.SocialMediaApp.Content.domain.PostSettings;
+import com.example.SocialMediaApp.Content.persistence.PostLikeRepo;
+import com.example.SocialMediaApp.Content.persistence.PostRepo;
+import com.example.SocialMediaApp.Content.persistence.StoryRepo;
+import com.example.SocialMediaApp.Profile.api.dto.profileSummary;
+import com.example.SocialMediaApp.Profile.application.ProfileQueryService;
+import com.example.SocialMediaApp.Profile.domain.cache.ProfileInfo;
+import com.example.SocialMediaApp.Shared.Exceptions.ContentNotAvailableException;
+import com.example.SocialMediaApp.Shared.Exceptions.UserNotFoundException;
+import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
+import com.example.SocialMediaApp.Shared.VisibilityPolicy;
+import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
+import com.example.SocialMediaApp.User.persistence.UserRepo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PostQueryService {
+
+    private final PostRepo postRepo;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final VisibilityPolicy visibilityPolicy;
+    private final ProfileQueryService profileQueryService;
+    private final Contentmapper contentmapper;
+    private final PostLikeRepo postLikeRepo;
+    private final UserRepo userRepo;
+
+
+    public Page<PostRepresentation> getMyPosts(Post.PostStatus postStatus, int page){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+        Pageable pageable=getPageable(page,postStatus);
+
+      return  postRepo.findByUserIdAndPostStatus(currentUserId,postStatus,pageable).map(post->{
+            PostRepresentation postRepresentation=contentmapper.toPostRepresentation(post);
+            postRepresentation.setPostStatus(postStatus);
+            postRepresentation.setLikes(post.getLikeCount());
+            postRepresentation.setComments(post.getCommentCount());
+            return postRepresentation;
+        });
+    }
+
+    public Page<PostRepresentation> getUserPosts(String targetId, int page){
+        String currentUserId=authenticatedUserService.getcurrentuser();
+
+        if(currentUserId.equals(targetId)) return getMyPosts(Post.PostStatus.PUBLISHED,page);
+        if(!userRepo.existsById(targetId)) throw new UserNotFoundException("User Not Found");
+        if(visibilityPolicy.isAllowed(currentUserId,targetId)) throw new ContentNotAvailableException("");
+
+        ProfileInfo profileInfo =profileQueryService.getUserProfileInfo(targetId);
+        Post.PostStatus postStatus= Post.PostStatus.PUBLISHED;
+        Pageable pageable=getPageable(page,postStatus);
+
+        Page<Post> postPage = postRepo.findByUserIdAndPostStatus(targetId, postStatus, pageable);
+
+        List<String> postIds = postPage.get()
+                .map(Post::getId)
+                .toList();
+
+        Map<String, Boolean> likesMap = postIds.stream()
+                .collect(Collectors.toMap(id -> id, id -> false));
+
+        Set<String> likedPostIds = postLikeRepo.getLikesPostIds(currentUserId, postIds);
+
+        likedPostIds.forEach(postId -> likesMap.put(postId, true));
+
+        return postPage.map(post -> {
+
+            String postId=post.getId();
+
+            PostRepresentation postRepresentation=contentmapper.toPostRepresentation(post);
+
+            postRepresentation.setProfileInfo(profileInfo);
+
+            postRepresentation.setLikedByMe(likesMap.getOrDefault(postId,false));
+
+            PostSettings postSettings=post.getPostSettings();
+
+            if(!postSettings.isHideLikes()){
+                postRepresentation.setLikes(post.getLikeCount());
+            }
+
+            if(postSettings.isCommentsDisabled()){
+                postRepresentation.setCommentsDisabled(true);
+            }
+
+            if(!postSettings.isHideComments()){
+                postRepresentation.setComments(post.getCommentCount());
+            }
+
+                return postRepresentation;
+        });
+    }
+
+    public Pageable getPageable(int page, Post.PostStatus postStatus) {
+        String sortBy = switch (postStatus) {
+            case PUBLISHED -> "publishedAt";
+            case DELETED -> "deletedAt";
+            case DRAFT -> "createdAt";
+            case UNPUBLISHED -> "unPublishedAt";
+        };
+        return PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, sortBy));
+    }
+
+}

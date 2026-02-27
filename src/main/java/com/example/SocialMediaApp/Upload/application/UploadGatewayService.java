@@ -61,12 +61,13 @@ public class UploadGatewayService {
     public void confirmUpload(String signature, SupabaseWebhookPayload webhookPayload){
 
         String filePath=null;
+        String uploadRequestId=null;
 
         try{
 
             webhookVerification.verifySignature(signature);
 
-            String uploadRequestId=webhookPayload.getRecord().getPathTokens().get(4);
+            uploadRequestId=webhookPayload.getRecord().getPathTokens().get(4);
 
             filePath=uploadStateService.validateUploadSession(null,uploadRequestId, UploadPhase.REQUESTED);
 
@@ -78,10 +79,11 @@ public class UploadGatewayService {
 
             redisTemplate.delete(String.format("requested:%s",uploadRequestId));
 
-
         }catch (ActionNotAllowedException | UnsupportedMediaTypeException | FileTooLargeException e){
             storageService.deleteFile(filePath);
+            redisTemplate.delete(String.format("requested:%s",uploadRequestId));
         }
+
 
     }
 
@@ -99,7 +101,7 @@ public class UploadGatewayService {
 
         for(String uploadRequestId : uploadRequestsIds){
             String filepath=uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
-            uploadValidationService.confirmUploadType(filepath, UploadType.POST);
+            uploadValidationService.confirmUploadType(filepath, uploadType);
             filesPaths.add(filepath);
         }
 

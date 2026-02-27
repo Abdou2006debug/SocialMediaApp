@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users/content/story")
+@RequestMapping("/api/v1/content/story")
 public class StoryManagementController {
 
     private final StoryLifecycleService storyManagementService;
