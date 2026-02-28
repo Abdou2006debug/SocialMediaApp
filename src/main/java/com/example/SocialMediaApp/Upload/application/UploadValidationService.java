@@ -82,12 +82,4 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
      throw new UnsupportedMediaTypeException("file type is unsupported");
     }
 
-    // this method will confirm that the upload type the user wants to create match the filepath upload type
-    public void confirmUploadType(String filepath, UploadType intendedType){
-        boolean compatibleUploadType = filepath.split("/")[1].
-                equals(intendedType.toString().toLowerCase());
-        if(!compatibleUploadType) throw new UploadTypeMismatch("");
-    }
-
-
 }

@@ -106,7 +106,7 @@ public class PostQueryService {
         });
     }
 
-    public Pageable getPageable(int page, Post.PostStatus postStatus) {
+    private Pageable getPageable(int page, Post.PostStatus postStatus) {
         String sortBy = switch (postStatus) {
             case PUBLISHED -> "publishedAt";
             case DELETED -> "deletedAt";

@@ -3,6 +3,7 @@ package com.example.SocialMediaApp.Upload.application;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 
 import com.example.SocialMediaApp.Upload.domain.UploadPhase;
+import com.example.SocialMediaApp.Upload.domain.UploadSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -11,26 +12,32 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
  class UploadStateService {
 
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate<String,Object> redisTemplate;
 
-    public String validateUploadSession(String userId, String uploadRequestId, UploadPhase uploadPhase) {
-        String key=String.format("%s:%s",uploadPhase.toString().toLowerCase(),uploadRequestId);
+    public UploadSession validateUploadSession(String userId, String key,UploadPhase uploadPhase) {
 
-        String filepath=redisTemplate.opsForValue().get(key);
+        UploadSession uploadSession;
 
-        if(filepath==null) throw new ActionNotAllowedException("Upload Session expired or Invalid");
 
-        if(userId!=null&&!checkUserOwnership(userId,filepath)){
-            // logging later
-            throw new ActionNotAllowedException("Action could not be completed");
+        if(uploadPhase==UploadPhase.CONFIRMED){
+            uploadSession=(UploadSession) redisTemplate.opsForValue().get(key);
+        }else{
+            uploadSession =(UploadSession) redisTemplate.opsForValue().getAndDelete(key);
         }
 
-        return filepath;
+        if(uploadSession==null) throw new ActionNotAllowedException("Upload Session expired or invalid");
+
+        // confirming the user relation with upload is only done in confirmed upload phase after the file being uploaded
+        if(uploadPhase==UploadPhase.CONFIRMED){
+            String actualUserId=uploadSession.getUserId();
+            if(!userId.equals(actualUserId)) {
+                // logging later
+                throw new ActionNotAllowedException("Action could not be completed");
+            }
+        }
+
+        return uploadSession;
     }
 
-    private  boolean checkUserOwnership(String userId,String filepath){
-        String providedUserId=filepath.split("/")[2];
-        return providedUserId.equals(userId);
-    }
 
 }

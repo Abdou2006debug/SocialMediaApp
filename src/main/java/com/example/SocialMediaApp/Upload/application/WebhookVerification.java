@@ -1,9 +1,12 @@
 package com.example.SocialMediaApp.Upload.application;
 
+import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
+import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Shared.Exceptions.WebhookSignatureException;
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
+import com.example.SocialMediaApp.Upload.domain.UploadSession;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,12 +30,26 @@ public class WebhookVerification {
         }
     }
 
-    public void verifyFileUploaded(String filepath, SupabaseWebhookPayload.StorageRecord storageRecord){
+    public void verifyFileUploaded(UploadSession uploadSession, SupabaseWebhookPayload.StorageRecord storageRecord){
         Map<String,Object> metaData=storageRecord.getMetadata();
         String fileMimeType = (String) metaData.get("mimetype");
         Long fileSize = ((Number) metaData.get("size")).longValue();
-        UploadType uploadType=UploadType.valueOf(filepath.split("/")[1].toUpperCase());
-        uploadValidationService.validateFile(new UploadRequest(fileMimeType,fileSize,uploadType));
+        uploadValidationService.validateFile(new UploadRequest(fileMimeType,fileSize,uploadSession.getUploadType()));
+        Media.MediaType mediaType= determineMediaType(fileMimeType);
+        uploadSession.setMediaType(mediaType);
     }
 
+    private Media.MediaType determineMediaType(String mimeType) {
+        if (mimeType == null) {
+            throw new UnsupportedMediaTypeException("Mimetype is missing from storage record");
+        }
+
+        if (mimeType.startsWith("image/")) {
+            return Media.MediaType.IMAGE;
+        } else if (mimeType.startsWith("video/")) {
+            return Media.MediaType.VIDEO;
+        } else {
+            throw new UnsupportedMediaTypeException("Unsupported file format: " + mimeType);
+        }
+    }
 }
