@@ -1,10 +1,7 @@
 package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Content.domain.Media;
-import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
-import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
-import com.example.SocialMediaApp.Shared.Exceptions.UploadTypeMismatch;
+import com.example.SocialMediaApp.Shared.Exceptions.*;
 import com.example.SocialMediaApp.Storage.StorageService;
 
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
@@ -31,7 +28,7 @@ public class UploadGatewayService {
     private final UploadValidationService uploadValidationService;
     private final WebhookVerification webhookVerification;
     private static final int UPLOAD_WAIT_DURATION_MINUTES = 5;
-    private static final int UPLOAD_CONFIRM_DURATION_MINUTES = 10;
+    private static final int UPLOAD_CONFIRM_DURATION_MINUTES = 30;
 
 
     // used to upload files directly though the server
@@ -42,9 +39,7 @@ public class UploadGatewayService {
         String filepath=uploadInitiation.getFilepath();
         // for this method since the uploading is done directly via the server
         // don't need to make the file start with temporary to not get deleted later by the cron job
-        filepath=filepath.replace("temporary/","");
-
-        storageService.uploadFile(file,filepath);
+        storageService.uploadFile(file,filepath.replace("temporary","permanent"));
         return filepath;
     }
 
@@ -94,19 +89,26 @@ public class UploadGatewayService {
         redisTemplate.delete(uploadSession.getUploadRequestId());
     }
 
-    public List<Media> finalizeUploads(String userId, List<String> uploadRequestsIds, UploadType uploadType){
+    public List<Media> finalizePostUploads(String userId, List<String> uploadRequestsIds){
 
         List<String> filesPaths =new ArrayList<>();
         List<Media> mediaList=new ArrayList<>();
+        List<String> failedUploadIds=new ArrayList<>();
 
         for(String uploadRequestId : uploadRequestsIds){
+            try{
             UploadSession uploadSession=uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
             UploadType actualUploadType=uploadSession.getUploadType();
-            if(uploadType!=actualUploadType) throw new UploadTypeMismatch("");
+            if(actualUploadType!=UploadType.POST) throw new UploadTypeMismatch("");
             String filepath=uploadSession.getFilePath();
             filesPaths.add(filepath);
             mediaList.add(new Media(filepath.replace("temporary","permanent"), uploadSession.getMediaType()));
+            }catch (ActionNotAllowedException|UploadTypeMismatch e){
+                failedUploadIds.add(uploadRequestId);
+            }
         }
+
+        if(!failedUploadIds.isEmpty()) throw new UploadFailedException(failedUploadIds);
 
         storageService.moveFilesToPermanent(filesPaths);
 
@@ -114,6 +116,6 @@ public class UploadGatewayService {
 
         return mediaList;
 
-            }
+    }
 
 }

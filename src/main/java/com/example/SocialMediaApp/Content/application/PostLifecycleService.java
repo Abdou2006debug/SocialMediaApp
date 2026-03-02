@@ -1,11 +1,11 @@
 package com.example.SocialMediaApp.Content.application;
-import com.example.SocialMediaApp.Content.api.dto.PostCreation;
+import com.example.SocialMediaApp.Content.api.dto.PostCreationRequest;
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Content.domain.Post;
 import com.example.SocialMediaApp.Content.persistence.PostRepo;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
 import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
+import com.example.SocialMediaApp.Upload.domain.UploadFinilazing;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +22,13 @@ public class PostLifecycleService {
     private final UploadGatewayService uploadGateway;
     private final AuthenticatedUserService authenticatedUserService;
     private final PostRepo postRepo;
-    private final Contentmapper contentmapper;
 
 
-    public void createPost(PostCreation postCreation){
+
+    public void createPost(PostCreationRequest postCreation){
         String currentUserId=authenticatedUserService.getcurrentuser();
         List<String> uploadRequestsIds=postCreation.getUploadRequestsIds();
-        List<Media> mediaList=uploadGateway.finalizeUploads(currentUserId,uploadRequestsIds, UploadType.POST);;
+        List<Media> mediaList=uploadGateway.finalizePostUploads(currentUserId,uploadRequestsIds);;
         Post post= Post.builder().
                 caption(postCreation.getCaption()).
                 mediaList(mediaList).postSettings(postCreation.getPostSettings()).build();

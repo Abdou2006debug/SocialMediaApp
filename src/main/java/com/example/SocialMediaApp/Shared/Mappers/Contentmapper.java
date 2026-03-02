@@ -1,7 +1,7 @@
 package com.example.SocialMediaApp.Shared.Mappers;
 
 import com.example.SocialMediaApp.Content.api.dto.CommentResponse;
-import com.example.SocialMediaApp.Content.api.dto.PostCreation;
+import com.example.SocialMediaApp.Content.api.dto.PostCreationRequest;
 import com.example.SocialMediaApp.Content.api.dto.PostRepresentation;
 import com.example.SocialMediaApp.Content.domain.Comment;
 import com.example.SocialMediaApp.Content.domain.Post;
@@ -12,7 +12,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface Contentmapper {
 
-    PostSettings toPostSettings(PostCreation postCreation);
+    PostSettings toPostSettings(PostCreationRequest postCreation);
     @Mapping(target = "likeCount", ignore = true)
     @Mapping(target = "commentCount", ignore = true)
     @Mapping(target = "postStatus" ,ignore = true)

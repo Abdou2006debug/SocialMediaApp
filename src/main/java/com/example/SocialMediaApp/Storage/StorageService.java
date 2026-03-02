@@ -23,8 +23,6 @@ public class StorageService {
 
     private final WebClient webClient;
     private final StorageProperties storageEnv;
-    private final TaskScheduler taskScheduler;
-    private final ConcurrentHashMap<String,ScheduledFuture<?>> scheduledFutures=new ConcurrentHashMap<>();
 
 
     // profile avatar uploading is done directly via the server
@@ -50,7 +48,7 @@ public class StorageService {
     //
     public void moveFilesToPermanent(List<String> filepaths) {
         filepaths.forEach(oldPath -> {
-            String newPath = oldPath.replace("temporary/", "");
+            String newPath = oldPath.replace("temporary", "permanent");
             webClient.post().uri("/storage/v1/object/move").contentType(MediaType.APPLICATION_JSON).bodyValue(Map.of(
                     "bucketId", storageEnv.getMedia(),
                     "sourceKey", oldPath,

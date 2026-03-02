@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class PostCreation {
+public class PostCreationRequest {
     private String caption;
     @Size(min = 1, max = 10)
     private List<String> uploadRequestsIds;

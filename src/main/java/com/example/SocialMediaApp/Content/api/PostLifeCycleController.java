@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.Content.api;
 
-import com.example.SocialMediaApp.Content.api.dto.PostCreation;
+import com.example.SocialMediaApp.Content.api.dto.PostCreationRequest;
 import com.example.SocialMediaApp.Content.application.PostLifecycleService;
 import com.example.SocialMediaApp.Content.domain.Post;
 import jakarta.validation.Valid;
@@ -18,7 +18,7 @@ public class PostLifeCycleController {
     private final PostLifecycleService postLifecycleService;
 
     @PostMapping
-    public ResponseEntity<Void> createPost(@RequestBody @Valid PostCreation postCreation){
+    public ResponseEntity<Void> createPost(@RequestBody @Valid PostCreationRequest postCreation){
         postLifecycleService.createPost(postCreation);
         return ResponseEntity.noContent().build();
     }
