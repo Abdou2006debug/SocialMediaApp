@@ -10,7 +10,13 @@ import lombok.*;
 public class UploadSession {
     private String userId;
     private UploadType uploadType;
+    // specific for posts
     private String uploadRequestId;
+    //specific for stories
+    private String batchId;
+    private Integer index;
+
+    private String signedUrl;
     private String filePath;
     private Media.MediaType mediaType;
 }

@@ -1,9 +1,12 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
+import com.example.SocialMediaApp.Content.domain.StorySettings;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
-import java.util.List;
 @Getter
 public class StoryCreationRequest {
-    private List<StoryCreation> storyCreations;
+    @NotBlank
+    private String batchId;
+    private StorySettings storySettings;
 }

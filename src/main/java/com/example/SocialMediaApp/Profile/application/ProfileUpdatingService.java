@@ -3,7 +3,7 @@ package com.example.SocialMediaApp.Profile.application;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
 import com.example.SocialMediaApp.Storage.StorageService;
-import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
+import com.example.SocialMediaApp.Upload.application.MediaUploadService;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.application.IdentityService;
 import com.example.SocialMediaApp.User.domain.User;
@@ -31,7 +31,7 @@ public class ProfileUpdatingService {
     private final ProfileCacheManager profileCacheManager;
     private final UserRepo userRepo;
     private final ProfileQueryService profileQueryService;
-    private final UploadGatewayService uploadGatewayService;
+    private final MediaUploadService uploadGatewayService;
     private final StorageService storageService;
     private final FollowRepo followRepo;
     private final IdentityService identityService;
