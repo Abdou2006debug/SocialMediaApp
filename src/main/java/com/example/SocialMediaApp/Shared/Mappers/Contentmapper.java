@@ -1,11 +1,8 @@
 package com.example.SocialMediaApp.Shared.Mappers;
 
-import com.example.SocialMediaApp.Content.api.dto.CommentResponse;
-import com.example.SocialMediaApp.Content.api.dto.PostCreationRequest;
-import com.example.SocialMediaApp.Content.api.dto.PostRepresentation;
-import com.example.SocialMediaApp.Content.domain.Comment;
-import com.example.SocialMediaApp.Content.domain.Post;
-import com.example.SocialMediaApp.Content.domain.PostSettings;
+import com.example.SocialMediaApp.Content.api.dto.*;
+import com.example.SocialMediaApp.Content.domain.*;
+import com.example.SocialMediaApp.Upload.domain.MediaUpload;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,5 +15,8 @@ public interface Contentmapper {
     @Mapping(target = "postStatus" ,ignore = true)
     PostRepresentation toPostRepresentation(Post post);
     CommentResponse toCommentResponse(Comment comment);
+    MediaRepresentation toMediaRepresentation(Media media);
+    @Mapping(target = "storyStatus",ignore = true)
+    StoryRepresentation toStoryRepresentation(Story story);
 }
 

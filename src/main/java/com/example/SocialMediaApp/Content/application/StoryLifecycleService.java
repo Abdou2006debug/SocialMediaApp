@@ -1,12 +1,17 @@
 package com.example.SocialMediaApp.Content.application;
 
+import com.example.SocialMediaApp.Content.api.dto.MediaRepresentation;
 import com.example.SocialMediaApp.Content.api.dto.StoryCreationRequest;
+import com.example.SocialMediaApp.Content.api.dto.StoryRepresentation;
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Content.domain.Story;
 import com.example.SocialMediaApp.Content.persistence.StoryRepo;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Upload.application.StoryUploadService;
+import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
+import com.example.SocialMediaApp.Upload.domain.MediaUpload;
+import com.example.SocialMediaApp.Upload.domain.UploadType;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
+import com.example.SocialMediaApp.User.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,23 +23,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StoryLifecycleService {
 
-    private final StoryUploadService storyUploadService;
+    private final MediaLifecycleService mediaLifecycleService;
     private final AuthenticatedUserService authenticatedUserService;
     private final StoryRepo storyRepo;
+    private final Contentmapper contentmapper;
 
 
-    public void createStory(StoryCreationRequest storyCreationRequest){
+    public StoryRepresentation createStory(StoryCreationRequest storyCreationRequest){
         String currentUserId=authenticatedUserService.getcurrentuser();
-        String batchId=storyCreationRequest.getBatchId();
-        List<Media> mediaList= storyUploadService.finalizeStoryUploads(currentUserId,batchId);
-
-
-
+        List<String> uploadRequestsIds=storyCreationRequest.getUploadRequestsIds();
+        List<MediaUpload> mediaUploads= mediaLifecycleService.extractMediaUploads(currentUserId,uploadRequestsIds, UploadType.STORY);
+        Story story= storyRepo.save(Story.builder().user(new User(currentUserId))
+                .storySettings(storyCreationRequest.getStorySettings()).build());
+        List<Media> mediaList=mediaLifecycleService.persistMedia(mediaUploads,story);
+        StoryRepresentation storyRepresentation=contentmapper.toStoryRepresentation(story);
+        storyRepresentation.setStoryStatus(Story.StoryStatus.DRAFT);
+        List<MediaRepresentation> mediaRepresentationList=mediaList.stream().map(contentmapper::toMediaRepresentation).toList();
+        storyRepresentation.getMediaList().addAll(mediaRepresentationList);
+        return storyRepresentation;
     }
 
-    public void publishStory(String batchId){
+    public void publishStory(String storyId){
         String currentUserId=authenticatedUserService.getcurrentuser();
-        Story draftStory=storyRepo.findByUserIdAndStoryIdAndStoryStatus(currentUserId,batchId, Story.StoryStatus.DRAFT).
+        Story draftStory=storyRepo.findByUserIdAndStoryIdAndStoryStatus(currentUserId, storyId, Story.StoryStatus.DRAFT).
                 orElseThrow(()-> new ActionNotAllowedException("Action could not be completed"));
         draftStory.setPublishedAt(Instant.now());
         draftStory.setExpiresAt(Instant.now().plus(24,ChronoUnit.HOURS));

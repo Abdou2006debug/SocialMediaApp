@@ -36,8 +36,7 @@ import java.util.UUID;
 public class Post {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @CreatedDate
@@ -62,6 +61,7 @@ public class Post {
 
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private PostStatus postStatus=PostStatus.DRAFT;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -69,8 +69,8 @@ public class Post {
     private PostSettings postSettings;
 
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @OneToMany(mappedBy = "post",fetch = FetchType.LAZY,orphanRemoval = true,cascade =CascadeType.PERSIST)
+    @Builder.Default
     private List<Media> mediaList=new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -83,10 +83,6 @@ public class Post {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Location location;
-
-    public void setUser(String userId){
-        this.user=new User(userId);
-    }
 
     public enum PostStatus{
         PUBLISHED,UNPUBLISHED,DRAFT,DELETED

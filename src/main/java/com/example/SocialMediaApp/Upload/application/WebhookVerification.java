@@ -4,7 +4,7 @@ import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Shared.Exceptions.WebhookSignatureException;
-import com.example.SocialMediaApp.Upload.api.dto.PostUploadRequest;
+import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
 import com.example.SocialMediaApp.Upload.domain.UploadSession;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
@@ -35,14 +35,10 @@ public class WebhookVerification {
         Map<String,Object> metaData=storageRecord.getMetadata();
         String fileMimeType = (String) metaData.get("mimetype");
         Long fileSize = ((Number) metaData.get("size")).longValue();
-        uploadValidationService.validateFile(new PostUploadRequest(fileMimeType,fileSize,uploadSession.getUploadType()));
+        UploadType uploadType=uploadSession.getUploadType();
+        uploadValidationService.validateFile(new UploadRequest(uploadType,fileMimeType,fileSize,0));
         Media.MediaType mediaType= determineMediaType(fileMimeType);
         uploadSession.setMediaType(mediaType);
-        if(uploadSession.getUploadType()== UploadType.STORY){
-            String batchId=uploadSession.getBatchId();
-            boolean batchExists=batchId!=null&&redisTemplate.hasKey(batchId);
-            if(!batchExists) throw new ActionNotAllowedException("");
-        }
     }
 
     private Media.MediaType determineMediaType(String mimeType) {

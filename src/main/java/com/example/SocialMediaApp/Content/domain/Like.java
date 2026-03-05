@@ -15,8 +15,8 @@ import java.util.UUID;
 public class Like {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Enumerated(EnumType.STRING)
     private LikeType type;

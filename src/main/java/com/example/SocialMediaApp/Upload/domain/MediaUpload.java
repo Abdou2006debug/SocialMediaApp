@@ -1,16 +1,12 @@
 package com.example.SocialMediaApp.Upload.domain;
 
 import com.example.SocialMediaApp.Content.domain.Media;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 @AllArgsConstructor
-@Builder
-@NoArgsConstructor
 @Data
-public class UploadSession {
-    private String userId;
-    private UploadType uploadType;
-    private String uploadRequestId;
+public class MediaUpload {
     private String filePath;
     private Media.MediaType mediaType;
 }

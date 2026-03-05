@@ -20,8 +20,8 @@ import java.util.UUID;
 public class Reply {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Size(max = 100)
     private String content;

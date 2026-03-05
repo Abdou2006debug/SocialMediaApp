@@ -37,6 +37,7 @@ public interface PostRepo extends JpaRepository<Post,String> {
     @Query(value = "UPDATE Post SET commentCount = commentCount - 1 WHERE Post.id=(SELECT p.id FROM Post p JOIN Comment c ON p.id=c.post_id WHERE c.id=:commentId) RETURNING commentCount",nativeQuery = true)
     long decrementPostComments(@Param("commentId") String commentId);
 
+
     Page<Post> findByUserIdAndPostStatus(String userId, Post.PostStatus postStatus, Pageable pageable);
 
 }

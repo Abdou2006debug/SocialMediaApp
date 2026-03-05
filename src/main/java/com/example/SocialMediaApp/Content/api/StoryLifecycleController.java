@@ -1,13 +1,13 @@
 package com.example.SocialMediaApp.Content.api;
 
+import com.example.SocialMediaApp.Content.api.dto.StoryCreationRequest;
+import com.example.SocialMediaApp.Content.api.dto.StoryRepresentation;
 import com.example.SocialMediaApp.Content.application.StoryLifecycleService;
-import com.example.SocialMediaApp.Upload.application.StoryUploadService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,11 +15,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class StoryLifecycleController {
 
     private final StoryLifecycleService storyLifecycleService;
-    private final StoryUploadService storyUploadService;
 
-    @GetMapping("/batch")
-    public ResponseEntity<String> requestStoryBatch(@AuthenticationPrincipal String currentUserId){
-        return ResponseEntity.ok(storyUploadService.requestStoryBatch(currentUserId));
+
+    @PostMapping
+    public ResponseEntity<StoryRepresentation> createStory(@RequestBody @Valid StoryCreationRequest storyCreation){
+        return ResponseEntity.ok(storyLifecycleService.createStory(storyCreation));
+    }
+
+    @PatchMapping("/{storyId}/publish")
+    public ResponseEntity<Void> publishStory(@PathVariable String storyId){
+        storyLifecycleService.publishStory(storyId);
+        return ResponseEntity.noContent().build();
     }
 
 

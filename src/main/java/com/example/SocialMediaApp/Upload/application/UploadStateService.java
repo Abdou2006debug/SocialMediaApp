@@ -2,6 +2,8 @@ package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 
+import com.example.SocialMediaApp.Shared.Exceptions.UnauthorizedResourceAccessException;
+import com.example.SocialMediaApp.Shared.Exceptions.UploadSessionExpiredException;
 import com.example.SocialMediaApp.Upload.domain.UploadPhase;
 import com.example.SocialMediaApp.Upload.domain.UploadSession;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +27,14 @@ import org.springframework.stereotype.Service;
             uploadSession =(UploadSession) redisTemplate.opsForValue().getAndDelete(key);
         }
 
-        if(uploadSession==null) throw new ActionNotAllowedException("Upload Session expired or invalid");
+        if(uploadSession==null) throw new UploadSessionExpiredException("Upload Session expired or invalid");
 
         // confirming the user relation with upload is only done in confirmed upload phase after the file being uploaded
         if(uploadPhase==UploadPhase.CONFIRMED){
             String actualUserId=uploadSession.getUserId();
             if(!userId.equals(actualUserId)) {
                 // logging later
-                throw new ActionNotAllowedException("Action could not be completed");
+                throw new UnauthorizedResourceAccessException("Action could not be completed");
             }
         }
 

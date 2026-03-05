@@ -7,17 +7,15 @@ import com.example.SocialMediaApp.Profile.api.dto.profileSummary;
 import com.example.SocialMediaApp.Profile.domain.cache.ProfileInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Setter
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostRepresentation {
     @JsonProperty("AuthorProfile")
@@ -29,7 +27,7 @@ public class PostRepresentation {
     private Long likes;
     private boolean commentsDisabled;
     private Long comments;
-    private List<Media> mediaList;
+    private List<MediaRepresentation> mediaList=new ArrayList<>();
     private Location location;
     private boolean likedByMe;
 }

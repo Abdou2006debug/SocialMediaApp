@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Content.api.dto;
 
+import com.example.SocialMediaApp.Content.domain.Location;
 import com.example.SocialMediaApp.Content.domain.PostSettings;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -13,4 +14,5 @@ public class PostCreationRequest {
     private List<String> uploadRequestsIds;
     private List<String> tags;
     private PostSettings postSettings;
+    private Location location;
 }

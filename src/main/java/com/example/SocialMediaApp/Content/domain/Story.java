@@ -13,6 +13,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -27,8 +29,7 @@ import java.util.UUID;
 public class Story {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @CreatedDate
@@ -42,12 +43,13 @@ public class Story {
 
     private Long viewCount=0L;
 
-    private  StoryStatus storyStatus;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private  StoryStatus storyStatus=StoryStatus.DRAFT;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Media media;
-
+    @OneToMany(mappedBy = "story",fetch = FetchType.LAZY,orphanRemoval = true,cascade = CascadeType.PERSIST)
+    @Builder.Default
+    private List<Media> mediaList=new ArrayList<>();
 
 
     @JdbcTypeCode(SqlTypes.JSON)

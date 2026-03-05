@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class MediaUploadService {
+public class UploadGatewayService {
 
     private final StorageService storageService;
     private final RedisTemplate<String,Object> objectRedisTemplate;
@@ -33,7 +33,7 @@ public class MediaUploadService {
 
     // used to upload files directly though the server
     public String Upload(MultipartFile file, String userId) throws IOException {
-        PostUploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
+        UploadRequest uploadRequest= uploadUtil.toUploadRequest(file);
         uploadValidationService.validateFile(uploadRequest);
         UploadInitiation uploadInitiation= uploadUtil.generateUploadResponse(userId,uploadRequest);
         String filepath=uploadInitiation.getFilepath();
@@ -43,17 +43,21 @@ public class MediaUploadService {
         return filepath;
     }
 
-    public UploadSession requestUpload(String userId, BaseUploadRequest request){
+    public UploadResponse requestUpload(String userId, UploadRequest request){
          uploadValidationService.validateFile(request);
          UploadInitiation uploadInitiation=uploadUtil.generateUploadResponse(userId,request);
+         UploadType uploadType=request.getUploadType();
          String filepath=uploadInitiation.getFilepath();
          String uploadRequestId=uploadInitiation.getUploadRequestId();
          String signedUrl=storageService.generateSignedUrl(filepath);
+
          // creating an upload session containing the user id for authorization later + the request id and the upload type
-        return UploadSession.builder()
-                .userId(userId).signedUrl(signedUrl).
+        UploadSession uploadSession=UploadSession.builder()
+                .userId(userId).uploadType(uploadType).
                 uploadRequestId(uploadRequestId)
                 .filePath(filepath).build();
+        objectRedisTemplate.opsForValue().set(filepath,uploadSession);
+        return new UploadResponse(signedUrl,uploadRequestId);
     }
 
     public void confirmUpload(String signature, SupabaseWebhookPayload webhookPayload){
@@ -65,30 +69,15 @@ public class MediaUploadService {
 
              filePath=webhookPayload.getRecord().getName();
 
-            UploadSession uploadSession=uploadStateService.validateUploadSession(null,filePath, UploadPhase.REQUESTED);
+            UploadSession uploadSession=uploadStateService.validateUploadSession("",filePath, UploadPhase.REQUESTED);
 
             webhookVerification.verifyFileUploaded(uploadSession,webhookPayload.getRecord());
 
-            if(uploadSession.getUploadType()==UploadType.POST){
-                objectRedisTemplate.opsForValue().set(uploadSession.getUploadRequestId(),uploadSession,UPLOAD_CONFIRM_DURATION_MINUTES,TimeUnit.MINUTES);
-            }else{
-
-                    String batchId=uploadSession.getBatchId();
-                    boolean batchExists=batchId!=null&&redisTemplate.hasKey(batchId);
-                    if(!batchExists) throw new ActionNotAllowedException("");
-                redisTemplate.opsForHash().put(
-                        batchId,
-                        "file:" + filePath,
-                        uploadSession.getMediaType()
-                );
-            }
-
-
+            objectRedisTemplate.opsForValue().set(uploadSession.getUploadRequestId(),uploadSession);
 
         }catch (ActionNotAllowedException | UnsupportedMediaTypeException | FileTooLargeException e){
             storageService.deleteFile(filePath);
         }
-
 
     }
 
@@ -98,6 +87,36 @@ public class MediaUploadService {
         UploadSession uploadSession =uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
         storageService.deleteFile(uploadSession.getFilePath());
         redisTemplate.delete(uploadSession.getUploadRequestId());
+    }
+
+    public List<MediaUpload> finalizeUploads(String userId, List<String> uploadRequestsIds,UploadType uploadType){
+
+        List<String> filesPaths =new ArrayList<>();
+        List<MediaUpload> mediaList=new ArrayList<>();
+        List<String> failedUploadIds=new ArrayList<>();
+
+        for(String uploadRequestId : uploadRequestsIds){
+            try{
+                UploadSession uploadSession=uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
+                UploadType actualUploadType=uploadSession.getUploadType();
+                if(actualUploadType!=uploadType) throw new UploadTypeMismatch("Upload Type Mismatch");
+                String filepath=uploadSession.getFilePath();
+                filesPaths.add(filepath);
+                mediaList.add(new MediaUpload(filepath.replace("temporary","permanent"), uploadSession.getMediaType()));
+                // upload session expired which mean the key is not found in redis is the only recoverable case
+            }catch (UploadSessionExpiredException e){
+                failedUploadIds.add(uploadRequestId);
+            }
+        }
+
+        if(!failedUploadIds.isEmpty()) throw new UploadFailedException(failedUploadIds);
+
+        storageService.moveFilesToPermanent(filesPaths);
+
+        redisTemplate.delete(uploadRequestsIds);
+
+        return mediaList;
+
     }
 
 

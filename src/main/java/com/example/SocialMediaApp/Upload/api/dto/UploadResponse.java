@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseUploadResponse {
+public class UploadResponse {
     private String signedUrl;
+    private String requestId;
 }

@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Upload.api.dto;
 
+import com.example.SocialMediaApp.Upload.domain.UploadSession;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -10,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-public class BaseUploadRequest {
-    private String fileName;
+public class UploadRequest {
+    private UploadType uploadType;
     private String fileMimeType;
     private Long fileSize;
     @Max(15)

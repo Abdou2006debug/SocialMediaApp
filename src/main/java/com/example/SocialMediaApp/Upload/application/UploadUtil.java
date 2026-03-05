@@ -1,8 +1,6 @@
 package com.example.SocialMediaApp.Upload.application;
 
-import com.example.SocialMediaApp.Upload.api.dto.BaseUploadRequest;
-import com.example.SocialMediaApp.Upload.api.dto.PostUploadRequest;
-import com.example.SocialMediaApp.Upload.api.dto.StoryUploadRequest;
+import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.UploadInitiation;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +15,14 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
 @RequiredArgsConstructor
  class UploadUtil {
 
-    public UploadInitiation generateUploadResponse(String userId, BaseUploadRequest request){
+    public UploadInitiation generateUploadResponse(String userId, UploadRequest request){
         String uploadRequestId = UUID.randomUUID().toString();
-        UploadType uploadType=request instanceof PostUploadRequest ? POST:request instanceof StoryUploadRequest ?STORY:PROFILE;
+        UploadType uploadType=request.getUploadType();
         return new UploadInitiation(String.format("temporary/%s/%s/%s",uploadType.toString().toLowerCase(),userId,uploadRequestId),uploadRequestId);
     }
 
-    public PostUploadRequest toUploadRequest(MultipartFile file){
-        PostUploadRequest request = new PostUploadRequest();
-        request.setFileName(file.getName());
+    public UploadRequest toUploadRequest(MultipartFile file){
+        UploadRequest request = new UploadRequest();
         request.setFileMimeType(file.getContentType());
         request.setFileSize(file.getSize());
         request.setUploadType(UploadType.PROFILE);

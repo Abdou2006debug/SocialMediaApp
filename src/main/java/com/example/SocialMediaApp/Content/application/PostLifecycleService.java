@@ -1,16 +1,23 @@
 package com.example.SocialMediaApp.Content.application;
+import com.example.SocialMediaApp.Content.api.dto.MediaRepresentation;
 import com.example.SocialMediaApp.Content.api.dto.PostCreationRequest;
+import com.example.SocialMediaApp.Content.api.dto.PostRepresentation;
 import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Content.domain.Post;
+import com.example.SocialMediaApp.Content.persistence.MediaRepo;
 import com.example.SocialMediaApp.Content.persistence.PostRepo;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Upload.application.MediaUploadService;
-import com.example.SocialMediaApp.Upload.application.PostUploadService;
+import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
+import com.example.SocialMediaApp.Upload.application.UploadGatewayService;
+import com.example.SocialMediaApp.Upload.domain.MediaUpload;
+import com.example.SocialMediaApp.Upload.domain.UploadType;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
+import com.example.SocialMediaApp.User.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -18,22 +25,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostLifecycleService {
 
-    private final PostUploadService postUploadService;
     private final AuthenticatedUserService authenticatedUserService;
     private final PostRepo postRepo;
+    private final MediaLifecycleService mediaLifecycleService;
+    private final Contentmapper contentmapper;
 
-
-
-    public void createPost(PostCreationRequest postCreation){
+    public PostRepresentation createPost(PostCreationRequest postCreation){
         String currentUserId=authenticatedUserService.getcurrentuser();
         List<String> uploadRequestsIds=postCreation.getUploadRequestsIds();
-        List<Media> mediaList=postUploadService.finalizePostUploads(currentUserId,uploadRequestsIds);;
-        Post post= Post.builder().
-                caption(postCreation.getCaption()).
-                mediaList(mediaList).postSettings(postCreation.getPostSettings()).build();
-
-        post.setUser(currentUserId);
-        postRepo.save(post);
+        List<MediaUpload> mediaUploads=mediaLifecycleService.extractMediaUploads(currentUserId,uploadRequestsIds,UploadType.POST);
+        Post post= postRepo.save(Post.builder().user(new User(currentUserId))
+                .caption(postCreation.getCaption())
+                .postSettings(postCreation.getPostSettings()).location(postCreation.getLocation()).build());
+        List<Media> mediaList=mediaLifecycleService.persistMedia(mediaUploads,post);
+        PostRepresentation postRepresentation=contentmapper.toPostRepresentation(post);
+        postRepresentation.setPostStatus(Post.PostStatus.DRAFT);
+        List<MediaRepresentation> mediaRepresentationList= mediaList.stream().map(contentmapper::toMediaRepresentation).toList();
+        postRepresentation.getMediaList().addAll(mediaRepresentationList);
+        return postRepresentation;
     }
 
     // publishing post for first time draft -> published
