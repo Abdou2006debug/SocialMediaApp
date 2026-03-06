@@ -1,8 +1,8 @@
 package com.example.SocialMediaApp.User.application;
 
 
+import com.example.SocialMediaApp.User.Exceptions.UserProvisioningException;
 import com.example.SocialMediaApp.User.api.dto.userregistration;
-import com.example.SocialMediaApp.Shared.Exceptions.UserProvisioningException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;

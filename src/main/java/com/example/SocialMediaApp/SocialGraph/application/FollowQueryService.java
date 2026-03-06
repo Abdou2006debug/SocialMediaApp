@@ -1,7 +1,7 @@
 package com.example.SocialMediaApp.SocialGraph.application;
 
-import com.example.SocialMediaApp.Shared.Exceptions.FollowListNotVisibleException;
 import com.example.SocialMediaApp.Shared.VisibilityPolicy;
+import com.example.SocialMediaApp.SocialGraph.Exceptions.FollowListNotVisibleException;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.Profile.api.dto.profileSummary;
 import com.example.SocialMediaApp.Shared.CheckUserExistence;

@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.SocialGraph.application.cache;
 
-import com.example.SocialMediaApp.Shared.Exceptions.PageNotExistException;
+import com.example.SocialMediaApp.Messaging.Exceptions.PageNotExistException;
 import com.example.SocialMediaApp.SocialGraph.application.FollowQueryHelper;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;

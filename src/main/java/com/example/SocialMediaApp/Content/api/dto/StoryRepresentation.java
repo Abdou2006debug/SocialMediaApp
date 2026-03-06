@@ -25,4 +25,5 @@ public class StoryRepresentation {
     private Instant publishedAt;
     private Story.StoryStatus storyStatus;
     private List<MediaRepresentation> mediaList;
+    private boolean seen;
 }

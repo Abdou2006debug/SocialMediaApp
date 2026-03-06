@@ -1,6 +1,6 @@
 package com.example.SocialMediaApp.User.application;
 
-import com.example.SocialMediaApp.Shared.Exceptions.UserRegistrationException;
+import com.example.SocialMediaApp.User.Exceptions.UserRegistrationException;
 import com.example.SocialMediaApp.User.api.dto.userregistration;
 import com.example.SocialMediaApp.User.domain.User;
 import com.example.SocialMediaApp.User.persistence.UserRepo;

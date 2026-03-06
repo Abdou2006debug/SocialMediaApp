@@ -16,7 +16,6 @@ import com.example.SocialMediaApp.SocialGraph.domain.events.followRemoved;
 import com.example.SocialMediaApp.SocialGraph.persistence.BlocksRepo;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
-import com.example.SocialMediaApp.User.domain.User;
 import jdk.jfr.Description;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

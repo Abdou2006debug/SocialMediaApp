@@ -1,12 +1,12 @@
 package com.example.SocialMediaApp.Content.application;
 
+import com.example.SocialMediaApp.Content.Exceptions.ContentNotFoundException;
 import com.example.SocialMediaApp.Content.api.dto.CommentRequest;
 import com.example.SocialMediaApp.Content.api.dto.CommentResponse;
 import com.example.SocialMediaApp.Content.api.dto.LikeResponse;
 import com.example.SocialMediaApp.Content.domain.*;
 import com.example.SocialMediaApp.Content.persistence.*;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Shared.Exceptions.ContentNotFoundException;
 import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
 import com.example.SocialMediaApp.Shared.VisibilityPolicy;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;

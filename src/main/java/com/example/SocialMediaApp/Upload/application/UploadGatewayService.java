@@ -1,9 +1,9 @@
 package com.example.SocialMediaApp.Upload.application;
 
-import com.example.SocialMediaApp.Content.domain.Media;
-import com.example.SocialMediaApp.Shared.Exceptions.*;
+import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
 import com.example.SocialMediaApp.Storage.StorageService;
 
+import com.example.SocialMediaApp.Upload.Exceptions.*;
 import com.example.SocialMediaApp.Upload.api.dto.*;
 import com.example.SocialMediaApp.Upload.domain.*;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class UploadGatewayService {
                 .userId(userId).uploadType(uploadType).
                 uploadRequestId(uploadRequestId)
                 .filePath(filepath).build();
-        objectRedisTemplate.opsForValue().set(filepath,uploadSession);
+        objectRedisTemplate.opsForValue().set(filepath,uploadSession,UPLOAD_WAIT_DURATION_MINUTES,TimeUnit.MINUTES);
         return new UploadResponse(signedUrl,uploadRequestId);
     }
 
@@ -73,15 +73,21 @@ public class UploadGatewayService {
 
             webhookVerification.verifyFileUploaded(uploadSession,webhookPayload.getRecord());
 
-            objectRedisTemplate.opsForValue().set(uploadSession.getUploadRequestId(),uploadSession);
+            objectRedisTemplate.opsForValue().set(uploadSession.getUploadRequestId(),uploadSession,UPLOAD_CONFIRM_DURATION_MINUTES, TimeUnit.MINUTES);
 
-        }catch (ActionNotAllowedException | UnsupportedMediaTypeException | FileTooLargeException e){
+        }catch (UploadSessionExpiredException | UnsupportedMediaTypeException | FileTooLargeException e){
+
             storageService.deleteFile(filePath);
+
+            if(e instanceof  UnsupportedMediaTypeException||e instanceof FileTooLargeException){
+                // might block user later
+            }
+
         }
 
     }
 
-    public void deleteUpload(String userId,String uploadRequestId){
+    public void discardUpload(String userId, String uploadRequestId){
 
         // upload state must confirmed to delete the file
         UploadSession uploadSession =uploadStateService.validateUploadSession(userId,uploadRequestId, UploadPhase.CONFIRMED);
@@ -107,6 +113,7 @@ public class UploadGatewayService {
             }catch (UploadSessionExpiredException e){
                 failedUploadIds.add(uploadRequestId);
             }
+
         }
 
         if(!failedUploadIds.isEmpty()) throw new UploadFailedException(failedUploadIds);

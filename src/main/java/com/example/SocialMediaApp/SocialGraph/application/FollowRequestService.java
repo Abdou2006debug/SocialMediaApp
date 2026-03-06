@@ -1,12 +1,11 @@
 package com.example.SocialMediaApp.SocialGraph.application;
 
 import com.example.SocialMediaApp.Notification.domain.events.FollowNotification;
+import com.example.SocialMediaApp.SocialGraph.Exceptions.BadFollowRequestException;
+import com.example.SocialMediaApp.SocialGraph.Exceptions.NoRelationShipException;
 import com.example.SocialMediaApp.SocialGraph.application.cache.FollowCacheUpdater;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
-import com.example.SocialMediaApp.User.domain.User;
 import com.example.SocialMediaApp.Shared.CheckUserExistence;
-import com.example.SocialMediaApp.Shared.Exceptions.BadFollowRequestException;
-import com.example.SocialMediaApp.Shared.Exceptions.NoRelationShipException;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.domain.events.followAdded;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;

@@ -1,9 +1,8 @@
 package com.example.SocialMediaApp.Upload.application;
 
 import com.example.SocialMediaApp.Content.domain.Media;
-import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
-import com.example.SocialMediaApp.Shared.Exceptions.WebhookSignatureException;
+import com.example.SocialMediaApp.Upload.Exceptions.UnsupportedMediaTypeException;
+import com.example.SocialMediaApp.Upload.Exceptions.WebhookSignatureException;
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.SupabaseWebhookPayload;
 import com.example.SocialMediaApp.Upload.domain.UploadSession;
@@ -43,7 +42,7 @@ public class WebhookVerification {
 
     private Media.MediaType determineMediaType(String mimeType) {
         if (mimeType == null) {
-            throw new UnsupportedMediaTypeException("Mimetype is missing from storage record");
+           // throw new UnsupportedMediaTypeException("Mimetype is missing from storage record");
         }
 
         if (mimeType.startsWith("image/")) {
@@ -51,7 +50,7 @@ public class WebhookVerification {
         } else if (mimeType.startsWith("video/")) {
             return Media.MediaType.VIDEO;
         } else {
-            throw new UnsupportedMediaTypeException("Unsupported file format: " + mimeType);
+           // throw new UnsupportedMediaTypeException("Unsupported file format: " + mimeType);
         }
     }
 }

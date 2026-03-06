@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Messaging.application;
 
+import com.example.SocialMediaApp.Messaging.Exceptions.ChatMessagingException;
 import com.example.SocialMediaApp.Messaging.api.dto.*;
 import com.example.SocialMediaApp.Messaging.domain.Chat;
 import com.example.SocialMediaApp.Messaging.domain.ChatMember;
@@ -11,11 +12,9 @@ import com.example.SocialMediaApp.Profile.api.dto.profileSummary;
 import com.example.SocialMediaApp.Profile.application.ProfileSummaryBuilder;
 import com.example.SocialMediaApp.Profile.application.cache.ProfileCacheManager;
 import com.example.SocialMediaApp.Profile.domain.Profile;
-import com.example.SocialMediaApp.Shared.Exceptions.ChatMessagingException;
 import com.example.SocialMediaApp.Shared.Mappers.Chatmapper;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.application.UserActivityTracker;
-import com.example.SocialMediaApp.User.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -36,9 +36,10 @@ public class Reply {
     @JoinColumn(name ="user_id")
     private User user;
 
-    public Reply(String userId,String commentId){
+    public Reply(String userId,String commentId,String content){
         this.user=new User(userId);
         this.comment=new Comment(commentId);
+        this.content=content;
     }
 
 }

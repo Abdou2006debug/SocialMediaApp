@@ -1,8 +1,8 @@
 package com.example.SocialMediaApp.SocialGraph.application;
 
+import com.example.SocialMediaApp.SocialGraph.Exceptions.BadFollowRequestException;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.Shared.CheckUserExistence;
-import com.example.SocialMediaApp.Shared.Exceptions.BadFollowRequestException;
 import com.example.SocialMediaApp.SocialGraph.domain.Block;
 import com.example.SocialMediaApp.SocialGraph.persistence.BlocksRepo;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;

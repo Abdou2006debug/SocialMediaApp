@@ -1,22 +1,19 @@
 package com.example.SocialMediaApp.Content.application;
 
+import com.example.SocialMediaApp.Content.Exceptions.ContentNotAvailableException;
 import com.example.SocialMediaApp.Content.api.dto.MediaRepresentation;
 import com.example.SocialMediaApp.Content.api.dto.PostRepresentation;
-import com.example.SocialMediaApp.Content.domain.Media;
 import com.example.SocialMediaApp.Content.domain.Post;
-import com.example.SocialMediaApp.Content.domain.PostLike;
 import com.example.SocialMediaApp.Content.domain.PostSettings;
 import com.example.SocialMediaApp.Content.persistence.MediaRepo;
 import com.example.SocialMediaApp.Content.persistence.PostLikeRepo;
 import com.example.SocialMediaApp.Content.persistence.PostRepo;
-import com.example.SocialMediaApp.Content.persistence.StoryRepo;
-import com.example.SocialMediaApp.Profile.api.dto.profileSummary;
 import com.example.SocialMediaApp.Profile.application.ProfileQueryService;
 import com.example.SocialMediaApp.Profile.domain.cache.ProfileInfo;
-import com.example.SocialMediaApp.Shared.Exceptions.ContentNotAvailableException;
-import com.example.SocialMediaApp.Shared.Exceptions.UserNotFoundException;
 import com.example.SocialMediaApp.Shared.Mappers.Contentmapper;
+import com.example.SocialMediaApp.Shared.ViewerType;
 import com.example.SocialMediaApp.Shared.VisibilityPolicy;
+import com.example.SocialMediaApp.User.Exceptions.UserNotFoundException;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.persistence.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +46,7 @@ public class PostQueryService {
     public Page<PostRepresentation> getMyPosts(Post.PostStatus postStatus, int page){
         String currentUserId=authenticatedUserService.getcurrentuser();
         Pageable pageable=getPageable(page,postStatus);
-        return getPostsRepresentation(currentUserId,postStatus,pageable);
+        return getPostsRepresentation(currentUserId,postStatus,pageable,ViewerType.OWNER,null);
     }
 
     public Page<PostRepresentation> getUserPosts(String targetId, int page){
@@ -68,42 +66,14 @@ public class PostQueryService {
                 .map(Post::getId)
                 .toList();
 
-        Map<String, Boolean> likesMap = postIds.stream()
-                .collect(Collectors.toMap(id -> id, id -> false));
-
         Set<String> likedPostIds = postLikeRepo.getLikesPostIds(currentUserId, postIds);
 
-        likedPostIds.forEach(postId -> likesMap.put(postId, true));
 
-        return postPage.map(post -> {
-
-            String postId=post.getId();
-
-            PostRepresentation postRepresentation=contentmapper.toPostRepresentation(post);
-
-            postRepresentation.setProfileInfo(profileInfo);
-
-            postRepresentation.setLikedByMe(likesMap.getOrDefault(postId,false));
-
-            PostSettings postSettings=post.getPostSettings();
-
-            if(!postSettings.isHideLikes()){
-                postRepresentation.setLikes(post.getLikeCount());
-            }
-
-            if(postSettings.isCommentsDisabled()){
-                postRepresentation.setCommentsDisabled(true);
-            }
-
-            if(!postSettings.isHideComments()){
-                postRepresentation.setComments(post.getCommentCount());
-            }
-
-                return postRepresentation;
-        });
+        return getPostsRepresentation(targetId, Post.PostStatus.PUBLISHED,pageable,ViewerType.VIEWER,likedPostIds::contains);
     }
 
-    private Page<PostRepresentation> getPostsRepresentation(String userId,Post.PostStatus postStatus,Pageable pageable){
+    private Page<PostRepresentation> getPostsRepresentation(String userId, Post.PostStatus postStatus, Pageable pageable, ViewerType viewerType, Function<String,Boolean> likesFunction){
+
         Page<Post> postList=postRepo.findByUserIdAndPostStatus(userId,postStatus,pageable);
         List<String> postIds=postList.stream().map(Post::getId).toList();
         Map<String,List<MediaRepresentation>> mediaRepresentationList= mediaRepo.findByPostIdIn(postIds).stream().collect(Collectors.groupingBy(
@@ -120,6 +90,24 @@ public class PostQueryService {
             postRepresentation.setComments(post.getCommentCount());
 
             postRepresentation.getMediaList().addAll(mediaRepresentations);
+
+            if(viewerType==ViewerType.VIEWER){
+
+                PostSettings postSettings=post.getPostSettings();
+
+                if(!postSettings.isHideLikes()){
+                    postRepresentation.setLikes(post.getLikeCount());
+                }
+
+                if(postSettings.isCommentsDisabled()){
+                    postRepresentation.setCommentsDisabled(true);
+                }
+
+                if(!postSettings.isHideComments()){
+                    postRepresentation.setComments(post.getCommentCount());
+                }
+                postRepresentation.setLikedByMe(likesFunction.apply(postId));
+            }
 
             return postRepresentation;
         });

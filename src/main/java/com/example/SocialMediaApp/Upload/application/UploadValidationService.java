@@ -1,7 +1,7 @@
 package com.example.SocialMediaApp.Upload.application;
 
-import com.example.SocialMediaApp.Shared.Exceptions.FileTooLargeException;
-import com.example.SocialMediaApp.Shared.Exceptions.UnsupportedMediaTypeException;
+import com.example.SocialMediaApp.Upload.Exceptions.FileTooLargeException;
+import com.example.SocialMediaApp.Upload.Exceptions.UnsupportedMediaTypeException;
 import com.example.SocialMediaApp.Upload.api.dto.UploadRequest;
 import com.example.SocialMediaApp.Upload.domain.UploadType;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
 @Component
  class UploadValidationService {
 
-    static final Map<UploadType,List<String>> allowedTypes=Map.of(
+    static final Map<UploadType,List<String>> supportedMediaTypes =Map.of(
             PROFILE, Arrays.asList(
             "image/jpeg",
             "image/png",
@@ -46,10 +46,10 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
 
     public void validateFile(UploadRequest request){
         UploadType uploadType=request.getUploadType();
-     List<String> allowedTypesForRequest =allowedTypes.get(uploadType);
+     List<String> supportedMediaTypesForRequest = supportedMediaTypes.get(uploadType);
      boolean compatible=false;
-     if(allowedTypesForRequest!=null){
-        compatible= allowedTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileMimeType().toLowerCase()));
+     if(supportedMediaTypesForRequest !=null){
+        compatible= supportedMediaTypesForRequest.stream().anyMatch(allowedTypes->allowedTypes.equals(request.getFileMimeType().toLowerCase()));
      }
 
         String filetMimeType =request.getFileMimeType();
@@ -72,14 +72,14 @@ import static com.example.SocialMediaApp.Upload.domain.UploadType.*;
          };
 
          if(limit<request.getFileSize()){
-             throw new FileTooLargeException("file size is too large");
+             throw new FileTooLargeException(limit);
          }
 
          return;
 
      }
 
-     throw new UnsupportedMediaTypeException("file type is unsupported");
+     throw new UnsupportedMediaTypeException(supportedMediaTypesForRequest);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Messaging.application;
 
+import com.example.SocialMediaApp.Messaging.Exceptions.ChatMessagingException;
 import com.example.SocialMediaApp.Messaging.api.dto.sendMessageToChatDTO;
 import com.example.SocialMediaApp.Messaging.api.dto.sendMessageToUserDTO;
 import com.example.SocialMediaApp.Messaging.domain.Chat;
@@ -11,14 +12,12 @@ import com.example.SocialMediaApp.Messaging.persistence.MessageRepo;
 import com.example.SocialMediaApp.Profile.application.cache.ProfileCacheManager;
 import com.example.SocialMediaApp.Profile.domain.Profile;
 import com.example.SocialMediaApp.Shared.CheckUserExistence;
-import com.example.SocialMediaApp.Shared.Exceptions.ChatMessagingException;
 import com.example.SocialMediaApp.SocialGraph.domain.Follow;
 import com.example.SocialMediaApp.SocialGraph.persistence.BlocksRepo;
 import com.example.SocialMediaApp.SocialGraph.persistence.FollowRepo;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import com.example.SocialMediaApp.User.domain.User;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

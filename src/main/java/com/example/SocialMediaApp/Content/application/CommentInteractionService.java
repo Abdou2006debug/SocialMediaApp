@@ -1,5 +1,6 @@
 package com.example.SocialMediaApp.Content.application;
 
+import com.example.SocialMediaApp.Content.Exceptions.ContentNotFoundException;
 import com.example.SocialMediaApp.Content.api.dto.CommentRequest;
 import com.example.SocialMediaApp.Content.api.dto.LikeResponse;
 import com.example.SocialMediaApp.Content.domain.Comment;
@@ -10,7 +11,6 @@ import com.example.SocialMediaApp.Content.persistence.CommentRepo;
 import com.example.SocialMediaApp.Content.persistence.LikeRepo;
 import com.example.SocialMediaApp.Content.persistence.ReplyRepo;
 import com.example.SocialMediaApp.Shared.Exceptions.ActionNotAllowedException;
-import com.example.SocialMediaApp.Shared.Exceptions.ContentNotFoundException;
 import com.example.SocialMediaApp.Shared.VisibilityPolicy;
 import com.example.SocialMediaApp.User.application.AuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +25,10 @@ public class CommentInteractionService {
     private final AuthenticatedUserService authenticatedUserService;
     private final LikeRepo likeRepo;
     private final ReplyRepo replyRepo;
+
     // toggle between Comment liked and not liked
     public LikeResponse addCommentLike(String commentId){
+
         String currentUserId=authenticatedUserService.getcurrentuser();
 
         Comment comment=commentRepo.findById(commentId).orElseThrow(()-> new ContentNotFoundException("Comment Not Found"));
@@ -63,7 +65,7 @@ public class CommentInteractionService {
             throw new ActionNotAllowedException("Action could not be completed");
         }
 
-        replyRepo.save(new Reply(currentUserId,commentId));
+        replyRepo.save(new Reply(currentUserId,commentId,commentRequest.getContent()));
         commentRepo.updateCommentReplies(commentId,1);
 
     }
