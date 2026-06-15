@@ -1,7 +1,6 @@
 package com.Nexsta.Profile.application;
 
 import com.Nexsta.Profile.api.dto.ProfileSettingsDto;
-import com.Nexsta.SocialGraph.application.cache.FollowCacheWriter;
 import com.Nexsta.User.application.AuthenticatedUserService;
 import com.Nexsta.Profile.api.dto.ProfileDetails;
 import com.Nexsta.Profile.application.cache.ProfileCacheManager;

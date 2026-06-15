@@ -280,7 +280,6 @@ The following features are actively under development:
 
 | Feature | Status |
 |---|---|
-| Real-time messaging (WebSocket / STOMP) | 🔄 In development |
 | Stories — full viewer and expiry pipeline | 🔄 In development |
 | Profile search | 🔄 In development |
 | GitHub Actions → Azure CD pipeline | 🔄 Being configured |

@@ -24,7 +24,6 @@ public class UserExistence {
     public void checkUserExistence(JoinPoint joinPoint){
         Object[] args = joinPoint.getArgs();
         String userId=getUserId(args[0]);
-                log.info("checking user existence for "+userId);
                 if (userId!=null&&!userRepo.existsById(userId)) {
                     throw new UserNotFoundException(userId);
                 }
